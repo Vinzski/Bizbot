@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+
+# Node.js
+node_modules/
+
+# Rasa
+models/
+
+# IDEs
+.vscode/
+.idea/
+
+# Misc
+.DS_Store
