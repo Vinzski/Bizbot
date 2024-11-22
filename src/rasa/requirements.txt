@@ -98,7 +98,6 @@ python-dateutil==2.8.2
 python-engineio==4.9.1
 python-socketio==5.11.4
 pytz==2022.7.1
-pywin32==307
 PyYAML==6.0.2
 questionary==1.10.0
 randomname==0.1.5
