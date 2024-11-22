@@ -1,5 +1,5 @@
-# Use an official Rasa image from Docker Hub
-FROM rasa/rasa:latest
+# Use a specific Rasa image that matches your project's Rasa version
+FROM rasa/rasa:3.6.20-full
 
 # Set the working directory
 WORKDIR /app
