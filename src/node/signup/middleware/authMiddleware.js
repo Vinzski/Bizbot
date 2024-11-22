@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const UserModel = require('../../models/userModel');
+const userModel = require('../../models/userModel');
 
 const authenticate = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -15,6 +15,6 @@ const authenticate = (req, res, next) => {
         res.status(400).send('Invalid token.');
     }
 };
-
 module.exports = authenticate;
+
 

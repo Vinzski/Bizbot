@@ -4,6 +4,7 @@ const app = express();
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('../config/db');
+const userModel = require('../models/userModel');
 
 
 app.use(express.json());
