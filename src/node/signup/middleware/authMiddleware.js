@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const userModel = require(path.join(__dirname, '../../models/userModel'));
 
 const authenticate = (req, res, next) => {
@@ -17,4 +18,3 @@ const authenticate = (req, res, next) => {
 };
 
 module.exports = authenticate;
-
