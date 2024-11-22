@@ -8,7 +8,7 @@ USER root
 WORKDIR /app
 
 # Copy requirements.txt into the container
-COPY requirements.txt /app/
+COPY . .
 
 # Upgrade pip to the latest version
 RUN pip install --no-cache-dir --upgrade pip
@@ -29,4 +29,4 @@ COPY . /app
 EXPOSE 5005
 
 # Start the Rasa server
-CMD ["rasa", "run", "--enable-api", "--cors", "*"]
+CMD ["rasa", "run", "--enable-api", "--cors", "*", "--port", "8080"]
