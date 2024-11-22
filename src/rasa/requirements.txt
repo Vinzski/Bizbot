@@ -101,8 +101,6 @@ pytz==2022.7.1
 PyYAML==6.0.2
 questionary==1.10.0
 randomname==0.1.5
-rasa==3.6.20
-rasa-sdk==3.6.2
 redis==4.6.0
 regex==2022.10.31
 requests==2.32.3
