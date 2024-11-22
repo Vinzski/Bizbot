@@ -1,16 +1,20 @@
-# Use a specific Rasa image that matches your project's Rasa version
+# Use a specific Rasa image from Docker Hub that matches your Rasa version
 FROM rasa/rasa:3.6.20-full
+
+# Switch to root user to perform installations
+USER root
 
 # Upgrade pip to the latest version
 RUN pip install --upgrade pip
 
 # Install system dependencies if needed
-USER root
 RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Switch back to non-root user
 USER 1001
 
 # Set the working directory
