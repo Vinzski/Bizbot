@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
 
-connectDB();  // Connect to MongoDB
+connectDB();
 
 app.use(cors({
     origin: '*',
