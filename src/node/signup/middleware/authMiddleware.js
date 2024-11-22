@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const UserModel = require('../../models/userModel');
+const userModel = require(path.join(__dirname, '../../models/userModel'));
 
 const authenticate = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
