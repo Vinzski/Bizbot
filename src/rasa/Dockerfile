@@ -11,13 +11,16 @@ WORKDIR /app
 COPY requirements.txt /app/
 
 # Upgrade pip to the latest version
-RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Ensure all files in the working directory are accessible to non-root user
+RUN chown -R 1001:1001 /app
+
 # Switch back to non-root user
-USER 1001  # Replace with the correct UID if different
+USER 1001  # Ensure this matches the non-root user UID used in the Rasa image
 
 # Copy the rest of the application code
 COPY . /app
