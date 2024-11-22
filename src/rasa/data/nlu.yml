@@ -11,17 +11,23 @@ nlu:
     - good evening
     - moin
     - hey there
-    - let's go
     - hey dude
     - goodmorning
     - goodevening
     - good afternoon
+    - yo
+    - wazzup
+    - hello buddy
+    - heya
+    - hey there
+    - what's up
 
 - intent: goodbye
   examples: |
     - cu
-    - good by
-    - cee you later
+    - byebye
+    - good bye
+    - see you later
     - good night
     - bye
     - goodbye
@@ -29,6 +35,9 @@ nlu:
     - see you around
     - bye bye
     - see you later
+    - ciao
+    - cya
+    - talk to you later
 
 - intent: affirm
   examples: |
@@ -38,6 +47,10 @@ nlu:
     - of course
     - that sounds good
     - correct
+    - sure
+    - absolutly 
+    - affirmative
+    - understood
 
 - intent: deny
   examples: |
@@ -48,6 +61,10 @@ nlu:
     - don't like that
     - no way
     - not really
+    - negative
+    - nah
+    - nope 
+    - nop
 
 - intent: mood_great
   examples: |
@@ -65,6 +82,7 @@ nlu:
     - so so perfect
     - so good
     - so perfect
+    - Good
 
 - intent: mood_unhappy
   examples: |
@@ -89,3 +107,30 @@ nlu:
     - are you a human?
     - am I talking to a bot?
     - am I talking to a human?
+    - are you a bot or a human>
+
+- intent: ask_help
+  examples: |
+    - Can you help me?
+    - I need assistance
+    - How does this work?
+    - What can you do?
+
+- intent: ask_joke
+  examples: |
+    - Tell me a joke
+    - I need to laugh
+    - Can you say something funny?
+
+- intent: make_complaint
+  examples: |
+    - I have a complaint
+    - Something went wrong
+    - I'm not happy with the service
+
+- intent: give_compliment
+  examples: |
+    - You're doing great
+    - I love this service
+    - Thanks for your help
+

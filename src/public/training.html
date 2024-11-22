@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Data Management - BizBot Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
+                    <li><a href="training.html" class="active">Training Data</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="support.html">Support</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Training Data Management</h1>
+            </header>
+            <div class="card">
+                <h2>Manage Data</h2>
+                <form id="chatbot-form">
+                    <div class="form-group">
+                        <label for="chatbot-name">Chatbot Name:</label>
+                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chatbot-select">Select Chatbot Type:</label>
+                        <select id="chatbot-select" name="chatbot-select" required>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Food Services">Food Services</option>
+                            <option value="Automobile">Automobile</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Manage FAQ Data</h2>
+                <form id="faq-form">
+                    <div class="form-group">
+                        <label for="faq-question">Question:</label>
+                        <input type="text" id="faq-question" name="faq-question" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="faq-answer">Answer:</label>
+                        <textarea id="faq-answer" name="faq-answer" required></textarea>
+                    </div>
+                    <button type="button" onclick="addOrUpdateFAQ()">Submit FAQ</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Chatbot Simulator</h2>
+                <div class="form-group">
+                    <label for="test-query">Enter your query:</label>
+                    <input type="text" id="test-query" name="test-query" placeholder="Type your question...">
+                    <button onclick="testChatbot()">Test</button>
+                </div>
+                <div id="simulation-result"></div>
+            </div>
+
+            <div class="card">
+                <h2>Current FAQs</h2>
+                <table id="faq-table">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- FAQs will be dynamically filled here -->
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+    <button type="button" id="saveChatbotBtn" class="save-chatbot-button" onclick="saveChatbot()">Save Chatbot</button>
+    <script src="app.js">
+        
+        
+          
+    </script>
+</body>
+    
+</html>

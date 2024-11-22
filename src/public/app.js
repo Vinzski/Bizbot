@@ -1,0 +1,254 @@
+// Toggle between login and signup forms
+function toggleForm() {
+  const isLogin = document
+    .getElementById("formTitle")
+    .textContent.includes("Login");
+  const usernameField = document.getElementById("username");
+  const formTitle = document.getElementById("formTitle");
+  const submitBtn = document.getElementById("submitBtn");
+
+  if (isLogin) {
+    formTitle.textContent = "Signup";
+    submitBtn.textContent = "Signup";
+    usernameField.style.display = "block";
+    usernameField.required = true;
+  } else {
+    formTitle.textContent = "Login";
+    submitBtn.textContent = "Login";
+    usernameField.style.display = "none";
+    usernameField.required = false;
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const chatbotId = urlParams.get('chatbotId');
+  const faqs = urlParams.get('faqs')?.split(',') || [];  // Fetch FAQ IDs from the URL
+
+  if (chatbotId) {
+    loadChatbotDetails(chatbotId);
+  }
+
+  if (faqs.length) {
+    loadFAQsForChatbot(faqs);  // Load FAQ IDs passed in the URL
+  }
+});
+
+function loadUserInfo() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.username) {
+      console.log(`Currently logged in as: ${user.username}`);
+  } else {
+      console.log('No user is currently logged in.');
+  }
+}
+
+function setupEventListeners() {
+  document.getElementById('submit-faq').addEventListener('click', addOrUpdateFAQ);
+  document.getElementById('test-chatbot').addEventListener('click', testChatbot);
+  document.getElementById('saveChatbotBtn').addEventListener('click', saveChatbot);
+}
+
+function loadChatbotDetails(chatbotId) {
+  const token = localStorage.getItem('token');
+  fetch(`/api/chatbots/${chatbotId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.chatbot) {
+      const chatbot = data.chatbot;
+      // Assign the chatbot details
+      document.getElementById('chatbot-name').value = chatbot.name || '';
+      document.getElementById('chatbot-select').value = chatbot.type || '';
+      loadFAQsForChatbot(data.faqs); // Pass the fetched FAQs data
+    } else {
+      console.error('Chatbot data is missing');
+    }
+  })
+  .catch(error => {
+    console.error('Error loading chatbot details:', error);
+  });
+}
+
+
+function loadFAQsForChatbot(faqIds) {
+  const token = localStorage.getItem('token');
+  fetch('/api/faqs', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  })
+    .then(response => response.json())
+    .then(allFaqs => {
+      const tbody = document.querySelector('#faq-table tbody');
+      const filteredFaqs = allFaqs.filter(faq => faqIds.includes(faq._id));
+      filteredFaqs.forEach(faq => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-faq-id', faq._id);
+        row.innerHTML = `
+          <td>${faq.question}</td>
+          <td>${faq.answer}</td>
+        `;
+        tbody.appendChild(row);
+      });
+      console.log(`Loaded ${filteredFaqs.length} FAQs for this chatbot`);
+    })
+    .catch(error => {
+      console.error('Error loading FAQs:', error);
+    });
+}
+
+
+function addOrUpdateFAQ() {
+  const questionInput = document.getElementById('faq-question');
+  const answerInput = document.getElementById('faq-answer');
+  const chatbotTypeSelect = document.getElementById('chatbot-select');
+  const token = localStorage.getItem('token');
+
+  const question = questionInput.value;
+  const answer = answerInput.value;
+  const chatbotType = chatbotTypeSelect.value;
+
+  fetch('/api/faqs', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ question, answer, chatbotType }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert(`FAQ saved successfully! Message: ${data.message}`);
+    const tbody = document.querySelector('#faq-table tbody');
+    const row = document.createElement('tr');
+    row.setAttribute('data-faq-id', data._id);
+    row.innerHTML = `
+      <td>${data.question}</td>
+      <td>${data.answer}</td>
+    `;
+    tbody.appendChild(row);
+    questionInput.value = '';
+    answerInput.value = '';
+  })
+  .catch(error => {
+    console.error('Error saving FAQ:', error);
+    alert(`Failed to save FAQ: ${error.message}`);
+  });
+}
+
+function testChatbot() {
+  const query = document.getElementById("test-query").value;
+  if (!query) {
+    alert("Please enter a query.");
+    return;
+  }
+  const token = localStorage.getItem("token"); // Retrieve the JWT from localStorage
+
+  fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
+    },
+    body: JSON.stringify({ question: query }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok: " + response.statusText);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const resultDiv = document.getElementById("simulation-result");
+      resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply} <br><strong>Source:</strong> ${data.source}`;
+    })
+    .catch((error) => {
+      console.error("Error testing chatbot:", error);
+      document.getElementById("simulation-result").textContent =
+        "Error: " + error.message;
+    });
+}
+
+function saveChatbot() {
+  const chatbotTypeSelect = document.getElementById('chatbot-select');
+  const chatbotNameInput = document.getElementById('chatbot-name');
+  const token = localStorage.getItem('token');
+
+  if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
+      alert('Please fill out all chatbot fields before saving.');
+      return;
+  }
+
+  const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr')).map(row => row.getAttribute('data-faq-id')).filter(Boolean);
+
+  fetch('/api/chatbots', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+          name: chatbotNameInput.value,
+          type: chatbotTypeSelect.value,
+          faqs: faqs,
+      }),
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok: ' + response.statusText);
+      }
+      return response.json();
+  })
+  .then(data => {
+      alert('Chatbot saved successfully!');
+  })
+  .catch(error => {
+      console.error('Error saving chatbot:', error);
+      alert(`Failed to save chatbot: ${error.message}`);
+  });
+}
+
+// Handling authentication and form submissions
+document
+  .getElementById("authForm")
+  .addEventListener("submit", function (event) {
+    event.preventDefault();
+    authenticateUser();
+  });
+
+function authenticateUser() {
+  const isLogin = document
+    .getElementById("formTitle")
+    .textContent.includes("Login");
+  const username = isLogin ? null : document.getElementById("username").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const body = isLogin ? { email, password } : { username, email, password };
+  const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
+
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user)); // Store user details
+      console.log(`Logged in as: ${data.user.username}`); // Log to console
+      document.getElementById("message").textContent = data.message;
+      if (data.message === "Login successful") {
+        window.location.href = "dashboard.html"; // Redirect after successful login
+      }
+    })
+    .catch((error) => {
+      console.error("Fetch error:", error);
+      document.getElementById("message").textContent =
+        "Failed to execute: " + error.message;
+    });
+}

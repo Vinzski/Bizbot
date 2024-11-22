@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - BizBot Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
+                    <li><a href="training.html">Training Data</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="settings.html" class="active">Settings</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="support.html">Support</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Settings</h1>
+            </header>
+            <div class="card">
+                <h2>Profile Settings</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" value="admin_user" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" value="admin@bizbot.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" name="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-password" name="confirm-password">
+                    </div>
+                    <button type="submit">Update Profile</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Customization Options</h2>
+                <form id="customization-form">
+                    <div class="form-group">
+                        <label for="chatbot-select">Select Chatbot:</label>
+                        <select id="chatbot-select" name="chatbot-select">
+                            <option value="">Choose a chatbot</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataset">Choose Logo Widget (File):</label>
+                        <input type="file" id="dataset" name="dataset" accept=".jpg, .jpeg, .png, .gif, .svg">
+                    </div>
+                    <div class="form-group">
+                        <label for="theme-color">Theme Color:</label>
+                        <input type="color" id="theme-color" name="theme-color" value="#4a90e2" class="color-picker">
+                    </div>
+                    <div class="form-group">
+                        <label for="welcome-message">Welcome Message:</label>
+                        <textarea id="welcome-message" name="welcome-message"
+                            rows="3">Hello! How can I assist you today?</textarea>
+                    </div>
+                    <button type="submit">Save Customization</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('token');
+        
+            try {
+                // Fetch chatbots
+                const response = await fetch('/api/chatbots', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+        
+                if (!response.ok) throw new Error('Failed to load chatbots');
+        
+                const chatbots = await response.json();
+                const chatbotSelect = document.getElementById('chatbot-select');
+        
+                chatbots.forEach(chatbot => {
+                    const option = document.createElement('option');
+                    option.value = chatbot._id;
+                    option.textContent = chatbot.name;
+                    chatbotSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching chatbots:', error);
+            }
+        });
+        
+        document.getElementById('customization-form').onsubmit = async function(e) {
+            e.preventDefault();
+        
+            const formData = new FormData();
+            formData.append('chatbotId', document.getElementById('chatbot-select').value);
+            formData.append('themeColor', document.getElementById('theme-color').value);
+            formData.append('welcomeMessage', document.getElementById('welcome-message').value);
+        
+            const fileInput = document.getElementById('dataset');
+            if (fileInput.files.length > 0) {
+                formData.append('logo', fileInput.files[0]);
+            }
+        
+            try {
+                const response = await fetch('/api/customization/save', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+        
+                if (response.ok) {
+                    alert('Customization saved successfully!');
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                }
+            } catch (error) {
+                console.error('Error saving customization:', error);
+                alert('An error occurred while saving the customization.');
+            }
+        };
+        
+    </script>
+
+</body>
+
+</html>

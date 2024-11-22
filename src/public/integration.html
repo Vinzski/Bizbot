@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Integration - BizBot Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
+                    <li><a href="training.html">Training Data</a></li>
+                    <li><a href="integration.html" class="active">Integration</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="support.html">Support</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Chatbot Integration</h1>
+            </header>
+            <div class="card">
+                <h2>Generate Widget Code</h2>
+                <form id="widget-form">
+                    <div class="form-group">
+                        <label for="chatbot-select">Select Chatbot:</label>
+                        <select id="chatbot-select" name="chatbot-select">
+                            <option value="">Choose a chatbot</option>
+                            <!-- Options will be dynamically filled -->
+                        </select>
+                    </div>
+                    <button type="button" onclick="generateCode()">Generate Code</button>
+                </form>
+                <h3>Widget Code</h3>
+                <pre id="code-snippet" class="code-snippet"></pre>
+                <button class="btn" onclick="copyCode()">Copy Code</button>
+            </div>
+            <div class="card">
+                <h2>Integration Instructions</h2>
+                <ol>
+                    <li>Copy the generated widget code above.</li>
+                    <li>Open your website's HTML file or template where you want to add the chatbot.</li>
+                    <li>Paste the widget code just before the closing &lt;/body&gt; tag.</li>
+                    <li>Save the file and upload it to your web server.</li>
+                    <li>Refresh your website to see the BizBot widget in action.</li>
+                </ol>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadChatbots();  // Call this function to populate the dropdown when the page loads.
+        });
+
+        function loadChatbots() {
+            const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
+            fetch("/api/chatbots", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch chatbots');
+                    }
+                    return response.json();
+                })
+                .then(chatbots => {
+                    const select = document.getElementById("chatbot-select");
+                    chatbots.forEach(chatbot => {
+                        let option = new Option(chatbot.name, chatbot._id);
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading chatbots:', error);
+                });
+        }
+
+        function generateCode() {
+            const chatbotId = document.getElementById('chatbot-select').value;
+            if (chatbotId) {
+                const codeSnippet = `<script src="https://bizbot.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
+                document.getElementById('code-snippet').textContent = codeSnippet;
+            } else {
+                alert('Please select a chatbot first.');
+            }
+        }
+
+        function copyCode() {
+            const codeSnippetElement = document.getElementById('code-snippet');
+            navigator.clipboard.writeText(codeSnippetElement.textContent)
+                .then(() => alert('Code copied to clipboard!'))
+                .catch(err => console.error('Error copying text: ', err));
+        }
+
+    </script>
+</body>
+
+</html>

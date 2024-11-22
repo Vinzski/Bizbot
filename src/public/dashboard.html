@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizBot Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2> 
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
+                    <li><a href="training.html">Training Data</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="support.html">Support</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Dashboard Overview</h1>
+                <button>Refresh Data</button>
+            </header>
+            <div class="grid">
+                <div class="card">
+                    <h2>Total Chatbots</h2>
+                    <p class="large-number" id="chatbot-count"></p> <!-- Default value for now -->
+                </div>
+                <div class="card">
+                    <h2>Total FAQS</h2>
+                    <p class="faq-number">38</p>
+                </div>
+                <div class="card">
+                    <h2>User Interactions</h2>
+                    <p class="large-number">1,234</p>
+                </div>
+                <div class="card">
+                    <h2>Avg. Response Time</h2>
+                    <p class="large-number">1.5s</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Recent Chatbot Activities</h2>
+                <div class="chart-container">
+                    <p>Chart showing recent chatbot activities goes here</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>User Engagement Trends</h2>
+                <div class="chart-container">
+                    <p>Chart showing user engagement trends goes here</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="http://localhost:3000/widget.js" id="bizbot-widget" data-chatbot-id="6724b03d8c1ecfaff784de40">
+    </script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

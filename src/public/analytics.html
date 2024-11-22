@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics and Reports - BizBot Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
+                    <li><a href="training.html">Training Data</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                    <li><a href="analytics.html" class="active">Analytics</a></li>
+                    <li><a href="support.html">Support</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Analytics and Reports</h1>
+            </header>
+            <div class="card">
+                <h2>Interaction Logs</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Chatbot</th>
+                            <th>User Query</th>
+                            <th>Chatbot Response</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023-05-20 15:30</td>
+                            <td>Sales Assistant</td>
+                            <td>What are your pricing plans?</td>
+                            <td>We offer three pricing plans: Basic, Pro, and Enterprise. The Basic plan starts at $29/month...</td>
+                        </tr>
+                        <tr>
+                            <td>2023-05-20 15:35</td>
+                            <td>Customer Support</td>
+                            <td>How do I reset my password?</td>
+                            <td>To reset your password, please follow these steps: 1. Click on the "Forgot Password" link...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h2>Download Reports</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="report-type">Report Type:</label>
+                        <select id="report-type" name="report-type">
+                            <option value="interactions">Chatbot Interactions</option>
+                            <option value="performance">Performance Metrics</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date-range">Date Range:</label>
+                        <select id="date-range" name="date-range">
+                            <option value="last-7-days">Last 7 Days</option>
+                            <option value="last-30-days">Last 30 Days</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <button type="submit">Download CSV</button>
+                    <button type="submit">Download PDF</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
