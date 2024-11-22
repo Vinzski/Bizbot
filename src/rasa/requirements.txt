@@ -1,0 +1,6 @@
+rasa==3.6.20
+rasa-sdk==3.6.2
+pandas
+sqlalchemy
+requests
+python-dotenv
