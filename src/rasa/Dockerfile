@@ -1,25 +1,32 @@
-FROM python:3.7-slim
+# Use a specific Rasa image from Docker Hub that matches your Rasa version
+FROM rasa/rasa:3.6.20-full
 
-# Install dependencies
-RUN python -m pip install rasa
+# Switch to root user to perform installations
+USER root
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the app files into the container
+# Copy requirements.txt into the container
 COPY . .
 
-# Train the Rasa NLU model
-RUN rasa train nlu
+# Upgrade pip to the latest version
+RUN pip install --no-cache-dir --upgrade pip
 
-# Set the user to run the app
-USER 1001
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the required port
-EXPOSE 8080
+# Ensure all files in the working directory are accessible to non-root user
+RUN chown -R 1001:1001 /app
 
-# Entry point for the container
-ENTRYPOINT ["rasa"]
+# Switch back to non-root user
+USER 1001  # Ensure this matches the non-root user UID used in the Rasa image
 
-# Command to run the Rasa server with API enabled on port 8080
-CMD ["run", "--enable-api", "--port", "8080"]
+# Copy the rest of the application code
+COPY . /app
+
+# Expose the port for Rasa
+EXPOSE 5005
+
+# Start the Rasa server
+CMD ["rasa", "run", "--enable-api", "--cors", "*", "--port", "8080"]
