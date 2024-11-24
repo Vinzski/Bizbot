@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://localhost:27017/chatbot_db', {
+        // Use the Mongo URI from environment variables (process.env)
+        const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/chatbot_db'; // Default for local development
+        await mongoose.connect(mongoURI, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
