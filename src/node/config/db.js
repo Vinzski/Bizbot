@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
     try {
-        const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/chatbot_db'; // Make sure this environment variable is set in Render
+        const mongoURI = process.env.MONGO_URI || 'mongodb+srv://admin:admin12345@cluster-url/database?retryWrites=true&w=majority'; 
         await mongoose.connect(mongoURI);
         console.log('MongoDB connected successfully');
     } catch (error) {
