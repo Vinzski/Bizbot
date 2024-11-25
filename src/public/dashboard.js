@@ -7,7 +7,7 @@ window.onload = () => {
     }
 
     // Fetch the chatbot count from the server
-    fetch('http://localhost:3000/api/chatbots/count', {
+    fetch('https://bizbot-khpq.onrender.com//api/chatbots/count', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ window.onload = () => {
     });
 
     // Fetch the FAQ count from the server
-    fetch('http://localhost:3000/api/faqs/count', {
+    fetch('https://bizbot-khpq.onrender.com//api/faqs/count', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
