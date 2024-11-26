@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
 
 exports.signup = async (req, res) => {
@@ -24,12 +25,9 @@ exports.signup = async (req, res) => {
         });
     } catch (error) {
         console.error('Signup error:', error);
-        // Modify below line to send JSON error message instead of plain text
         res.status(500).json({ message: "Error creating the user", error: error.message });
     }
 };
-
-const jwt = require('jsonwebtoken');
 
 // Login function
 exports.login = async (req, res) => {
@@ -45,8 +43,13 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Directly specifying the secret key
-        const jwtSecret = 'mysecretkey_12345';  // Replace this with your actual secret key
+        // Use environment variable for JWT secret
+        const jwtSecret = process.env.JWT_SECRET;  // Removed fallback to enforce using .env
+        if (!jwtSecret) {
+            console.error('JWT_SECRET is not defined in environment variables.');
+            return res.status(500).json({ message: 'Server configuration error.' });
+        }
+
         const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '1h' });
 
         res.json({
