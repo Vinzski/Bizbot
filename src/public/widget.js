@@ -87,7 +87,7 @@
         chatMessages.appendChild(userMessageElement);
 
         // Send the message to the API
-        fetch('https://eight-women-fly.loca.lt/api/chat', {
+        fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
