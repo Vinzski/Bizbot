@@ -54,9 +54,7 @@ router.post('/send_message', (req, res) => {
     res.json({reply: "Response based on " + userMessage});
 });
 
-const RASA_URL = process.env.RASA_URL || 'https://https://eight-women-fly.loca.lt//webhooks/rest/webhook';
-
-router.post('/chat', async (req, res) => {
+router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
