@@ -1,69 +1,76 @@
 require('dotenv').config();
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('../config/db');
 const userModel = require('../models/userModel');
 
+const app = express();
 
-app.use(express.json());
-app.use(cors());
-app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
-
+// Connect to Database
 connectDB();
 
+// CORS Configuration
+const allowedOrigins = [
+    'http://localhost:3000', // Frontend origin during development
+    'https://bizbot-khpq.onrender.com',
+    'https://empty-ideas-lick.loca.lt',
+    
+];
+
 app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
+// Middleware to parse JSON bodies
+app.use(express.json());
 
-// Import route modules
+// Serve Static Files
+app.use(express.static(path.join(__dirname, '../../public')));
+app.use('/uploads', express.static('uploads'));
+
+// Import Route Modules
 const authRoutes = require('./routes/authRoutes');
 const faqRoutes = require('../api/faqRoutes');
 const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
 
-// Use routes
+// Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes);
-app.use('/api', chatRoutes); 
 app.use('/api/customization', customizationRoutes);
 
-
+// Root Route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
 });
 
+// Catch-All Route for Undefined Routes
+app.all('*', (req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
+
+// Error Handling Middleware
 app.use((err, req, res, next) => {
-    console.error(err);
+    console.error(err.stack);
     res.status(500).json({ message: 'Server error', error: err.message });
 });
 
-app.get('/', (req, res) => {
-    res.send('Chatbot Server is running');
-});
-
-app.use('/uploads', express.static('uploads'));
-
-
-app.post('/chat', (req, res) => {
-    const userMessage = req.body.message;
-    // In a real application, you'd process the user's message here
-    const botResponse = "Thanks for your message! I'm a demo bot, so I can't provide a real response. How else can I help you?";
-    res.json({ message: botResponse });
-  });
-
-  app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
-
+// Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
