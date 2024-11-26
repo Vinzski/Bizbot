@@ -7,7 +7,7 @@
     var chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
     chatbotWidget.innerHTML =
-        `<div id="chat-header">
+        <div id="chat-header">
             <span id="chat-title">Chatbot</span>
             <button id="close-chat">X</button>
         </div>
@@ -20,7 +20,7 @@
         <div id="chat-input">
             <input type="text" id="user-input" placeholder="Type your message...">
             <button id="send-message">Send</button>
-        </div>`;
+        </div>;
 
     var chatToggle = document.createElement('button');
     chatToggle.id = 'chat-toggle';
@@ -28,7 +28,7 @@
     chatToggle.style.display = 'block';
 
     // Add styles directly or link to an external stylesheet
-    var styles = `
+    var styles = 
         #chatbot-widget { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background-color: var(--theme-color, #f0f0f0); border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; }
         #chat-header { background-color: var(--theme-color, #4a90e2); color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         #close-chat { background: none; border: none; color: white; cursor: pointer; }
@@ -42,7 +42,7 @@
         .bot-message { background-color: #f0f0f0; align-self: flex-start; flex-direction: row; }
         .profile-image { width: 30px; height: 30px; border-radius: 50%; background-color: #ccc; flex-shrink: 0; margin: 0 5px; }
         .message-content { flex-grow: 1; word-break: break-word; }
-    `;
+    ;
     var styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
@@ -91,7 +91,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Ensure token is correctly passed in the header
+                'Authorization': Bearer ${token},
             },
             body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
         })
