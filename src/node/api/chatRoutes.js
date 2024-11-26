@@ -8,7 +8,7 @@ const authenticate = require('../signup/middleware/authMiddleware');  // Add pat
 
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    // const userId = req.user.id; // Get user ID from token
+    const userId = req.user.id; // Get user ID from token
 
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
