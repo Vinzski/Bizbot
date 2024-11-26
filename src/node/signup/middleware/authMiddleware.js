@@ -8,7 +8,7 @@ const authenticate = (req, res, next) => {
     }
 
     try {
-        const jwtSecret = process.env.JWT_SECRET 'mysecretkey_12345'; // Removed fallback to enforce using .env
+        const jwtSecret = process.env.JWT_SECRET || 'mysecretkey_12345'; // Removed fallback to enforce using .env
         if (!jwtSecret) {
             console.error('JWT_SECRET is not defined in environment variables.');
             return res.status(500).send('Server configuration error.');
