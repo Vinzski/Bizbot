@@ -8,18 +8,13 @@ const authenticate = require('../signup/middleware/authMiddleware');  // Existin
 const Chatbot = require('../models/chatbotModel'); // Assuming you have a Chatbot model
 
 // Middleware to conditionally authenticate
-const conditionalAuth = (req, res, next) => {
+const conditionalAuth = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (token) {
-        const jwtSecret = process.env.JWT_SECRET;
-        if (!jwtSecret) {
-            console.error('JWT_SECRET is not defined in environment variables.');
-            return res.status(500).json({ message: 'Server configuration error.' });
-        }
         try {
-            const decoded = jwt.verify(token, jwtSecret);
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = decoded;
-            next();
+            return next();
         } catch (err) {
             return res.status(401).json({ message: 'Invalid token.' });
         }
@@ -71,7 +66,7 @@ router.post('/chat', conditionalAuth, async (req, res) => {
             const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
             res.json({ reply: botReply, source: 'Rasa' });
         } catch (error) {
-            console.error('Error contacting Rasa:', error.response ? error.response.data : error.message);
+            console.error('Error querying Rasa:', error);
             res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
         }
     }
