@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as nec
 connectDB();
 
 app.use(cors({
-    origin: 'https://bizbot-khpq.onrender.com',
+    origin: '*',
     methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
     credentials: true
 }));
