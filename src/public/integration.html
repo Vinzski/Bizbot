@@ -89,7 +89,7 @@
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
             if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
+                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
                 document.getElementById('code-snippet').textContent = codeSnippet;
             } else {
                 alert('Please select a chatbot first.');
