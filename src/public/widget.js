@@ -1,4 +1,7 @@
 (function () {
+    // Retrieve the chatbotId from the script tag
+    var scriptTag = document.getElementById('bizbot-widget');
+    var chatbotId = scriptTag.getAttribute('data-chatbot-id');
 
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
@@ -86,18 +89,27 @@
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
 
+        // Prepare the request body with chatbotId
+        var requestBody = { 
+            question: userInput.value,
+            chatbotId: chatbotId // Include chatbotId
+        };
+
+        // Prepare headers
+        var headers = { 'Content-Type': 'application/json' };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         // Send the message to the API
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+        fetch('https://bizbot-khpq.onrender.com/api/chat', { // Use full URL to avoid CORS issues
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
+            headers: headers,
+            body: JSON.stringify(requestBody)
         })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Network response was not OK');
+                    return response.json().then(err => { throw new Error(err.message || 'Network response was not OK'); });
                 }
                 return response.json();
             })
@@ -119,6 +131,18 @@
             })
             .catch(error => {
                 console.error('Error sending message:', error);
+                // Optionally, display an error message to the user
+                var errorMessageElement = document.createElement('div');
+                errorMessageElement.classList.add('message', 'bot-message');
+                var botProfileImage = document.createElement('div');
+                botProfileImage.classList.add('profile-image');
+                var botText = document.createElement('span');
+                botText.classList.add('message-content');
+                botText.textContent = "Sorry, something went wrong. Please try again later.";
+                errorMessageElement.appendChild(botProfileImage);
+                errorMessageElement.appendChild(botText);
+                chatMessages.appendChild(errorMessageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             });
 
         // Clear the input field after sending
