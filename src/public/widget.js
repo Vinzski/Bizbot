@@ -91,7 +91,6 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Ensure token is correctly passed in the header
             },
             body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
         })
