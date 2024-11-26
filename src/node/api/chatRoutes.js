@@ -8,7 +8,7 @@ const authenticate = require('../signup/middleware/authMiddleware');  // Add pat
 
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
+    // const userId = req.user.id; // Get user ID from token
 
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
@@ -54,7 +54,9 @@ router.post('/send_message', (req, res) => {
     res.json({reply: "Response based on " + userMessage});
 });
 
-router.post('/chat', authenticate, async (req, res) => {
+const RASA_URL = process.env.RASA_URL || 'https://https://eight-women-fly.loca.lt//webhooks/rest/webhook';
+
+router.post('/chat', async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
