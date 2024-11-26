@@ -123,7 +123,7 @@ function addOrUpdateFAQ() {
   })
   .then(response => response.json())
   .then(data => {
-    alert(`FAQ saved successfully! Message: ${data.message}`);
+    alert(`FAQ saved successfully!`);
     const tbody = document.querySelector('#faq-table tbody');
     const row = document.createElement('tr');
     row.setAttribute('data-faq-id', data._id);
