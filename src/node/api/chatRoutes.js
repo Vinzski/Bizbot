@@ -7,7 +7,7 @@ const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
 const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost/EnE_Portal_Final/login.php', 'http://localhost/EnE_Portal_Final/'];
+    const allowedDomains = ['http://localhost/EnE_Portal_Final/login.php', 'http://localhost/EnE_Portal_Final/', 'https://bizbot-khpq.onrender.com/dashboard.html'];
     const refererHeader = req.headers.referer;
 
     if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
