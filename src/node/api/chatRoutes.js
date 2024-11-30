@@ -6,6 +6,22 @@ const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
+// This function should be defined to validate incoming API keys.
+function isValidApiKey(apiKey) {
+    // Validate against a list of stored API keys
+    return ['your_valid_api_keys'].includes(apiKey);
+}
+
+router.post('/generate_guest_token', (req, res) => {
+    const { apiKey } = req.body;
+    if (isValidApiKey(apiKey)) {
+        const guestToken = jwt.sign({ user: 'guest', permissions: 'read' }, 'mysecretkey_12345', { expiresIn: '1h' });
+        res.json({ token: guestToken });
+    } else {
+        res.status(403).json({ error: "Unauthorized" });
+    }
+});
+
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
