@@ -43,7 +43,7 @@ router.post('/', authenticate, async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://modern-pants-eat.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://deep-bears-show.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -88,7 +88,7 @@ router.post('/chat', authenticate, async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://modern-pants-eat.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://deep-bears-show.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
