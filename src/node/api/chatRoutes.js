@@ -1,104 +1,129 @@
-const express = require('express');
-const axios = require('axios');
+const router = require('express').Router();
+const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
-const natural = require('natural');
-const tokenizer = new natural.WordTokenizer();
-const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware'); 
+const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
-const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:3000/index.html'];
+const authenticateByDomain = async (req, res, next) => {
     const refererHeader = req.headers.referer;
+    const userId = req.user.id; // Ensure the user ID is being set by your authentication middleware
 
-    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
-        next();
-    } else {
-        return res.status(401).send('Access denied. You are not allowed to access this resource.');
+    try {
+        // Fetch all domains associated with the user
+        const domains = await Domain.find({ userId: userId });
+        const allowedDomains = domains.map(domain => domain.domain);
+
+        if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
+            next();
+        } else {
+            return res.status(401).send('Access denied. Your domain is not authorized.');
+        }
+    } catch (error) {
+        console.error('Error verifying domain:', error);
+        res.status(500).send('Server error');
     }
 };
 
+router.get('/', authenticate, async (req, res) => {
+    try {
+        const chatbots = await Chatbot.find({ userId: req.user.id });
+        res.json(chatbots);
+    } catch (error) {
+        console.error('Failed to fetch chatbots', error);
+        res.status(500).json({ message: "Failed to fetch chatbots", error: error.toString() });
+    }
+});
+
 router.post('/', authenticate, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
+    const { name, type, faqs } = req.body;  // Data from the client
+    const userId = req.user.id;  // Retrieved from authentication middleware
 
-    // Fetch FAQs specific to the chatbot and user
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-
-    // If FAQs are found, search for the best match
-    let bestMatch = { score: 0, faq: null };
-
-    faqs.forEach(faq => {
-        const tokens1 = question.toLowerCase().split(' ');
-        const tokens2 = faq.question.toLowerCase().split(' ');
-        let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / tokens1.length;
-        if (score > bestMatch.score) {
-            bestMatch = { score, faq };
-        }
-    });
-
-    // If a FAQ match is found with a sufficient score, return that FAQ answer
-    if (bestMatch.score >= 0.5) {
-        return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-    } else {
-        // If no FAQ matches well, send the query to Rasa
-        try {
-            const rasaResponse = await axios.post('https://slimy-shoes-run.loca.lt/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget'
+    try {
+        let chatbot = await Chatbot.findOne({ userId, name });
+        if (chatbot) {
+            // Update existing chatbot if found
+            chatbot.faqs = faqs;
+            chatbot.type = type;
+            chatbot.name = name;
+            await chatbot.save();
+        } else {
+            // Create a new chatbot if not found
+            chatbot = new Chatbot({
+                name,
+                type,
+                userId,
+                faqs,
+                creationDate: new Date()  // Set the creation date on creation
             });
-            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            res.json({ reply: botReply, source: 'Rasa' });
-        } catch (error) {
-            console.error('Error querying Rasa:', error);
-            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+            await chatbot.save();
         }
+        res.status(201).json({ message: 'Chatbot saved successfully', chatbot });
+    } catch (error) {
+        console.error('Error in saving chatbot:', error);
+        res.status(500).json({ message: "Failed to create or update chatbot", error: error.toString() });
     }
 });
 
+router.get('/count', authenticate, async (req, res) => {
+    if (!req.user || !req.user.id) {
+        return res.status(400).json({ message: 'Invalid or missing user ID' });
+    }
 
-
-router.post('/send_message', (req, res) => {
-    console.log("Received message:", req.body.message);  // Log the received message to ensure it's reaching here
-    const userMessage = req.body.message;
-    // Respond with a simple JSON object
-    res.json({reply: "Response based on " + userMessage});
-});
-
-router.post('/chat', authenticate, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id;
-
-    // First try to find an answer in the FAQs
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-    let bestMatch = { score: 0, faq: null };
-
-    faqs.forEach(faq => {
-        const tokens1 = question.toLowerCase().split(' ');
-        const tokens2 = faq.question.toLowerCase().split(' ');
-        let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / tokens1.length;
-        if (score > bestMatch.score) {
-            bestMatch = { score, faq };
-        }
-    });
-
-    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
-        res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-    } else {
-        // If no FAQ matches well, send the query to Rasa
-        try {
-            const rasaResponse = await axios.post('https://slimy-shoes-run.loca.lt/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget'
-            });
-            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            res.json({ reply: botReply, source: 'Rasa' });
-        } catch (error) {
-            console.error('Error querying Rasa:', error);
-            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-        }
+    try {
+        const chatbotCount = await Chatbot.countDocuments({ userId: req.user.id });
+        res.json({ count: chatbotCount });
+    } catch (error) {
+        console.error('Error counting chatbots:', error);
+        res.status(500).json({ message: 'Failed to count chatbots', error: error.toString() });
     }
 });
+
+router.get('/:chatbotId', authenticate, async (req, res) => {
+    try {
+        const chatbot = await Chatbot.findById(req.params.chatbotId);
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Chatbot not found' });
+        }
+
+        // Fetch FAQs associated with this chatbot
+        const faqs = await FAQ.find({ _id: { $in: chatbot.faqs } });
+
+        // Send both chatbot and FAQs data
+        res.json({ chatbot, faqs });
+    } catch (error) {
+        console.error('Failed to fetch chatbot', error);
+        res.status(500).json({ message: "Failed to fetch chatbot", error: error.toString() });
+    }
+});
+
+router.delete('/:chatbotId', authenticate, async (req, res) => {
+    const { chatbotId } = req.params;
+    console.log("DELETE request received for Chatbot ID:", chatbotId);
+
+    try {
+        // Check if the chatbot exists
+        const chatbot = await Chatbot.findById(chatbotId);
+        if (!chatbot) {
+            console.log("Chatbot not found for ID:", chatbotId);
+            return res.status(404).json({ message: 'Chatbot not found' });
+        }
+
+        // Log the FAQs to be deleted
+        console.log("Associated FAQs:", chatbot.faqs);
+
+        // Delete associated FAQs
+        await FAQ.deleteMany({ _id: { $in: chatbot.faqs } });
+        console.log("FAQs deleted successfully.");
+
+        // Delete the chatbot
+        await Chatbot.findByIdAndDelete(chatbotId);
+        console.log("Chatbot deleted successfully.");
+
+        res.json({ message: 'Chatbot and associated FAQs deleted successfully' });
+    } catch (error) {
+        console.error("Error during deletion:", error);
+        res.status(500).json({ message: 'Failed to delete chatbot', error: error.toString() });
+    }
+});
+
 
 module.exports = router;
