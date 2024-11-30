@@ -4,10 +4,10 @@ const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
-
+const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
 const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:8080/', 'http://localhost:8080/index.html'];
+    const allowedDomains = ['http://localhost:8080/index.html'];
     const refererHeader = req.headers.referer;
 
     if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
@@ -16,6 +16,10 @@ const authenticateByDomain = (req, res, next) => {
         return res.status(401).send('Access denied. You are not allowed to access this resource.');
     }
 };
+
+router.post('/chat', authenticateByDomain, async (req, res) => {
+    // Your existing chat handling logic
+});
 
 
 router.post('/', authenticate, async (req, res) => {
@@ -44,7 +48,7 @@ router.post('/', authenticate, async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://deep-bears-show.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://tame-candies-ring.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -66,14 +70,12 @@ router.post('/send_message', (req, res) => {
     res.json({reply: "Response based on " + userMessage});
 });
 
-// Assuming authenticateByDomain checks the domain of the incoming request
-router.post('/chat', authenticateByDomain, async (req, res) => {
-    const { question } = req.body;
-     const userId = req.user.id;
+router.post('/chat', authenticate, async (req, res) => {
+    const { question, chatbotId } = req.body;
+    const userId = req.user.id;
 
-    // Assuming a generic FAQ collection not tied to any userId
-    const faqs = await FAQ.find({}); // Fetching all FAQs irrespective of user
-
+    // First try to find an answer in the FAQs
+    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
     let bestMatch = { score: 0, faq: null };
 
     faqs.forEach(faq => {
@@ -89,9 +91,9 @@ router.post('/chat', authenticateByDomain, async (req, res) => {
     if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
         res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
-        // If no FAQ matches well, send the query to a chatbot service like Rasa
+        // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://deep-bears-show.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://tame-candies-ring.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
