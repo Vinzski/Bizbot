@@ -27,7 +27,6 @@ router.post('/send_message', (req, res) => {
 
 router.post('/chat', authenticateByDomain, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id;
 
     // First try to find an answer in the FAQs
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
