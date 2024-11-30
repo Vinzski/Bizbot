@@ -5,12 +5,14 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
+const Domain = require('../models/domainModel');
 
 const authenticateByDomain = async (req, res, next) => {
     const refererHeader = req.headers.referer;
-    const userId = req.user.id;  // Ensure this value is correctly obtained from the user session
+    const userId = req.user.id; // Ensure the user ID is being set by your authentication middleware
 
     try {
+        // Fetch all domains associated with the user
         const domains = await Domain.find({ userId: userId });
         const allowedDomains = domains.map(domain => domain.domain);
 
