@@ -4,8 +4,7 @@ const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
-const Domain = require('../models/domainModel');
+
 
 const authenticateByDomain = (req, res, next) => {
     const allowedDomains = ['http://localhost:8080/', 'http://localhost:8080/index.html'];
