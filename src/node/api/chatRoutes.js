@@ -8,7 +8,7 @@ const authenticate = require('../signup/middleware/authMiddleware');  // Add pat
 const Domain = require('../models/domainModel');
 
 const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:8080/'];
+    const allowedDomains = ['http://localhost:8080/', 'http://localhost:8080/index.html'];
     const refererHeader = req.headers.referer;
 
     if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
