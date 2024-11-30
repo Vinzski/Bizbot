@@ -6,6 +6,17 @@ const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
+const authenticateByDomain = (req, res, next) => {
+    const allowedDomains = ['http://localhost:3000/index.html'];
+    const refererHeader = req.headers.referer;
+
+    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
+        next();
+    } else {
+        return res.status(401).send('Access denied. You are not allowed to access this resource.');
+    }
+};
+
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
