@@ -9,6 +9,7 @@ const Domain = require('../models/domainModel');
 
 const authenticateByDomain = async (req, res, next) => {
     const refererHeader = req.headers.referer;
+    console.log("Referer Header:", refererHeader);
     const userId = req.user.id; // Ensure the user ID is being set by your authentication middleware
 
     try {
