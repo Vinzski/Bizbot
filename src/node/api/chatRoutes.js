@@ -57,6 +57,7 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 
+
 router.post('/send_message', (req, res) => {
     console.log("Received message:", req.body.message);  // Log the received message to ensure it's reaching here
     const userMessage = req.body.message;
