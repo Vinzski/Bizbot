@@ -6,17 +6,6 @@ const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
-const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:8080/index.html'];
-    const refererHeader = req.headers.referer;
-
-    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
-        next();
-    } else {
-        return res.status(401).send('Access denied. You are not allowed to access this resource.');
-    }
-};
-
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
@@ -43,7 +32,7 @@ router.post('/', authenticate, async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://odd-bags-raise.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://tame-candies-ring.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -65,44 +54,40 @@ router.post('/send_message', (req, res) => {
     res.json({reply: "Response based on " + userMessage});
 });
 
-router.post('/chat', authenticate, authenticateByDomain, async (req, res) => {
+router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-
-    if (!req.user || !req.user.id) {
-        return res.status(400).send('User not authenticated properly.');
-    }
-
     const userId = req.user.id;
 
-    try {
-        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-        let bestMatch = { score: 0, faq: null };
+    // First try to find an answer in the FAQs
+    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    let bestMatch = { score: 0, faq: null };
 
-        faqs.forEach(faq => {
-            const tokens1 = question.toLowerCase().split(' ');
-            const tokens2 = faq.question.toLowerCase().split(' ');
-            let intersection = tokens1.filter(token => tokens2.includes(token));
-            let score = intersection.length / tokens1.length;
-            if (score > bestMatch.score) {
-                bestMatch = { score, faq };
-            }
-        });
+    faqs.forEach(faq => {
+        const tokens1 = question.toLowerCase().split(' ');
+        const tokens2 = faq.question.toLowerCase().split(' ');
+        let intersection = tokens1.filter(token => tokens2.includes(token));
+        let score = intersection.length / tokens1.length;
+        if (score > bestMatch.score) {
+            bestMatch = { score, faq };
+        }
+    });
 
-        if (bestMatch.score >= 0.5) {
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            const rasaResponse = await axios.post('https://odd-bags-raise.loca.lt/webhooks/rest/webhook', {
+    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
+        res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+    } else {
+        // If no FAQ matches well, send the query to Rasa
+        try {
+            const rasaResponse = await axios.post('https://tame-candies-ring.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
             const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
             res.json({ reply: botReply, source: 'Rasa' });
+        } catch (error) {
+            console.error('Error querying Rasa:', error);
+            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
         }
-    } catch (error) {
-        console.error('Error in /chat endpoint:', error);
-        res.status(500).json({ message: "Error processing chat request", error: error.toString() });
     }
 });
-
 
 module.exports = router;
