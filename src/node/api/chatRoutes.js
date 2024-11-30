@@ -7,10 +7,8 @@ const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
 const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['https://bizbot-khpq.onrender.com/test.html',
-                            'http://localhost:8080'];
+    const allowedDomains = ['http://localhost:8080/index.html'];
     const refererHeader = req.headers.referer;
-
     if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
         next();
     } else {
