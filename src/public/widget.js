@@ -1,36 +1,4 @@
 (function () {
-    const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-    const apiKey = document.getElementById('bizbot-widget').getAttribute('data-api-key');
-
-    // Function to fetch token using the API key
-    async function fetchToken() {
-        try {
-            const response = await fetch('https://bizbot-khpq.onrender.com/api/generate_guest_token', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ apiKey: apiKey })
-            });
-            const data = await response.json();
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-                initializeChatbot();
-            } else {
-                console.error('Failed to get token');
-            }
-        } catch (error) {
-            console.error('Error fetching token:', error);
-        }
-    }
-
-    // Call fetchToken if apiKey is present
-    if (apiKey) {
-        fetchToken();
-    }
-
-    function initializeChatbot() {
-        // Initialization logic for the chatbot
-        console.log("Chatbot initialized with ID:", chatbotId);
-    }
 
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
@@ -99,7 +67,7 @@
     document.getElementById('send-message').onclick = function () {
         var userInput = document.getElementById('user-input');
         var chatMessages = document.getElementById('chat-messages');
-        var token = localStorage.getItem('token');  // Retrieve the JWT from localStorage
+        var token = localStorage.getItem('token');
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
