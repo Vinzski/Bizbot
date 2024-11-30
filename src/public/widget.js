@@ -87,7 +87,7 @@
         chatMessages.appendChild(userMessageElement);
         
         // Send the message to the API
-        fetch('/api/chat', {
+        fetch('https://bizbot-khpq.onrender.com//api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
