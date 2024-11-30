@@ -69,11 +69,6 @@
         var chatMessages = document.getElementById('chat-messages');
         var token = localStorage.getItem('token');
 
-        if (!token) {
-            alert('Authentication token is missing.');
-        return;
-        }
-
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
             return; // Prevent sending empty messages
