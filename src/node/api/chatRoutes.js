@@ -69,7 +69,8 @@ router.post('/send_message', (req, res) => {
 
 // Assuming authenticateByDomain checks the domain of the incoming request
 router.post('/chat', authenticateByDomain, async (req, res) => {
-    const { question } = req.body; // Removed chatbotId as it might be tied to a specific user
+    const { question } = req.body;
+     const userId = req.user.id;
 
     // Assuming a generic FAQ collection not tied to any userId
     const faqs = await FAQ.find({}); // Fetching all FAQs irrespective of user
