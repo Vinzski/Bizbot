@@ -67,12 +67,13 @@ router.post('/send_message', (req, res) => {
     res.json({reply: "Response based on " + userMessage});
 });
 
+// Assuming authenticateByDomain checks the domain of the incoming request
 router.post('/chat', authenticateByDomain, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id;
+    const { question } = req.body; // Removed chatbotId as it might be tied to a specific user
 
-    // First try to find an answer in the FAQs
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    // Assuming a generic FAQ collection not tied to any userId
+    const faqs = await FAQ.find({}); // Fetching all FAQs irrespective of user
+
     let bestMatch = { score: 0, faq: null };
 
     faqs.forEach(faq => {
@@ -88,7 +89,7 @@ router.post('/chat', authenticateByDomain, async (req, res) => {
     if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
         res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
-        // If no FAQ matches well, send the query to Rasa
+        // If no FAQ matches well, send the query to a chatbot service like Rasa
         try {
             const rasaResponse = await axios.post('https://deep-bears-show.loca.lt/webhooks/rest/webhook', {
                 message: question,
