@@ -6,6 +6,17 @@ const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
+const authenticateByDomain = (req, res, next) => {
+    const allowedDomains = ['http://localhost:8080/index.html'];
+    const refererHeader = req.headers.referer;
+
+    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
+        next();
+    } else {
+        return res.status(401).send('Access denied. You are not allowed to access this resource.');
+    }
+};
+
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
@@ -52,21 +63,6 @@ router.post('/send_message', (req, res) => {
     const userMessage = req.body.message;
     // Respond with a simple JSON object
     res.json({reply: "Response based on " + userMessage});
-});
-
-const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:8080/index.html'];
-    const refererHeader = req.headers.referer;
-
-    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
-        next();
-    } else {
-        return res.status(401).send('Access denied. You are not allowed to access this resource.');
-    }
-};
-
-router.post('/chat', authenticateByDomain, async (req, res) => {
-    // Your existing chat handling logic
 });
 
 router.post('/chat', authenticate, async (req, res) => {
