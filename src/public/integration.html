@@ -45,6 +45,17 @@
                 <button class="btn" onclick="copyCode()">Copy Code</button>
             </div>
             <div class="card">
+                <h2>Save Your Domain</h2>
+                <form id="domain-form">
+                    <div class="form-group">
+                        <label for="domain-input">Domain URL:</label>
+                        <input type="url" id="domain-input" name="domain" placeholder="https://yourwebsite.com"
+                            required>
+                    </div>
+                    <button type="button" onclick="saveDomain()">Save Domain</button>
+                </form>
+            </div>
+            <div class="card">
                 <h2>Integration Instructions</h2>
                 <ol>
                     <li>Copy the generated widget code above.</li>
@@ -89,7 +100,7 @@
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
             if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
+                const codeSnippet = `<script src="https://bizbot.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
                 document.getElementById('code-snippet').textContent = codeSnippet;
             } else {
                 alert('Please select a chatbot first.');
@@ -103,6 +114,35 @@
                 .catch(err => console.error('Error copying text: ', err));
         }
 
+        function saveDomain() {
+            const domainInput = document.getElementById('domain-input').value;
+            if (!domainInput) {
+                alert('Please enter a domain URL.');
+                return;
+            }
+            const token = localStorage.getItem("token"); // Retrieve the auth token
+            fetch('/api/domains/add-domain', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ domain: domainInput })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to save the domain');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Domain saved successfully!');
+                })
+                .catch(error => {
+                    console.error('Error saving domain:', error);
+                    alert('Failed to save the domain: ' + error.message);
+                });
+        }
     </script>
 </body>
 
