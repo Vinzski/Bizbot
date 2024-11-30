@@ -17,11 +17,7 @@ const authenticateByDomain = (req, res, next) => {
     }
 };
 
-router.post('/chat', authenticateByDomain, async (req, res) => {
-    // Your existing chat handling logic
-});
-
-router.post('/chat', authenticateByDomain, async (req, res) => {
+router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
