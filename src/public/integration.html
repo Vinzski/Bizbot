@@ -89,18 +89,8 @@
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
             const apiKey = document.getElementById('api-key-input').value.trim();
-                if (chatbotId && apiKey) {
+            if (chatbotId && apiKey) {
                     const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-api-key="${apiKey}"><\/script>`;
-                    document.getElementById('code-snippet').textContent = codeSnippet;
-                } else {
-            alert('Please select a chatbot and enter an API key.');
-            }
-        }
-
-        function generateCode() {
-            const chatbotId = document.getElementById('chatbot-select').value;
-            if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
                 document.getElementById('code-snippet').textContent = codeSnippet;
             } else {
                 alert('Please select a chatbot first.');
