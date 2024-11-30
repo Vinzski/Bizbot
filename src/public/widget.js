@@ -86,6 +86,8 @@
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
 
+        const token = localStorage.getItem('token');
+        
         // Send the message to the API
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
