@@ -6,23 +6,14 @@ const tokenizer = new natural.WordTokenizer();
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware');  // Add path to your auth middleware
 
-const authenticateByDomain = async (req, res, next) => {
+const authenticateByDomain = (req, res, next) => {
+    const allowedDomains = ['http://localhost:4000/index.html'];
     const refererHeader = req.headers.referer;
-    const userId = req.user.id; // Ensure the user ID is being set by your authentication middleware
 
-    try {
-        // Fetch all domains associated with the user
-        const domains = await Domain.find({ userId: userId });
-        const allowedDomains = domains.map(domain => domain.domain);
-
-        if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
-            next();
-        } else {
-            return res.status(401).send('Access denied. Your domain is not authorized.');
-        }
-    } catch (error) {
-        console.error('Error verifying domain:', error);
-        res.status(500).send('Server error');
+    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
+        next();
+    } else {
+        return res.status(401).send('Access denied. You are not allowed to access this resource.');
     }
 };
 
