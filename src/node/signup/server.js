@@ -26,6 +26,7 @@ const faqRoutes = require('../api/faqRoutes');
 const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
+const widgetRoute = require('../api/widgetRoute');
 
 // Use routes
 app.use('/api/auth', authRoutes);
