@@ -65,7 +65,7 @@ router.post('/chat', authenticate, async (req, res) => {
         return res.status(401).json({ message: "No token provided" });
     }
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'YOUR_SECRET_KEY'); // Replace 'YOUR_SECRET_KEY' with your actual secret key stored securely
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345'); // Replace 'YOUR_SECRET_KEY' with your actual secret key stored securely
         console.log('Token verified, user ID:', decoded.id); // Logging the user ID for debugging
     } catch (error) {
         return res.status(400).json({ message: 'Invalid token', error: error.toString() });
