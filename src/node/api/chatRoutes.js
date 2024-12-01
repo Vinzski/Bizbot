@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const jwt = require('jsonwebtoken');
 const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
@@ -56,37 +57,49 @@ router.post('/send_message', (req, res) => {
 
 router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user.id; // Obtained from the authenticated token by 'authenticate' middleware
 
-    // First try to find an answer in the FAQs
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-    let bestMatch = { score: 0, faq: null };
+    // Manually verify the token if needed (usually redundant due to middleware)
+    const token = req.headers.authorization.split(' ')[1]; // Extract token from the Authorization header
+    if (!token) {
+        return res.status(401).json({ message: "No token provided" });
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'YOUR_SECRET_KEY'); // Replace 'YOUR_SECRET_KEY' with your actual secret key stored securely
+        console.log('Token verified, user ID:', decoded.id); // Logging the user ID for debugging
+    } catch (error) {
+        return res.status(400).json({ message: 'Invalid token', error: error.toString() });
+    }
 
-    faqs.forEach(faq => {
-        const tokens1 = question.toLowerCase().split(' ');
-        const tokens2 = faq.question.toLowerCase().split(' ');
-        let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / tokens1.length;
-        if (score > bestMatch.score) {
-            bestMatch = { score, faq };
-        }
-    });
+    // FAQ matching logic
+    try {
+        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+        let bestMatch = { score: 0, faq: null };
+    
+        faqs.forEach(faq => {
+            const tokens1 = question.toLowerCase().split(' ');
+            const tokens2 = faq.question.toLowerCase().split(' ');
+            let intersection = tokens1.filter(token => tokens2.includes(token));
+            let score = intersection.length / tokens1.length;
+            if (score > bestMatch.score) {
+                bestMatch = { score, faq };
+            }
+        });
 
-    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
-        res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-    } else {
-        // If no FAQ matches well, send the query to Rasa
-        try {
+        if (bestMatch.score >= 0.5) {
+            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+        } else {
+            // Sending to Rasa if no FAQ matches
             const rasaResponse = await axios.post('https://poor-times-sleep.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
             const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
             res.json({ reply: botReply, source: 'Rasa' });
-        } catch (error) {
-            console.error('Error querying Rasa:', error);
-            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
         }
+    } catch (error) {
+        console.error('Error handling chat:', error);
+        res.status(500).json({ message: "Error processing chat request", error: error.toString() });
     }
 });
 
