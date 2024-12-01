@@ -54,23 +54,11 @@ router.post('/send_message', (req, res) => {
     res.json({reply: "Response based on " + userMessage});
 });
 
-const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:3000/', 'https://bizbot-khpq.onrender.com', 'http://localhost:3000', 'http://localhost/EnE_Portal_Final/login.php'];
-    const refererHeader = req.headers.referer;
-
-    if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
-        next();
-    } else {
-        return res.status(401).send('Access denied. You are not allowed to access this resource.');
-    }
-};
-
-router.post('/chat', authenticateByDomain, async (req, res) => {
+router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    // Assume userId is derived from domain or another static/dynamic method suitable for your case
-    const userId = deriveUserIdBasedOnDomain(req.headers.referer); // Implement this function based on your needs
+    const userId = req.user.id;
 
-    // Fetch FAQs specific to the chatbot and user
+    // First try to find an answer in the FAQs
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
     let bestMatch = { score: 0, faq: null };
 
@@ -84,7 +72,7 @@ router.post('/chat', authenticateByDomain, async (req, res) => {
         }
     });
 
-    if (bestMatch.score >= 0.5) {
+    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
         res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         // If no FAQ matches well, send the query to Rasa
@@ -101,16 +89,5 @@ router.post('/chat', authenticateByDomain, async (req, res) => {
         }
     }
 });
-
-// Helper function to derive user ID based on the domain
-function deriveUserIdBasedOnDomain(domain) {
-    // Example implementation: map domains to user IDs
-    const domainToUserIdMap = {
-        'https://bizbot-khpq.onrender.com': 'vince',
-        'http://localhost:3000': 'vince'
-    };
-
-    return domainToUserIdMap[new URL(domain).hostname] || null;
-}
 
 module.exports = router;
