@@ -1,5 +1,4 @@
 (function () {
-
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
 
@@ -28,21 +27,7 @@
     chatToggle.style.display = 'block';
 
     // Add styles directly or link to an external stylesheet
-    var styles = `
-        #chatbot-widget { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background-color: var(--theme-color, #f0f0f0); border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; }
-        #chat-header { background-color: var(--theme-color, #4a90e2); color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        #close-chat { background: none; border: none; color: white; cursor: pointer; }
-        #chat-messages { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; }
-        #chat-input { display: flex; padding: 10px; }
-        #user-input { flex-grow: 1; padding: 5px; border: 1px solid #ccc; border-radius: 3px; }
-        #send-message { background-color: var(--theme-color, #4a90e2); color: white; border: none; padding: 5px 10px; margin-left: 5px; cursor: pointer; border-radius: 3px; }
-        #chat-toggle { position: fixed; bottom: 20px; right: 20px; background-color: var(--theme-color, #4a90e2); color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; }
-        .message { display: flex; align-items: flex-start; margin: 5px; padding: 5px; border-radius: 5px; border: 1px solid #888; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .user-message { background-color: #bfefff; align-self: flex-end; flex-direction: row-reverse; }
-        .bot-message { background-color: #f0f0f0; align-self: flex-start; flex-direction: row; }
-        .profile-image { width: 30px; height: 30px; border-radius: 50%; background-color: #ccc; flex-shrink: 0; margin: 0 5px; }
-        .message-content { flex-grow: 1; word-break: break-word; }
-    `;
+    var styles = `/* Your styles go here */`;
     var styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
@@ -51,6 +36,10 @@
     // Append elements to body
     document.body.appendChild(chatbotWidget);
     document.body.appendChild(chatToggle);
+
+    // Get token from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token'); // Get the token from URL
 
     // Event listeners for toggling the widget
     document.getElementById('chat-toggle').onclick = function () {
@@ -67,7 +56,6 @@
     document.getElementById('send-message').onclick = function () {
         var userInput = document.getElementById('user-input');
         var chatMessages = document.getElementById('chat-messages');
-        var token = localStorage.getItem('token');
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
@@ -91,9 +79,9 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`, // Use the token from URL
             },
-            body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
+            body: JSON.stringify({ question: userInput.value })
         })
             .then(response => {
                 if (!response.ok) {
