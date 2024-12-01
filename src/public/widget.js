@@ -1,8 +1,5 @@
 (function () {
 
-    var scriptTag = document.getElementById('bizbot-widget');
-    var chatbotId = scriptTag.getAttribute('data-chatbot-id');
-
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
 
@@ -94,6 +91,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
         })
