@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
+const router = express.Router();
 
 exports.signup = async (req, res) => {
     console.log('Signup data received:', req.body);
