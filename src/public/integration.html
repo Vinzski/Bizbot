@@ -88,11 +88,12 @@
 
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
-            if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
+            const token = localStorage.getItem("token");  // Assuming token is stored in localStorage
+            if (chatbotId && token) {
+                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-token="${token}"><\/script>`;
                 document.getElementById('code-snippet').textContent = codeSnippet;
             } else {
-                alert('Please select a chatbot first.');
+                alert('Please select a chatbot and make sure you are logged in.');
             }
         }
 
@@ -105,3 +106,5 @@
 
     </script>
 </body>
+
+</html>
