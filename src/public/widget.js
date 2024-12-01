@@ -1,4 +1,11 @@
 (function () {
+    // Initialize the chatbot with the token
+    var token = localStorage.getItem('token');
+    if (!token) {
+        console.error("No token available for the chatbot.");
+        return; // Do not proceed if there's no token
+    }
+    console.log("Chatbot initialized with token:", token);
 
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
@@ -6,8 +13,8 @@
     // Create elements for the chatbot widget
     var chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
-    chatbotWidget.innerHTML =
-        `<div id="chat-header">
+    chatbotWidget.innerHTML = `
+        <div id="chat-header">
             <span id="chat-title">Chatbot</span>
             <button id="close-chat">X</button>
         </div>
@@ -41,8 +48,8 @@
         .user-message { background-color: #bfefff; align-self: flex-end; flex-direction: row-reverse; }
         .bot-message { background-color: #f0f0f0; align-self: flex-start; flex-direction: row; }
         .profile-image { width: 30px; height: 30px; border-radius: 50%; background-color: #ccc; flex-shrink: 0; margin: 0 5px; }
-        .message-content { flex-grow: 1; word-break: break-word; }
-    `;
+        .message-content { flex-grow: 1; word-break: break-word; }`;
+
     var styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
@@ -67,7 +74,6 @@
     document.getElementById('send-message').onclick = function () {
         var userInput = document.getElementById('user-input');
         var chatMessages = document.getElementById('chat-messages');
-        var token = localStorage.getItem('token');
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
