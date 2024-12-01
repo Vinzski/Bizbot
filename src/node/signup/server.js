@@ -9,6 +9,7 @@ const userModel = require('../models/userModel');
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
+app.use('/protected-route', authenticate, protectedRouter);
 
 connectDB();
 
