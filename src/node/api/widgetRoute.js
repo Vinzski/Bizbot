@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', authenticate, (req, res) => {
     const userId = req.user.id;
-    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET || 'your_secret_key', { expiresIn: '1h' });
+    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET || 'mysecretkey_12345', { expiresIn: '1h' });
 
     res.type('text/javascript');
     res.send(`
