@@ -55,7 +55,7 @@ router.post('/send_message', (req, res) => {
 });
 
 const authenticateByDomain = (req, res, next) => {
-    const allowedDomains = ['http://localhost:3000/', 'https://bizbot-khpq.onrender.com', 'http://localhost:3000'];
+    const allowedDomains = ['http://localhost:3000/', 'https://bizbot-khpq.onrender.com', 'http://localhost:3000', 'http://localhost/EnE_Portal_Final/login.php'];
     const refererHeader = req.headers.referer;
 
     if (refererHeader && allowedDomains.some(domain => refererHeader.startsWith(domain))) {
