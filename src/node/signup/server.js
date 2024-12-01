@@ -4,11 +4,9 @@ const app = express();
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('../config/db');
-const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
 
@@ -26,7 +24,6 @@ const faqRoutes = require('../api/faqRoutes');
 const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
-const widgetRoute = require('../api/widgetRoute');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -35,21 +32,6 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes);
 app.use('/api', chatRoutes); 
 app.use('/api/customization', customizationRoutes);
-app.use('/widget.js', widgetRoute);
-
-app.get('/widget.js', authenticate, (req, res) => {
-    const userId = req.user.id;
-    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET || 'mysecretkey_12345', { expiresIn: '1h' });
-
-    res.type('text/javascript');
-    res.send(`
-        (function () {
-            var token = "${token}";
-
-            // Embed your chatbot widget code here, using 'token' for API requests
-        })();
-    `);
-});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
