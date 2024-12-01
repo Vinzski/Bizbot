@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
 
 exports.signup = async (req, res) => {
-@@ -25,44 +24,38 @@
         });
     } catch (error) {
         console.error('Signup error:', error);
