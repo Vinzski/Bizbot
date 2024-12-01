@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
 
 exports.signup = async (req, res) => {
-        });
     } catch (error) {
         console.error('Signup error:', error);
         res.status(500).json({ message: "Error creating the user", error: error.message });
