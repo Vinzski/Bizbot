@@ -57,10 +57,22 @@ router.post('/send_message', (req, res) => {
 
 router.post('/chat', async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id;
 
-    // First try to find an answer in the FAQs
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    if (!chatbotId) {
+        return res.status(400).json({ message: 'chatbotId is required' });
+    }
+
+    // Validate the chatbotId (optional but recommended)
+    // For example, check if the chatbotId exists in your database
+    const chatbotExists = await ChatbotModel.exists({ _id: chatbotId });
+        if (!chatbotExists) {
+             return res.status(404).json({ message: 'Chatbot not found' });
+        }
+
+    // Fetch FAQs specific to the chatbot
+    const faqs = await FAQ.find({ chatbotId: chatbotId });
+
+    // If FAQs are found, search for the best match
     let bestMatch = { score: 0, faq: null };
 
     faqs.forEach(faq => {
@@ -73,8 +85,8 @@ router.post('/chat', async (req, res) => {
         }
     });
 
-    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
-        res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+    if (bestMatch.score >= 0.5) {
+        return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
