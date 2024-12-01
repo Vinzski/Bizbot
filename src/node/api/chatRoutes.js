@@ -22,6 +22,7 @@ const authenticateByDomain = (req, res, next) => {
 
 router.post('/chat', authenticateByDomain, async (req, res) => {
     const { question, chatbotId } = req.body;
+    const userId = req.user.id;
 
     // Validate inputs
     if (!question || typeof question !== 'string' || question.trim() === '') {
@@ -61,7 +62,7 @@ router.post('/chat', authenticateByDomain, async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://your-rasa-endpoint/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://poor-times-sleep.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -99,7 +100,7 @@ router.post('/', authenticate, async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://odd-bags-raise.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://poor-times-sleep.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
