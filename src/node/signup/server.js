@@ -12,8 +12,8 @@ app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as nec
 connectDB();
 
 app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH'],
+    origin: 'http://localhost:8080',
+    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
     credentials: false
 }));
 
