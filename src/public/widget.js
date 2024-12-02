@@ -89,9 +89,9 @@
         // Send the message to the API
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
+            'credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
-                'credentials: 'include',
                 'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
