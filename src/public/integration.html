@@ -49,8 +49,7 @@
                 <form id="domain-form">
                     <div class="form-group">
                         <label for="domain-input">Domain URL:</label>
-                        <input type="url" id="domain-input" name="domain" placeholder="https://yourwebsite.com"
-                            required>
+                        <input type="url" id="domain-input" name="domain" placeholder="https://yourwebsite.com" required>
                     </div>
                     <button type="button" onclick="saveDomain()">Save Domain</button>
                 </form>
@@ -58,9 +57,9 @@
             <!-- Section to display the user's saved domains -->
             <div class="card">
                 <h2>Your Saved Domains</h2>
-                    <ul id="domains-list">
-        <!-- List of domains will be dynamically inserted here -->
-                    </ul>
+                <ul id="domains-list">
+                    <!-- List of domains will be dynamically inserted here -->
+                </ul>
             </div>
             <div class="card">
                 <h2>Integration Instructions</h2>
@@ -74,90 +73,49 @@
             </div>
         </main>
     </div>
+
     <script>
         // Function to fetch and display the logged-in user's domains
-    function fetchUserDomains() {
-        const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
-        if (!token) {
-            alert('You must be logged in to see your domains.');
-            return;
-        }
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchUserDomains();  // Call this function to populate the domains when the page loads
-        });
-
-
-        fetch('https://bizbot-khpq.onrender.com/api/my-domains', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
+        function fetchUserDomains() {
+            const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
+            if (!token) {
+                alert('You must be logged in to see your domains.');
+                return;
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.domains && data.domains.length > 0) {
-                const domainsList = document.getElementById('domains-list');
-                domainsList.innerHTML = ''; // Clear the list first
-                data.domains.forEach(domain => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = domain.domain;
-                    domainsList.appendChild(listItem);
-                });
-            } else {
-                document.getElementById('domains-list').innerHTML = 'No domains saved yet.';
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching user domains:', error);
-        });
-    }
-        
-        document.addEventListener("DOMContentLoaded", function () {
-            loadChatbots();  // Call this function to populate the dropdown when the page loads.
-        });
 
-        function loadChatbots() {
-            const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
-            fetch("/api/chatbots", {
+            fetch('https://bizbot-khpq.onrender.com/api/my-domains', {
+                method: 'GET',
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
                 }
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch chatbots');
-                    }
-                    return response.json();
-                })
-                .then(chatbots => {
-                    const select = document.getElementById("chatbot-select");
-                    chatbots.forEach(chatbot => {
-                        let option = new Option(chatbot.name, chatbot._id);
-                        select.appendChild(option);
+            .then(response => response.json())
+            .then(data => {
+                console.log('Fetched domains:', data); // Log the fetched data for debugging
+                
+                if (data.domains && data.domains.length > 0) {
+                    const domainsList = document.getElementById('domains-list');
+                    domainsList.innerHTML = ''; // Clear the list first
+                    data.domains.forEach(domain => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = domain.domain;
+                        domainsList.appendChild(listItem);
                     });
-                })
-                .catch(error => {
-                    console.error('Error loading chatbots:', error);
-                });
-        }
-
-        function generateCode() {
-            const chatbotId = document.getElementById('chatbot-select').value;
-            if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
-                document.getElementById('code-snippet').textContent = codeSnippet;
-            } else {
-                alert('Please select a chatbot first.');
-            }
-        }
-
-        function copyCode() {
-            const codeSnippetElement = document.getElementById('code-snippet');
-            navigator.clipboard.writeText(codeSnippetElement.textContent)
-                .then(() => alert('Code copied to clipboard!'))
-                .catch(err => console.error('Error copying text: ', err));
+                } else {
+                    document.getElementById('domains-list').innerHTML = 'No domains saved yet.';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching user domains:', error);
+            });
         }
         
+        // Call to fetch user domains when the page is loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchUserDomains(); // Fetch user domains on page load
+        });
+
+        // Function to save a new domain
         function saveDomain() {
             const domainInput = document.getElementById('domain-input').value;
             if (!domainInput) {
@@ -173,19 +131,20 @@
                 },
                 body: JSON.stringify({ domain: domainInput })
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to save the domain');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    alert('Domain saved successfully!');
-                })
-                .catch(error => {
-                    console.error('Error saving domain:', error);
-                    alert('Failed to save the domain: ' + error.message);
-                });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to save the domain');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Domain saved successfully!');
+                fetchUserDomains(); // Refresh domain list after saving
+            })
+            .catch(error => {
+                console.error('Error saving domain:', error);
+                alert('Failed to save the domain: ' + error.message);
+            });
         }
     </script>
 </body>
