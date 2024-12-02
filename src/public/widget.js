@@ -97,7 +97,6 @@
             },
             body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
         })
-            console.log("Token:", token); 
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not OK');
