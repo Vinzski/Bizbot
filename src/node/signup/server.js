@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('../config/db');
 const userModel = require('../models/userModel');
+const Domain = require('../models/domainModel');
 const jwt = require('jsonwebtoken');
 
 app.use(express.json());
@@ -12,18 +13,27 @@ app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as nec
 
 connectDB();
 
-app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = ['https://bizbot-khpq.onrender.com', 'http://localhost:8080'];
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-    credentials: true  // Set this based on whether you need to handle authenticated requests from the client.
-}));
+app.use(async (req, res, next) => {
+    try {
+        const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
+        const allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
+
+        cors({
+            origin: function (origin, callback) {
+                if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
+            methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+            credentials: true, // Set this based on whether you need to handle authenticated requests from the client.
+        })(req, res, next);
+    } catch (error) {
+        console.error('Error fetching domains for CORS:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 
 // Import route modules
