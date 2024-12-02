@@ -13,7 +13,7 @@ connectDB();
 
 app.use(cors({
     origin: function (origin, callback) {
-        const allowedOrigins = ['http://localhost:8080'];
+        const allowedOrigins = ['*'];
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
