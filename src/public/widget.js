@@ -1,4 +1,35 @@
 (function () {
+    let token; // Store the widget token in memory
+
+    // Function to initialize the chatbot widget
+    function initializeChatbot() {
+        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
+        if (!chatbotId) {
+            console.error('Chatbot ID is missing.');
+            return;
+        }
+
+        // Fetch the token from the server
+        fetch('https://bizbot-khpq.onrender.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ chatbotId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    token = data.token; // Store token in memory
+                    console.log('Chatbot token fetched successfully');
+                } else {
+                    throw new Error('Failed to fetch token');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching chatbot token:', error);
+            });
+    }
 
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
@@ -67,7 +98,6 @@
     document.getElementById('send-message').onclick = function () {
         var userInput = document.getElementById('user-input');
         var chatMessages = document.getElementById('chat-messages');
-        const token = localStorage.getItem('token');
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
@@ -87,43 +117,12 @@
         chatMessages.appendChild(userMessageElement);
 
         // Send the message to the API
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
-            method: 'POST',
-            credentials: 'include',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ question: userInput.value }) // Assuming the API expects a question field
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not OK');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Append the bot's reply to the chat
-                var botMessageElement = document.createElement('div');
-                botMessageElement.classList.add('message', 'bot-message');
-                var botProfileImage = document.createElement('div');
-                botProfileImage.classList.add('profile-image');
-                var botText = document.createElement('span');
-                botText.classList.add('message-content');
-                botText.textContent = data.reply;
-                botMessageElement.appendChild(botProfileImage);
-                botMessageElement.appendChild(botText);
-                chatMessages.appendChild(botMessageElement);
-
-                // Scroll to the bottom
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-            });
+        sendMessage(userInput.value);
 
         // Clear the input field after sending
         userInput.value = '';
     };
+
+    // Initialize the chatbot widget on load
+    initializeChatbot();
 })();
