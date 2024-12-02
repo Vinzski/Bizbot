@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('../config/db');
 const userModel = require('../models/userModel');
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
@@ -51,15 +52,24 @@ app.get('/', (req, res) => {
     res.send('Chatbot Server is running');
 });
 app.use('/uploads', express.static('uploads'));
-app.post('/chat', (req, res) => {
-    const userMessage = req.body.message;
-    // In a real application, you'd process the user's message here
-    const botResponse = "Thanks for your message! I'm a demo bot, so I can't provide a real response. How else can I help you?";
-    res.json({ message: botResponse });
-  });
-  app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+
+app.post('/api/token', (req, res) => {
+    const { chatbotId } = req.body;
+
+    if (!chatbotId) {
+        return res.status(400).json({ message: 'Chatbot ID is required' });
+    }
+
+    // Optionally validate chatbotId if needed
+    // For example: Check if chatbotId exists in your database
+    // const chatbot = await Chatbot.findById(chatbotId);
+    // if (!chatbot) return res.status(404).json({ message: 'Invalid chatbot ID' });
+
+    const token = jwt.sign({ chatbotId }, process.env.JWT_SECRET || 'mysecretkey_12345', {
+        expiresIn: '1h', // Token expires in 1 hour
+    });
+
+    res.json({ token });
 });
 
 const PORT = process.env.PORT || 3000;
