@@ -12,10 +12,18 @@ app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as nec
 connectDB();
 
 app.use(cors({
-    origin: 'http://localhost:8080',
+    origin: function (origin, callback) {
+        const allowedOrigins = ['http://localhost:8080'];
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-    credentials: false
+    credentials: false  // Set this based on whether you need to handle authenticated requests from the client.
 }));
+
 
 // Import route modules
 const authRoutes = require('./routes/authRoutes');
