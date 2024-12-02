@@ -30,8 +30,6 @@ exports.signup = async (req, res) => {
     }
 };
 
-const jwt = require('jsonwebtoken');
-
 // Login function
 exports.login = async (req, res) => {
     const { email, password } = req.body;
