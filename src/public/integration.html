@@ -82,6 +82,10 @@
             alert('You must be logged in to see your domains.');
             return;
         }
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchUserDomains();  // Call this function to populate the domains when the page loads
+        });
+
 
         fetch('https://bizbot-khpq.onrender.com/api/my-domains', {
             method: 'GET',
