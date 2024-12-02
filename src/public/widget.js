@@ -67,7 +67,7 @@
     document.getElementById('send-message').onclick = function () {
         var userInput = document.getElementById('user-input');
         var chatMessages = document.getElementById('chat-messages');
-        var token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
