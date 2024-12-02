@@ -29,7 +29,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes);
-app.use('/api', chatRoutes); 
 app.use('/api/customization', customizationRoutes);
 
 app.get('/', (req, res) => {
