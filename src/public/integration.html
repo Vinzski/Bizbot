@@ -55,6 +55,13 @@
                     <button type="button" onclick="saveDomain()">Save Domain</button>
                 </form>
             </div>
+            <!-- Section to display the user's saved domains -->
+            <div class="card">
+                <h2>Your Saved Domains</h2>
+                    <ul id="domains-list">
+        <!-- List of domains will be dynamically inserted here -->
+                    </ul>
+            </div>
             <div class="card">
                 <h2>Integration Instructions</h2>
                 <ol>
@@ -113,6 +120,39 @@
                 .then(() => alert('Code copied to clipboard!'))
                 .catch(err => console.error('Error copying text: ', err));
         }
+
+        function fetchUserDomains() {
+        const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
+        if (!token) {
+            alert('You must be logged in to see your domains.');
+            return;
+        }
+
+        fetch('https://bizbot-khpq.onrender.com/api/my-domains', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.domains && data.domains.length > 0) {
+                const domainsList = document.getElementById('domains-list');
+                domainsList.innerHTML = ''; // Clear the list first
+                data.domains.forEach(domain => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = domain.domain;
+                    domainsList.appendChild(listItem);
+                });
+            } else {
+                document.getElementById('domains-list').innerHTML = 'No domains saved yet.';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user domains:', error);
+        });
+    }
+        
         function saveDomain() {
             const domainInput = document.getElementById('domain-input').value;
             if (!domainInput) {
