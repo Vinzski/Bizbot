@@ -13,7 +13,7 @@ connectDB();
 
 app.use(cors({
     origin: function (origin, callback) {
-        const allowedOrigins = ['*'];
+        const allowedOrigins = ['https://bizbot-khpq.onrender.com'];
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
