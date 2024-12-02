@@ -7,7 +7,7 @@ router.get('/my-domains', authenticate, async (req, res) => {
     try {
         const userId = req.user.id; // Get the user ID from the token
         // Fetch only the domains belonging to the logged-in user
-        const domains = await Domain.find().select('domain -_id');
+        const domains = await Domain.find({ userId }).select('domain -_id');
         
         res.status(200).json({ domains }); // Send the domains to the frontend
     } catch (error) {
