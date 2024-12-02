@@ -31,6 +31,39 @@
             });
     }
 
+    // Function to send user messages to the server
+    function sendMessage(userInput) {
+        if (!token) {
+            console.error('Token is not available. Ensure the widget is initialized correctly.');
+            return;
+        }
+
+        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ question: userInput, chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id') })
+        })
+            .then(response => response.json())
+            .then(data => {
+                displayBotMessage(data.reply);
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
+    }
+
+    // Function to display bot messages
+    function displayBotMessage(message) {
+        const chatMessages = document.getElementById('chat-messages');
+        const botMessageElement = document.createElement('div');
+        botMessageElement.classList.add('message', 'bot-message');
+        botMessageElement.textContent = message;
+        chatMessages.appendChild(botMessageElement);
+    }
+
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
 
