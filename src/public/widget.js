@@ -89,7 +89,7 @@
         // Send the message to the API
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
-            'credentials: 'include',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
