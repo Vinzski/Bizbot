@@ -21,7 +21,7 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-    credentials: false  // Set this based on whether you need to handle authenticated requests from the client.
+    credentials: true  // Set this based on whether you need to handle authenticated requests from the client.
 }));
 
 
