@@ -16,7 +16,10 @@ connectDB();
 app.use(async (req, res, next) => {
     try {
         const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
-        const allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
+        let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
+
+        // Add the static domain to the allowed origins
+        allowedOrigins.push('https://bizbot-khpq.onrender.com');
 
         cors({
             origin: function (origin, callback) {
