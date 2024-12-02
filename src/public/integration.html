@@ -74,7 +74,7 @@
             </div>
         </main>
     </div>
-    <script>
+    <script src="integration.js">
         document.addEventListener("DOMContentLoaded", function () {
             loadChatbots();  // Call this function to populate the dropdown when the page loads.
         });
@@ -120,41 +120,6 @@
                 .then(() => alert('Code copied to clipboard!'))
                 .catch(err => console.error('Error copying text: ', err));
         }
-
-        function fetchUserDomains() {
-    const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
-    if (!token) {
-        alert('You must be logged in to see your domains.');
-        return;
-    }
-
-    fetch('https://bizbot-khpq.onrender.com/api/my-domains', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Fetched domains:', data); // Log the fetched data for debugging
-        
-        if (data.domains && data.domains.length > 0) {
-            const domainsList = document.getElementById('domains-list');
-            domainsList.innerHTML = ''; // Clear the list first
-            data.domains.forEach(domain => {
-                const listItem = document.createElement('li');
-                listItem.textContent = domain.domain;
-                domainsList.appendChild(listItem);
-            });
-        } else {
-            document.getElementById('domains-list').innerHTML = 'No domains saved yet.';
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching user domains:', error);
-    });
-}
-
         
         function saveDomain() {
             const domainInput = document.getElementById('domain-input').value;
