@@ -1,7 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const Domain = require('../models/domainModel');
-const authenticate = require('../signup/middleware/authMiddleware');  // Path to your authentication middleware
+const authenticate = require('../signup/middleware/authMiddleware');  // Path to your authentication 
+
+router.get('/my-domains', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.id; // Get the user ID from the token
+        // Fetch only the domains belonging to the logged-in user
+        const domains = await Domain.find({ userId }).select('domain -_id');
+        
+        res.status(200).json({ domains }); // Send the domains to the frontend
+    } catch (error) {
+        console.error('Error fetching user domains:', error);
+        res.status(500).json({ message: 'Failed to fetch domains' });
+    }
+});
 
 // POST endpoint to add a new domain
 router.post('/add-domain', authenticate, async (req, res) => {
