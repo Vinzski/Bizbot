@@ -90,7 +90,7 @@
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
             credentials: 'include',
-            mode: 'no-cors',
+            mode: 'cors',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
