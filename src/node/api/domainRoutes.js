@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Domain = require('../models/domainModel');
+const FAQ = require('../models/users');
 const authenticate = require('../signup/middleware/authMiddleware');  // Path to your authentication 
 
 router.get('/my-domains', authenticate, async (req, res) => {
