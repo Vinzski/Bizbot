@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Integration - BizBot Admin</title>
+    <title>Settings - BizBot Admin</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -17,8 +17,8 @@
                     <li><a href="dashboard.html">Dashboard</a></li>
                     <li><a href="chatbot-management.html">Chatbot Management</a></li>
                     <li><a href="training.html">Training Data</a></li>
-                    <li><a href="integration.html" class="active">Integration</a></li>
-                    <li><a href="settings.html">Settings</a></li>
+                    <li><a href="integration.html">Integration</a></li>
+                    <li><a href="settings.html" class="active">Settings</a></li>
                     <li><a href="analytics.html">Analytics</a></li>
                     <li><a href="support.html">Support</a></li>
                 </ul>
@@ -26,169 +26,124 @@
         </aside>
         <main class="main-content">
             <header class="dashboard-header">
-                <h1>Chatbot Integration</h1>
+                <h1>Settings</h1>
             </header>
             <div class="card">
-                <h2>Generate Widget Code</h2>
-                <form id="widget-form">
+                <h2>Profile Settings</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" value="admin_user" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" value="admin@bizbot.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" name="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-password" name="confirm-password">
+                    </div>
+                    <button type="submit">Update Profile</button>
+                </form>
+            </div>
+            <div class="card">
+                <h2>Customization Options</h2>
+                <form id="customization-form">
                     <div class="form-group">
                         <label for="chatbot-select">Select Chatbot:</label>
                         <select id="chatbot-select" name="chatbot-select">
                             <option value="">Choose a chatbot</option>
-                            <!-- Options will be dynamically filled -->
                         </select>
                     </div>
-                    <button type="button" onclick="generateCode()">Generate Code</button>
-                </form>
-                <h3>Widget Code</h3>
-                <pre id="code-snippet" class="code-snippet"></pre>
-                <button class="btn" onclick="copyCode()">Copy Code</button>
-            </div>
-            <div class="card">
-                <h2>Save Your Domain</h2>
-                <form id="domain-form">
                     <div class="form-group">
-                        <label for="domain-input">Domain URL:</label>
-                        <input type="url" id="domain-input" name="domain" placeholder="https://yourwebsite.com"
-                            required>
+                        <label for="dataset">Choose Logo Widget (File):</label>
+                        <input type="file" id="dataset" name="dataset" accept=".jpg, .jpeg, .png, .gif, .svg">
                     </div>
-                    <button type="button" onclick="saveDomain()">Save Domain</button>
+                    <div class="form-group">
+                        <label for="theme-color">Theme Color:</label>
+                        <input type="color" id="theme-color" name="theme-color" value="#4a90e2" class="color-picker">
+                    </div>
+                    <div class="form-group">
+                        <label for="welcome-message">Welcome Message:</label>
+                        <textarea id="welcome-message" name="welcome-message"
+                            rows="3">Hello! How can I assist you today?</textarea>
+                    </div>
+                    <button type="submit">Save Customization</button>
                 </form>
-            </div>
-            <!-- Section to display the user's saved domains -->
-            <div class="card">
-                <h2>Your Saved Domains</h2>
-                <ul id="domains-list">
-                    <!-- List of domains will be dynamically inserted here -->
-                </ul>
-            </div>
-            <div class="card">
-                <h2>Integration Instructions</h2>
-                <ol>
-                    <li>Copy the generated widget code above.</li>
-                    <li>Open your website's HTML file or template where you want to add the chatbot.</li>
-                    <li>Paste the widget code just before the closing &lt;/body&gt; tag.</li>
-                    <li>Save the file and upload it to your web server.</li>
-                    <li>Refresh your website to see the BizBot widget in action.</li>
-                </ol>
             </div>
         </main>
     </div>
+
     <script>
-         // Function to fetch and display the logged-in user's domains
-        function fetchUserDomains() {
-            const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
-            if (!token) {
-                alert('You must be logged in to see your domains.');
-                return;
-            }
 
-            fetch('https://bizbot-khpq.onrender.com/api/domains/my-domains', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Fetched domains:', data); // Log the fetched data for debugging
-                
-                if (data.domains && data.domains.length > 0) {
-                    const domainsList = document.getElementById('domains-list');
-                    domainsList.innerHTML = ''; // Clear the list first
-                    data.domains.forEach(domain => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = domain.domain;
-                        domainsList.appendChild(listItem);
-                    });
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('token');
+        
+            try {
+                // Fetch chatbots
+                const response = await fetch('/api/chatbots', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+        
+                if (!response.ok) throw new Error('Failed to load chatbots');
+        
+                const chatbots = await response.json();
+                const chatbotSelect = document.getElementById('chatbot-select');
+        
+                chatbots.forEach(chatbot => {
+                    const option = document.createElement('option');
+                    option.value = chatbot._id;
+                    option.textContent = chatbot.name;
+                    chatbotSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching chatbots:', error);
+            }
+        });
+        
+        document.getElementById('customization-form').onsubmit = async function(e) {
+            e.preventDefault();
+        
+            const formData = new FormData();
+            formData.append('chatbotId', document.getElementById('chatbot-select').value);
+            formData.append('themeColor', document.getElementById('theme-color').value);
+            formData.append('welcomeMessage', document.getElementById('welcome-message').value);
+        
+            const fileInput = document.getElementById('dataset');
+            if (fileInput.files.length > 0) {
+                formData.append('logo', fileInput.files[0]);
+            }
+        
+            try {
+                const response = await fetch('/api/customization/save', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+        
+                if (response.ok) {
+                    alert('Customization saved successfully!');
                 } else {
-                    document.getElementById('domains-list').innerHTML = 'No domains saved yet.';
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching user domains:', error);
-            });
-        }
-        
-        // Call to fetch user domains when the page is loaded
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchUserDomains(); // Fetch user domains on page load
-        });
-        
-        document.addEventListener("DOMContentLoaded", function () {
-            loadChatbots();  // Call this function to populate the dropdown when the page loads.
-        });
-
-        function loadChatbots() {
-            const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
-            fetch("/api/chatbots", {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch chatbots');
-                    }
-                    return response.json();
-                })
-                .then(chatbots => {
-                    const select = document.getElementById("chatbot-select");
-                    chatbots.forEach(chatbot => {
-                        let option = new Option(chatbot.name, chatbot._id);
-                        select.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading chatbots:', error);
-                });
-        }
-
-        function generateCode() {
-            const chatbotId = document.getElementById('chatbot-select').value;
-            if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
-                document.getElementById('code-snippet').textContent = codeSnippet;
-            } else {
-                alert('Please select a chatbot first.');
+            } catch (error) {
+                console.error('Error saving customization:', error);
+                alert('An error occurred while saving the customization.');
             }
-        }
-
-        function copyCode() {
-            const codeSnippetElement = document.getElementById('code-snippet');
-            navigator.clipboard.writeText(codeSnippetElement.textContent)
-                .then(() => alert('Code copied to clipboard!'))
-                .catch(err => console.error('Error copying text: ', err));
-        }
-        function saveDomain() {
-            const domainInput = document.getElementById('domain-input').value;
-            if (!domainInput) {
-                alert('Please enter a domain URL.');
-                return;
-            }
-            const token = localStorage.getItem("token"); // Retrieve the auth token
-            fetch('/api/domains/add-domain', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ domain: domainInput })
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to save the domain');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    alert('Domain saved successfully!');
-                })
-                .catch(error => {
-                    console.error('Error saving domain:', error);
-                    alert('Failed to save the domain: ' + error.message);
-                });
-        }
+        };
+        
     </script>
+
 </body>
+
+</html>
