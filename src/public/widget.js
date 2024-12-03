@@ -185,10 +185,10 @@
       color: white;
       border: none;
       padding: 15px;
-      border-radius: 8px;
+      border-radius: 10%;
       cursor: pointer;
-      width: 60px;
-      height: 60px;
+      width: 5%; 
+      height: 6%;
       display: flex;
       align-items: center;
       justify-content: center;
