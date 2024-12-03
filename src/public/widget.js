@@ -203,11 +203,6 @@
       background-color: var(--theme-color-dark, #3a80d2);
     }
     
-    #chat-toggle::after {
-      content: "Chat";
-      margin-left: 5px;
-    }
-    
     .message {
       display: flex;
       align-items: flex-start;
