@@ -192,7 +192,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
       font-weight: bold;
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
       transition: all 0.3s ease;
