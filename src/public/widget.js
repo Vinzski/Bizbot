@@ -100,7 +100,8 @@
         #chat-input { display: flex; padding: 10px; }
         #user-input { flex-grow: 1; padding: 5px; border: 1px solid #ccc; border-radius: 3px; }
         #send-message { background-color: var(--theme-color, #4a90e2); color: white; border: none; padding: 5px 10px; margin-left: 5px; cursor: pointer; border-radius: 3px; }
-        #chat-toggle { position: fixed; bottom: 20px; right: 20px; background-color: var(--theme-color, #4a90e2); color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; }
+        #chat-toggle { position: fixed; bottom: 20px; right: 20px; background-color: var(--theme-color, #4a90e2); color: white; border: none; padding: 10px; border-radius: 10%; cursor: pointer; width: 5%; height: 6%;
+}
         .message { display: flex; align-items: flex-start; margin: 5px; padding: 5px; border-radius: 5px; border: 1px solid #888; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .user-message { background-color: #bfefff; align-self: flex-end; flex-direction: row-reverse; }
         .bot-message { background-color: #f0f0f0; align-self: flex-start; flex-direction: row; }
