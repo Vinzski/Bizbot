@@ -223,6 +223,8 @@
       align-self: flex-end;
       flex-direction: row-reverse;
       border-bottom-right-radius: 5px;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
     
     .bot-message {
