@@ -46,7 +46,6 @@ const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
 const domainRoutes = require('../api/domainRoutes')
-const interactionRoutes = require('../api/interactionRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -55,7 +54,6 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes);
 app.use('/api/customization', customizationRoutes);
 app.use('/api/domains', domainRoutes);
-app.use('/api', interactionRoutes);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
