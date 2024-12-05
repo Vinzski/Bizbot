@@ -5,7 +5,8 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
+const authenticate = require('../signup/middleware/authMiddleware'); 
+const Interaction = require('../models/interactionModel');
 
 // Middleware for token-based authentication in the /chat route
 router.post('/chat', async (req, res) => {
@@ -17,16 +18,16 @@ router.post('/chat', async (req, res) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
-        const { chatbotId } = decoded;
+        const { userId } = decoded; // Get the userId from the token
 
-        // Ensure the chatbotId matches the request
-        if (req.body.chatbotId !== chatbotId) {
-            return res.status(403).json({ message: 'Invalid chatbot ID' });
+        const { chatbotId, question } = req.body;
+
+        if (!chatbotId) {
+            return res.status(400).json({ message: 'Chatbot ID is required' });
         }
 
-        const { question } = req.body;
-
-        // Fetch FAQs specific to the chatbot
+        // Fetch FAQs and handle response as before...
+        // Example: Find best match or query Rasa
         const faqs = await FAQ.find({ chatbotId });
 
         let bestMatch = { score: 0, faq: null };
@@ -41,27 +42,41 @@ router.post('/chat', async (req, res) => {
             }
         });
 
+        let reply, source;
         if (bestMatch.score >= 0.5) {
-            // Return the FAQ answer
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+            reply = bestMatch.faq.answer;
+            source = 'FAQ';
         } else {
-            // Query Rasa if no FAQ matches
             try {
-                const rasaResponse = await axios.post('https://dark-plants-roll.loca.lt/webhooks/rest/webhook', {
+                const rasaResponse = await axios.post('https://calm-sloths-burn.loca.lt/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget',
                 });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                res.json({ reply: botReply, source: 'Rasa' });
+                reply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+                source = 'Rasa';
             } catch (error) {
                 console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+                return res.status(500).json({ message: 'Error contacting Rasa', error: error.toString() });
             }
         }
+
+        // Save interaction in the database
+        const interaction = new Interaction({
+            userId, // From the decoded token
+            chatbotId,
+            question,
+            reply,
+            source,
+        });
+        await interaction.save();
+
+        res.json({ reply, source });
     } catch (error) {
+        console.error('Error handling chat:', error);
         res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
+
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
@@ -95,7 +110,7 @@ router.post('/', authenticate, async (req, res) => {
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         try {
-            const rasaResponse = await axios.post('https://dark-plants-roll.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://calm-sloths-burn.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget',
             });
