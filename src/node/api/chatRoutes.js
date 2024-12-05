@@ -5,7 +5,8 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
+const authenticate = require('../signup/middleware/authMiddleware');
+const Message = require('../models/messageModel');
 
 // Middleware for token-based authentication in the /chat route
 router.post('/chat', async (req, res) => {
@@ -17,7 +18,7 @@ router.post('/chat', async (req, res) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
-        const { chatbotId } = decoded;
+        const { userId, chatbotId } = decoded;
 
         // Ensure the chatbotId matches the request
         if (req.body.chatbotId !== chatbotId) {
@@ -25,6 +26,15 @@ router.post('/chat', async (req, res) => {
         }
 
         const { question } = req.body;
+
+        // Save the user's message (the question) to the database
+        const userMessage = new Message({
+            chatbotId,
+            userId,
+            message: question,
+            sender: 'user',
+        });
+        await userMessage.save();
 
         // Fetch FAQs specific to the chatbot
         const faqs = await FAQ.find({ chatbotId });
@@ -41,9 +51,10 @@ router.post('/chat', async (req, res) => {
             }
         });
 
+        let botReply;
         if (bestMatch.score >= 0.5) {
             // Return the FAQ answer
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+            botReply = bestMatch.faq.answer;
         } else {
             // Query Rasa if no FAQ matches
             try {
@@ -51,13 +62,24 @@ router.post('/chat', async (req, res) => {
                     message: question,
                     sender: 'chatbot-widget',
                 });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                res.json({ reply: botReply, source: 'Rasa' });
+                botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
             } catch (error) {
                 console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+                botReply = "Error contacting Rasa";
             }
         }
+
+        // Save the bot's reply to the database
+        const botMessage = new Message({
+            chatbotId,
+            userId,
+            message: botReply,
+            sender: 'bot',
+        });
+        await botMessage.save();
+
+        res.json({ reply: botReply, source: bestMatch.score >= 0.5 ? 'FAQ' : 'Rasa' });
+
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired token' });
     }
