@@ -26,6 +26,7 @@ router.post('/chat', async (req, res) => {
         }
 
         const { question } = req.body;
+        console.log("Received question: ", question);  // Log the incoming question
 
         // Save the user's message (the question) to the database
         const userMessage = new Message({
@@ -34,7 +35,9 @@ router.post('/chat', async (req, res) => {
             message: question,
             sender: 'user',
         });
+        console.log("Saving user message to DB: ", userMessage);
         await userMessage.save();
+        console.log("User message saved");
 
         // Fetch FAQs specific to the chatbot
         const faqs = await FAQ.find({ chatbotId });
@@ -69,6 +72,8 @@ router.post('/chat', async (req, res) => {
             }
         }
 
+        console.log("Bot reply: ", botReply);  // Log the bot reply
+
         // Save the bot's reply to the database
         const botMessage = new Message({
             chatbotId,
@@ -76,11 +81,14 @@ router.post('/chat', async (req, res) => {
             message: botReply,
             sender: 'bot',
         });
+        console.log("Saving bot message to DB: ", botMessage);
         await botMessage.save();
+        console.log("Bot message saved");
 
         res.json({ reply: botReply, source: bestMatch.score >= 0.5 ? 'FAQ' : 'Rasa' });
 
     } catch (error) {
+        console.error("Error in chat route: ", error);  // Log error if occurs
         res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
