@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Interaction = require('../models/Interaction'); // Ensure you have the correct model path
-const authenticate = require('../signup/middleware/authenticate'); // Ensure correct middleware path
+const authenticate = require('../signup/middleware/authMiddleware');  // Ensure correct middleware path
 
 
 // Add this route in the appropriate section:
