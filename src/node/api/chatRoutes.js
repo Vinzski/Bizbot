@@ -18,19 +18,20 @@ router.post('/chat', async (req, res) => {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
-        const { userId } = decoded; // Get the userId from the token
+        const { userId } = decoded;
+        console.log('Decoded Token:', decoded); // Debugging
 
         const { chatbotId, question } = req.body;
+        console.log('Chat request received:', { chatbotId, question });
 
         if (!chatbotId) {
             return res.status(400).json({ message: 'Chatbot ID is required' });
         }
 
-        // Fetch FAQs and handle response
         const faqs = await FAQ.find({ chatbotId });
+        console.log('FAQs fetched:', faqs);
 
         let bestMatch = { score: 0, faq: null };
-
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
@@ -59,15 +60,15 @@ router.post('/chat', async (req, res) => {
             }
         }
 
-        // Save interaction in the database
-        const interaction = new Interaction({
-            userId, // From the decoded token
-            chatbotId,
-            question,
-            reply,
-            source,
-        });
-        await interaction.save();
+        console.log('Saving interaction:', { userId, chatbotId, question, reply, source });
+        const interaction = new Interaction({ userId, chatbotId, question, reply, source });
+
+        try {
+            await interaction.save();
+            console.log('Interaction saved successfully:', interaction);
+        } catch (saveError) {
+            console.error('Error saving interaction:', saveError);
+        }
 
         res.json({ reply, source });
     } catch (error) {
@@ -75,6 +76,7 @@ router.post('/chat', async (req, res) => {
         res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
+
 
 
 // Route to send a simple message (unprotected)
