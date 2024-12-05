@@ -61,7 +61,7 @@ router.post('/chat', async (req, res) => {
         } else {
             // Query Rasa if no FAQ matches
             try {
-                const rasaResponse = await axios.post('https://calm-sloths-burn.loca.lt/webhooks/rest/webhook', {
+                const rasaResponse = await axios.post('https://tasty-teams-talk.loca.lt/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget',
                 });
@@ -125,7 +125,7 @@ router.post('/', authenticate, async (req, res) => {
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         try {
-            const rasaResponse = await axios.post('https://calm-sloths-burn.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://tasty-teams-talk.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget',
             });
