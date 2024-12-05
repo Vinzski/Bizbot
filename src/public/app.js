@@ -4,19 +4,22 @@ function toggleForm() {
     .getElementById("formTitle")
     .textContent.includes("Login");
   const usernameField = document.getElementById("username");
+  const usernameLabel = document.querySelector('label[for="username"]');
   const formTitle = document.getElementById("formTitle");
   const submitBtn = document.getElementById("submitBtn");
 
   if (isLogin) {
     formTitle.textContent = "Signup";
     submitBtn.textContent = "Signup";
-    usernameField.style.display = "block";
-    usernameField.required = true;
+    usernameField.style.display = "block"; // Show the input field
+    usernameLabel.style.display = "block"; // Show the label
+    usernameField.required = true; // Make it required
   } else {
     formTitle.textContent = "Login";
     submitBtn.textContent = "Login";
-    usernameField.style.display = "none";
-    usernameField.required = false;
+    usernameField.style.display = "none"; // Hide the input field
+    usernameLabel.style.display = "none"; // Hide the label
+    usernameField.required = false; // Remove the required attribute
   }
 }
 
