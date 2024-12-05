@@ -26,8 +26,7 @@ router.post('/chat', async (req, res) => {
             return res.status(400).json({ message: 'Chatbot ID is required' });
         }
 
-        // Fetch FAQs and handle response as before...
-        // Example: Find best match or query Rasa
+        // Fetch FAQs and handle response
         const faqs = await FAQ.find({ chatbotId });
 
         let bestMatch = { score: 0, faq: null };
