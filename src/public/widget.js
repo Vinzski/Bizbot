@@ -2,37 +2,53 @@
     let token; // Store the widget token in memory
 
     // Function to initialize the chatbot widget
-    function initializeChatbot() {
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-        if (!chatbotId) {
-            console.error('Chatbot ID is missing.');
-            return;
-        }
-
-        // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ chatbotId })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
-                    token = data.token; // Store token in memory
-                    console.log('Chatbot token fetched successfully');
-                } else {
-                    throw new Error('Failed to fetch token');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching chatbot token:', error);
-            });
+ function initializeChatbot() {
+    const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
+    if (!chatbotId) {
+        console.error('Chatbot ID is missing.');
+        return;
     }
 
-    // Function to send user messages to the server
-   function sendMessage(userInput) {
+    // Fetch the token from the server and set it
+    fetch('https://bizbot-khpq.onrender.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ chatbotId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.token) {
+            token = data.token; // Store token in memory
+            console.log('Chatbot token fetched successfully');
+            enableMessageSending(); // Enable message sending now that token is available
+        } else {
+            throw new Error('Failed to fetch token');
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching chatbot token:', error);
+    });
+}
+
+// Function to enable message sending after token is available
+function enableMessageSending() {
+    document.getElementById('send-message').disabled = false;  // Enable button
+    document.getElementById('send-message').onclick = function () {
+        var userInput = document.getElementById('user-input');
+        if (userInput.value.trim() === '') {
+            alert('Please enter a message.');
+            return;
+        }
+        sendMessage(userInput.value); // Call sendMessage after token is available
+        userInput.value = ''; // Clear the input field after sending
+    };
+}
+
+
+// Update to handle token availability better
+function sendMessage(userInput) {
     if (!token) {
         console.error('Token is not available. Ensure the widget is initialized correctly.');
         return;
@@ -43,16 +59,16 @@
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`, // Send token
         },
         body: JSON.stringify({
             question: userInput,
-            chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id')  // Ensure chatbotId is passed
+            chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id')
         })
     })
     .then(response => response.json())
     .then(data => {
-        // Check the source and display the response accordingly
+        // Handle FAQ vs Rasa response
         if (data.source === 'FAQ') {
             displayBotMessage(`FAQ Response: ${data.reply}`);
         } else if (data.source === 'Rasa') {
@@ -65,6 +81,7 @@
         console.error('Error sending message:', error);
     });
 }
+
 
 
     // Function to display bot messages
