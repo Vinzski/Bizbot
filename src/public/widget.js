@@ -36,31 +36,30 @@
 
     // Function to send user messages to the server
     function sendMessage(userInput) {
-        // Retrieve token from localStorage just like old code
-        const storedToken = localStorage.getItem('token');
-        if (!storedToken) {
-            console.error('Token not found in localStorage. Ensure the widget is initialized correctly.');
+        if (!token) {
+            console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
         }
-
+    
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${storedToken}`,
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({ 
                 question: userInput, 
                 chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id') 
             })
         })
-            .then(response => response.json())
-            .then(data => {
-                displayBotMessage(data.reply);
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-            });
+        .then(response => response.json())
+        .then(data => {
+            displayBotMessage(data.reply);
+            console.log('Response source:', data.source); // Log the source of the response
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+        });
     }
 
     // Function to display bot messages
