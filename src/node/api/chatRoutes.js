@@ -31,6 +31,7 @@ router.post('/chat', async (req, res) => {
 
         let bestMatch = { score: 0, faq: null };
 
+        // Check FAQ matches based on token intersection (you can refine the matching logic)
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
@@ -42,8 +43,8 @@ router.post('/chat', async (req, res) => {
         });
 
         if (bestMatch.score >= 0.5) {
-            // Return the FAQ answer
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+            // FAQ match found, return the FAQ answer
+            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             // Query Rasa if no FAQ matches
             try {
@@ -51,15 +52,16 @@ router.post('/chat', async (req, res) => {
                     message: question,
                     sender: 'chatbot-widget',
                 });
+
                 const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                res.json({ reply: botReply, source: 'Rasa' });
+                return res.json({ reply: botReply, source: 'Rasa' });
             } catch (error) {
                 console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+                return res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
             }
         }
     } catch (error) {
-        res.status(401).json({ message: 'Invalid or expired token' });
+        return res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
 
