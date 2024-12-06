@@ -1,5 +1,6 @@
 (function () {
-    let token; // Store the widget token in memory
+    // We'll use localStorage to store the token as the old code did.
+    let token; // keep in memory as well, but also store in localStorage
 
     // Function to initialize the chatbot widget
     function initializeChatbot() {
@@ -20,8 +21,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.token) {
-                    token = data.token; // Store token in memory
-                    console.log('Chatbot token fetched successfully');
+                    token = data.token; 
+                    // Store token in localStorage like old code did
+                    localStorage.setItem('token', data.token); 
+                    console.log('Chatbot token fetched successfully and stored.');
                 } else {
                     throw new Error('Failed to fetch token');
                 }
@@ -33,8 +36,10 @@
 
     // Function to send user messages to the server
     function sendMessage(userInput) {
-        if (!token) {
-            console.error('Token is not available. Ensure the widget is initialized correctly.');
+        // Retrieve token from localStorage just like old code
+        const storedToken = localStorage.getItem('token');
+        if (!storedToken) {
+            console.error('Token not found in localStorage. Ensure the widget is initialized correctly.');
             return;
         }
 
@@ -42,7 +47,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Correctly use backticks here
+                'Authorization': `Bearer ${storedToken}`,
             },
             body: JSON.stringify({ 
                 question: userInput, 
@@ -67,10 +72,8 @@
         chatMessages.appendChild(botMessageElement);
     }
 
-    // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
 
-    // Create elements for the chatbot widget
     var chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
     chatbotWidget.innerHTML =
@@ -94,7 +97,7 @@
     chatToggle.textContent = 'Chat';
     chatToggle.style.display = 'block';
 
-    // Add styles directly or link to an external stylesheet
+    // Styles unchanged
     var styles = `
     #chatbot-widget {
       position: fixed;
@@ -303,7 +306,7 @@
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
-            return; // Prevent sending empty messages
+            return;
         }
 
         // Append the user's message to the chat
