@@ -10,7 +10,7 @@
         }
 
         // Fetch the token from the server
-        fetch('api/token', {
+        fetch('/api/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -39,7 +39,7 @@
     }
 
     // Send the user input along with the chatbotId to the backend
-    fetch('api/chat', {
+    fetch('/api/chat', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
