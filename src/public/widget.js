@@ -60,8 +60,6 @@ function sendMessage(userInput) {
     });
 }
 
-
-
     // Function to display bot messages
     function displayBotMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
