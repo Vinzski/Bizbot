@@ -31,38 +31,51 @@
             });
     }
 
-    // Function to send user messages to the server
-    function sendMessage(userInput) {
-        if (!token) {
-            console.error('Token is not available. Ensure the widget is initialized correctly.');
-            return;
-        }
+ // Function to send user messages to the server
+function sendMessage(userInput) {
+    if (!token) {
+        console.error('Token is not available. Ensure the widget is initialized correctly.');
+        return;
+    }
 
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ question: userInput, chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id') })
+    const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
+
+    fetch('https://bizbot-khpq.onrender.com/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+            question: userInput, 
+            chatbotId 
         })
-            .then(response => response.json())
-            .then(data => {
-                displayBotMessage(data.reply);
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-            });
-    }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Display both reply and source
+            displayBotMessage(`<strong>Response:</strong> ${data.reply}<br><em>Source: ${data.source}</em>`);
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+            displayBotMessage("Error: " + error.message);
+        });
+}
 
-    // Function to display bot messages
-    function displayBotMessage(message) {
-        const chatMessages = document.getElementById('chat-messages');
-        const botMessageElement = document.createElement('div');
-        botMessageElement.classList.add('message', 'bot-message');
-        botMessageElement.textContent = message;
-        chatMessages.appendChild(botMessageElement);
-    }
+// Example displayBotMessage function
+function displayBotMessage(message) {
+    const chatWindow = document.getElementById('chat-window'); // Ensure this element exists in your widget's HTML
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('bot-message');
+    messageElement.innerHTML = message;
+    chatWindow.appendChild(messageElement);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
 
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
