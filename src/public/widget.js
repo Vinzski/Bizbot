@@ -32,33 +32,40 @@
     }
 
     // Function to send user messages to the server
-    function sendMessage(userInput) {
-        if (!token) {
-            console.error('Token is not available. Ensure the widget is initialized correctly.');
-            return;
-        }
-
-        // Send the user input along with the chatbotId to the backend
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-                question: userInput,
-                chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id')  // Ensure chatbotId is passed
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Display the bot's reply in the chatbot UI
-            displayBotMessage(data.reply);
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-        });
+   function sendMessage(userInput) {
+    if (!token) {
+        console.error('Token is not available. Ensure the widget is initialized correctly.');
+        return;
     }
+
+    // Send the user input along with the chatbotId to the backend
+    fetch('https://bizbot-khpq.onrender.com/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            question: userInput,
+            chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id')  // Ensure chatbotId is passed
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Check the source and display the response accordingly
+        if (data.source === 'FAQ') {
+            displayBotMessage(`FAQ Response: ${data.reply}`);
+        } else if (data.source === 'Rasa') {
+            displayBotMessage(`Rasa Response: ${data.reply}`);
+        } else {
+            displayBotMessage(data.reply);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+    });
+}
+
 
     // Function to display bot messages
     function displayBotMessage(message) {
