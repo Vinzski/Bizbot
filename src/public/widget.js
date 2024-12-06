@@ -32,7 +32,7 @@
     }
 
     // Function to send user messages to the server
-   function sendMessage(userInput) {
+function sendMessage(userInput) {
     if (!token) {
         console.error('Token is not available. Ensure the widget is initialized correctly.');
         return;
@@ -59,6 +59,7 @@
         console.error('Error sending message:', error);
     });
 }
+
 
 
     // Function to display bot messages
