@@ -25,43 +25,47 @@ router.post('/chat', async (req, res) => {
         }
 
         const { question } = req.body;
+        console.log("Received question:", question);  // Log for debugging
 
         // Fetch FAQs specific to the chatbot
         const faqs = await FAQ.find({ chatbotId });
 
         let bestMatch = { score: 0, faq: null };
 
+        // Match FAQ with the user's query (same logic as simulator)
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
             let intersection = tokens1.filter(token => tokens2.includes(token));
             let score = intersection.length / tokens1.length;
+
             if (score > bestMatch.score) {
                 bestMatch = { score, faq };
             }
         });
 
         if (bestMatch.score >= 0.5) {
-            // Return the FAQ answer
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+            // FAQ match found, return the FAQ answer
+            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            // Query Rasa if no FAQ matches
+            // No FAQ match found, fall back to Rasa
             try {
                 const rasaResponse = await axios.post('https://three-flies-play.loca.lt/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget',
                 });
                 const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                res.json({ reply: botReply, source: 'Rasa' });
+                return res.json({ reply: botReply, source: 'Rasa' });
             } catch (error) {
                 console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+                return res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
             }
         }
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
+
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
