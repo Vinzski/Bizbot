@@ -7,18 +7,16 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
-// Middleware for token-based authentication in the /chat route
-// This route now uses the old logic for DB checking before Rasa
 router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Ensure we have the userId from token
+    const userId = req.user.id; // user should be set from the token
 
     try {
-        // Fetch FAQs for this user and chatbotId
+        // Fetch FAQs for this user and chatbotId (old logic)
         const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
         if (!faqs || faqs.length === 0) {
-            // No FAQs found, fallback directly to Rasa
-            const rasaResponse = await axios.post('https://silver-walls-repeat.loca.lt/webhooks/rest/webhook', {
+            // If no FAQs found, go directly to Rasa as old code does in no FAQ scenario
+            const rasaResponse = await axios.post('https://better-hornets-start.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -26,7 +24,6 @@ router.post('/chat', authenticate, async (req, res) => {
             return res.json({ reply: botReply, source: 'Rasa' });
         }
 
-        // Old method of scoring matches
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
@@ -38,18 +35,20 @@ router.post('/chat', authenticate, async (req, res) => {
             }
         });
 
-        // Use old threshold of 0.5
+        // Use the old threshold of 0.5
         if (bestMatch.score >= 0.5) {
-            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+            // Match found in FAQ
+            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             // No good FAQ match, fallback to Rasa
-            const rasaResponse = await axios.post('https://silver-walls-repeat.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://better-hornets-start.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
             const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
             res.json({ reply: botReply, source: 'Rasa' });
         }
+
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: "An error occurred.", error: error.toString() });
