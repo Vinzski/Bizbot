@@ -9,57 +9,38 @@ const authenticate = require('../signup/middleware/authMiddleware'); // Add path
 
 // Middleware for token-based authentication in the /chat route
 router.post('/chat', async (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({ message: 'Authorization header is missing' });
-    }
+    const { question, chatbotId } = req.body;
+    const userId = req.user.id;
 
-    const token = authHeader.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
-        const { chatbotId } = decoded;
+    // First try to find an answer in the FAQs
+    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    let bestMatch = { score: 0, faq: null };
 
-        // Ensure the chatbotId matches the request
-        if (req.body.chatbotId !== chatbotId) {
-            return res.status(403).json({ message: 'Invalid chatbot ID' });
+    faqs.forEach(faq => {
+        const tokens1 = question.toLowerCase().split(' ');
+        const tokens2 = faq.question.toLowerCase().split(' ');
+        let intersection = tokens1.filter(token => tokens2.includes(token));
+        let score = intersection.length / tokens1.length;
+        if (score > bestMatch.score) {
+            bestMatch = { score, faq };
         }
+    });
 
-        const { question } = req.body;
-
-        // Fetch FAQs specific to the chatbot
-        const faqs = await FAQ.find({ chatbotId });
-
-        let bestMatch = { score: 0, faq: null };
-
-        faqs.forEach(faq => {
-            const tokens1 = question.toLowerCase().split(' ');
-            const tokens2 = faq.question.toLowerCase().split(' ');
-            let intersection = tokens1.filter(token => tokens2.includes(token));
-            let score = intersection.length / tokens1.length;
-            if (score > bestMatch.score) {
-                bestMatch = { score, faq };
-            }
-        });
-
-        if (bestMatch.score >= 0.5) {
-            // Return the FAQ answer
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            // Query Rasa if no FAQ matches
-            try {
-                const rasaResponse = await axios.post('https://dark-plants-roll.loca.lt/webhooks/rest/webhook', {
-                    message: question,
-                    sender: 'chatbot-widget',
-                });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                res.json({ reply: botReply, source: 'Rasa' });
-            } catch (error) {
-                console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-            }
+    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
+        res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+    } else {
+        // If no FAQ matches well, send the query to Rasa
+        try {
+            const rasaResponse = await axios.post('http://rasa-server:5005/webhooks/rest/webhook', {
+                message: question,
+                sender: 'chatbot-widget'
+            });
+            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+            res.json({ reply: botReply, source: 'Rasa' });
+        } catch (error) {
+            console.error('Error querying Rasa:', error);
+            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
         }
-    } catch (error) {
-        res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
 
