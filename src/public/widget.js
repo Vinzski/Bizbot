@@ -1,40 +1,53 @@
 (function () {
     let token; // Store the widget token in memory
 
-    // Function to initialize the chatbot widget
-    function initializeChatbot() {
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-        if (!chatbotId) {
-            console.error('Chatbot ID is missing.');
-            return;
-        }
-
-        // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ chatbotId })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
-                    token = data.token; // Store token in memory
-                    console.log('Chatbot token fetched successfully');
-                } else {
-                    throw new Error('Failed to fetch token');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching chatbot token:', error);
-            });
+// Function to initialize the chatbot widget
+function initializeChatbot() {
+    const widgetElement = document.getElementById('bizbot-widget');
+    if (!widgetElement) {
+        console.error('Chatbot widget element not found.');
+        return;
     }
 
- // Function to send user messages to the server
+    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+    if (!chatbotId) {
+        console.error('Chatbot ID is missing.');
+        return;
+    }
+
+    // Fetch the token from the server
+    fetch('https://bizbot-khpq.onrender.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ chatbotId })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch token: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.token) {
+                token = data.token; // Store token in memory
+                console.log('Chatbot token fetched successfully');
+            } else {
+                throw new Error('Token not received from server.');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching chatbot token:', error);
+            displayBotMessage("Error initializing chatbot. Please try again later.");
+        });
+}
+
+// Function to send user messages to the server
 function sendMessage(userInput) {
     if (!token) {
         console.error('Token is not available. Ensure the widget is initialized correctly.');
+        displayBotMessage("Chatbot is not initialized. Please refresh the page.");
         return;
     }
 
@@ -53,12 +66,15 @@ function sendMessage(userInput) {
     })
         .then(response => {
             if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('Unauthorized. Please log in again.');
+                }
                 throw new Error('Network response was not ok: ' + response.statusText);
             }
             return response.json();
         })
         .then(data => {
-            // Display both reply and source
+            // Display reply and source
             displayBotMessage(`<strong>Response:</strong> ${data.reply}<br><em>Source: ${data.source}</em>`);
         })
         .catch(error => {
@@ -67,9 +83,47 @@ function sendMessage(userInput) {
         });
 }
 
-// Example displayBotMessage function
+// Function to handle user input
+function handleUserInput() {
+    const userInput = document.getElementById('user-input').value.trim();
+    if (userInput === "") {
+        alert("Please enter a message.");
+        return;
+    }
+
+    // Display user's message
+    displayUserMessage(userInput);
+
+    // Send the message to the server
+    sendMessage(userInput);
+
+    // Clear the input field
+    document.getElementById('user-input').value = "";
+}
+
+// Function to display user's message
+function displayUserMessage(message) {
+    const chatWindow = document.getElementById('chat-window');
+    if (!chatWindow) {
+        console.error('Chat window element not found.');
+        return;
+    }
+
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('user-message');
+    messageElement.textContent = message;
+    chatWindow.appendChild(messageElement);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Function to display bot's message
 function displayBotMessage(message) {
-    const chatWindow = document.getElementById('chat-window'); // Ensure this element exists in your widget's HTML
+    const chatWindow = document.getElementById('chat-window');
+    if (!chatWindow) {
+        console.error('Chat window element not found.');
+        return;
+    }
+
     const messageElement = document.createElement('div');
     messageElement.classList.add('bot-message');
     messageElement.innerHTML = message;
