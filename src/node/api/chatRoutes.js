@@ -9,7 +9,11 @@ const authenticate = require('../signup/middleware/authMiddleware'); // Add path
 
 // Middleware for token-based authentication in the /chat route
 router.post('/chat', async (req, res) => {
-@@ -17,16 +18,16 @@
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Authorization header is missing' });
+    }
+
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
@@ -26,7 +30,14 @@ router.post('/chat', async (req, res) => {
         const faqs = await FAQ.find({ chatbotId });
 
         let bestMatch = { score: 0, faq: null };
-@@ -41,71 +42,85 @@
+
+        faqs.forEach(faq => {
+            const tokens1 = question.toLowerCase().split(' ');
+            const tokens2 = faq.question.toLowerCase().split(' ');
+            let intersection = tokens1.filter(token => tokens2.includes(token));
+            let score = intersection.length / tokens1.length;
+            if (score > bestMatch.score) {
+                bestMatch = { score, faq };
             }
         });
 
