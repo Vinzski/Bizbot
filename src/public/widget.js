@@ -11,7 +11,6 @@
 
         // Fetch the token from the server
         fetch('https://bizbot-khpq.onrender.com/api/token', {
-        fetch('https://bizbot-khpq.onrender.com/api/api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
