@@ -13,40 +13,46 @@ router.post('/chat', async (req, res) => {
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header is missing' });
     }
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1]; // Extract the token from Authorization header
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const { chatbotId } = decoded;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode the token
+        const { chatbotId } = decoded; // Extract chatbotId from the token payload
 
-        if (req.body.chatbotId && req.body.chatbotId !== chatbotId) {
-            return res.status(403).json({ message: 'Invalid chatbot ID' });
-        }
+        const { question } = req.body; // Get the question from the request body
+        const faqs = await FAQ.find({ chatbotId: chatbotId }); // Fetch the FAQs based on chatbotId
 
-        const { question } = req.body;
-        const faqs = await FAQ.find({ chatbotId: chatbotId || req.body.chatbotId });
-
+        // Check if any FAQ matches the question
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
-            let intersection = tokens1.filter(token => tokens2.includes(token));
-            let score = intersection.length / tokens1.length;
+            const intersection = tokens1.filter(token => tokens2.includes(token));
+            const score = intersection.length / tokens1.length;
+
             if (score > bestMatch.score) {
                 bestMatch = { score, faq };
             }
         });
 
+        // If a match is found, return the FAQ response
         if (bestMatch.score >= 0.5) {
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            const rasaResponse = await axios.post('https://your-rasa-url/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget',
-            });
-            res.json({ reply: rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.", source: 'Rasa' });
+            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         }
+
+        // If no FAQ match, fall back to Rasa API
+        const rasaResponse = await axios.post('https://your-rasa-url/webhooks/rest/webhook', {
+            message: question,
+            sender: 'chatbot-widget', // Unique sender for the widget
+        });
+
+        // Send Rasa response
+        return res.json({
+            reply: rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.",
+            source: 'Rasa',
+        });
     } catch (error) {
-        res.status(401).json({ message: 'Invalid or expired token' });
+        console.error("Error processing chat request:", error);
+        return res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
 
