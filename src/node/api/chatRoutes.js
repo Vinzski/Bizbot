@@ -9,46 +9,41 @@ const authenticate = require('../signup/middleware/authMiddleware'); // Add path
 
 router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id; // user should be set from the token
+    const userId = req.user?.id;
+
+    console.log("Received chatbotId:", chatbotId);
+    console.log("Received question:", question);
 
     try {
-        // Fetch FAQs for this user and chatbotId (old logic)
+        // First, check the database for a matching FAQ
         const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-        if (!faqs || faqs.length === 0) {
-            // If no FAQs found, go directly to Rasa as old code does in no FAQ scenario
-            const rasaResponse = await axios.post('https://better-hornets-start.loca.lt/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget'
-            });
-            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            return res.json({ reply: botReply, source: 'Rasa' });
-        }
+        
+        if (faqs && faqs.length > 0) {
+            let bestMatch = { score: 0, faq: null };
 
-        let bestMatch = { score: 0, faq: null };
-        faqs.forEach(faq => {
-            const tokens1 = question.toLowerCase().split(' ');
-            const tokens2 = faq.question.toLowerCase().split(' ');
-            let intersection = tokens1.filter(token => tokens2.includes(token));
-            let score = intersection.length / tokens1.length;
-            if (score > bestMatch.score) {
-                bestMatch = { score, faq };
+            faqs.forEach(faq => {
+                const tokens1 = tokenizer.tokenize(question.toLowerCase());
+                const tokens2 = tokenizer.tokenize(faq.question.toLowerCase());
+                let intersection = tokens1.filter(token => tokens2.includes(token));
+                let score = intersection.length / tokens1.length;
+                console.log(`FAQ: ${faq.question}, Score: ${score}`);
+                if (score > bestMatch.score) {
+                    bestMatch = { score, faq };
+                }
+            });
+
+            if (bestMatch.score >= 0.3) { // Adjust threshold as needed
+                return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
             }
-        });
-
-        // Use the old threshold of 0.5
-        if (bestMatch.score >= 0.5) {
-            // Match found in FAQ
-            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            // No good FAQ match, fallback to Rasa
-            const rasaResponse = await axios.post('https://better-hornets-start.loca.lt/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget'
-            });
-            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            res.json({ reply: botReply, source: 'Rasa' });
         }
 
+        // If no matching FAQ found, fall back to Rasa
+        const rasaResponse = await axios.post('https://silver-walls-repeat.loca.lt/webhooks/rest/webhook', {
+            message: question,
+            sender: 'chatbot-widget'
+        });
+        const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+        res.json({ reply: botReply, source: 'Rasa' });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ message: "An error occurred.", error: error.toString() });
