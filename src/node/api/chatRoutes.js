@@ -38,7 +38,7 @@ router.post('/chat', authenticate, async (req, res) => {
         if (bestMatch.score >= 0.3) { // Adjust threshold as needed
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            const rasaResponse = await axios.post(' https://silver-walls-repeat.loca.ltwebhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://silver-walls-repeat.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -84,7 +84,7 @@ router.post('/', authenticate, async (req, res) => {
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         try {
-            const rasaResponse = await axios.post(' https://silver-walls-repeat.loca.ltwebhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://silver-walls-repeat.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget',
             });
