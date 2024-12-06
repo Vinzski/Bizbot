@@ -31,7 +31,7 @@ router.post('/chat', async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('http://rasa-server:5005/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://four-socks-work.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
