@@ -13,24 +13,19 @@ router.post('/chat', async (req, res) => {
     if (!authHeader) {
         return res.status(401).json({ message: 'Authorization header is missing' });
     }
-
     const token = authHeader.split(' ')[1];
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const { chatbotId } = decoded;
 
-        // Ensure the chatbotId matches the request
-        if (req.body.chatbotId !== chatbotId) {
+        if (req.body.chatbotId && req.body.chatbotId !== chatbotId) {
             return res.status(403).json({ message: 'Invalid chatbot ID' });
         }
 
         const { question } = req.body;
-
-        // Fetch FAQs specific to the chatbot
-        const faqs = await FAQ.find({ chatbotId });
+        const faqs = await FAQ.find({ chatbotId: chatbotId || req.body.chatbotId });
 
         let bestMatch = { score: 0, faq: null };
-
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
@@ -42,26 +37,19 @@ router.post('/chat', async (req, res) => {
         });
 
         if (bestMatch.score >= 0.5) {
-            // Return the FAQ answer
-            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+            res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            // Query Rasa if no FAQ matches
-            try {
-                const rasaResponse = await axios.post('https://four-socks-work.loca.lt/webhooks/rest/webhook', {
-                    message: question,
-                    sender: 'chatbot-widget',
-                });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                return res.json({ reply: botReply, source: 'Rasa' });
-            } catch (error) {
-                console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-            }
+            const rasaResponse = await axios.post('https://your-rasa-url/webhooks/rest/webhook', {
+                message: question,
+                sender: 'chatbot-widget',
+            });
+            res.json({ reply: rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.", source: 'Rasa' });
         }
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired token' });
     }
 });
+
 
 
 // Route to send a simple message (unprotected)
