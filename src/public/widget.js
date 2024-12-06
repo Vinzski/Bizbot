@@ -10,7 +10,7 @@
         }
 
         // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+        fetch('https://bizbot-khpq.onrender.com/api/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
