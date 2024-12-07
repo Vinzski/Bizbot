@@ -466,6 +466,9 @@ addFontAwesome();
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 
+    document.body.appendChild(chatbotWidget);
+    document.body.appendChild(chatToggle);
+
     // Append elements to body
     const chatToggle = document.getElementById('chat-toggle');
     const chatbotWidget = document.getElementById('chatbot-widget-container');
