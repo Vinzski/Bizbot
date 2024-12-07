@@ -292,6 +292,10 @@ function editFunc(id) {
     }
   }
   
+function deleteFunc(id) {
+    console.log(`Deleted FAQ with ID: ${id}`);
+}
+  
 
 function deleteFunc(id) {
     console.log(`Deleted FAQ with ID: ${id}`);
