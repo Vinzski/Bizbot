@@ -31,7 +31,7 @@ router.post('/chat', async (req, res) => {
     } else {
         // If no FAQ matches well, send the query to Rasa
         try {
-            const rasaResponse = await axios.post('https://icy-lands-read.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://seven-owls-own.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget'
             });
@@ -76,7 +76,7 @@ router.post('/', authenticate, async (req, res) => {
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         try {
-            const rasaResponse = await axios.post('https://icy-lands-read.loca.lt/webhooks/rest/webhook', {
+            const rasaResponse = await axios.post('https://seven-owls-own.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget',
             });
