@@ -66,7 +66,7 @@ router.post('/', authenticateToken, async (req, res) => {
         } else {
             console.log("No suitable FAQ match found. Querying Rasa.");
             // Fallback to Rasa
-            const rasaURL = 'https://silver-walls-repeat.loca.lt/webhooks/rest/webhook'; // Update to your Rasa URL
+            const rasaURL = 'https://small-words-pay.loca.lt/webhooks/rest/webhook'; // Update to your Rasa URL
             const rasaResponse = await axios.post(rasaURL, {
                 message: question,
                 sender: 'chatbot-widget'
