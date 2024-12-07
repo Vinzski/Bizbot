@@ -1,7 +1,6 @@
 (function () {
-    let token; // Store the widget token in memory
+    let token; // Store the widget token
 
-    // Function to initialize the chatbot widget
     function initializeChatbot() {
         const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
         if (!chatbotId) {
@@ -9,7 +8,6 @@
             return;
         }
 
-        // Fetch the token from the server
         fetch('https://bizbot-khpq.onrender.com/api/token', {
             method: 'POST',
             headers: {
@@ -20,7 +18,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.token) {
-                token = data.token; // Store token in memory
+                token = data.token; 
                 console.log('Chatbot token fetched successfully');
             } else {
                 throw new Error('Failed to fetch token');
@@ -31,7 +29,6 @@
         });
     }
 
-    // Function to send user messages to the server
     function sendMessage(userInput) {
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
@@ -44,7 +41,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
         })
