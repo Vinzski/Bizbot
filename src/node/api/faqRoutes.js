@@ -41,3 +41,8 @@ router.post('/', authenticate, async (req, res) => {
         res.status(201).json(savedFaq);
     } catch (error) {
         console.error('Error saving FAQ:', error);
+        res.status(500).json({ message: "Failed to create FAQ", error: error.toString() });
+    }
+});
+
+module.exports = router;
