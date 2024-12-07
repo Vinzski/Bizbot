@@ -255,3 +255,49 @@ function authenticateUser() {
         "Failed to execute: " + error.message;
     });
 }
+
+function logoutUser() {
+    // Clear user data and token from localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    // Display a message or redirect to the login page
+    console.log("User logged out successfully");
+    document.getElementById("message").textContent = "You have been logged out.";
+
+    // Redirect to login page
+    window.location.href = "login.html";
+  }
+
+function editFunc(id) {
+    const row = document.querySelector(`tr[data-faq-id="${id}"]`);
+    if (!row) {
+      console.error('Row not found!');
+      return;
+    }
+    const cells = row.querySelectorAll('td:not(:last-child)');
+    if (row.classList.contains('editing')) {
+      cells.forEach(cell => {
+        const input = cell.querySelector('input');
+        if (input) {
+          cell.textContent = input.value;
+        }
+      });
+      const editButton = row.querySelector('.btn-edit');
+      editButton.textContent = "EDIT";
+      row.classList.remove('editing');
+      console.log(`Saved changes for FAQ with ID: ${id}`);
+    } else {
+      cells.forEach(cell => {
+        const text = cell.textContent;
+        cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
+      });
+      const editButton = row.querySelector('.btn-edit');
+      editButton.textContent = "SAVE";
+      row.classList.add('editing');
+      console.log(`Editing FAQ with ID: ${id}`);
+    }
+  }
+function deleteFunc(id) {
+    console.log(`Deleted FAQ with ID: ${id}`);
+}
