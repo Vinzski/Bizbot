@@ -1,28 +1,31 @@
-require('dotenv').config();
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('../config/db');
-const userModel = require('../models/userModel');
 const Domain = require('../models/domainModel');
 const jwt = require('jsonwebtoken');
-const Chatbot = require('../models/chatbotModel');
-const router = express.Router();
+const app = express();
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
+require('dotenv').config();
 
+// Database Connection
 connectDB();
+
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../../public'))); // Adjust as necessary
+
+// Dynamic CORS Middleware
 app.use(async (req, res, next) => {
     try {
-        const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
+        const domains = await Domain.find().select('domain -_id'); // Fetch all domains
         let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
 
         // Add the static domain to the allowed origins
         allowedOrigins.push('https://bizbot-khpq.onrender.com');
 
-        cors({
+        // Configure CORS dynamically
+        const corsOptions = {
             origin: function (origin, callback) {
                 if (!origin || allowedOrigins.indexOf(origin) !== -1) {
                     callback(null, true);
@@ -31,22 +34,25 @@ app.use(async (req, res, next) => {
                 }
             },
             methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-            credentials: true, // Set this based on whether you need to handle authenticated requests from the client.
-        })(req, res, next);
+            credentials: true, // Adjust if needed
+        };
+
+        cors(corsOptions)(req, res, next); // Apply CORS middleware
     } catch (error) {
         console.error('Error fetching domains for CORS:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
 
-// Import route modules
+// Routes Import
 const authRoutes = require('./routes/authRoutes');
 const faqRoutes = require('../api/faqRoutes');
 const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
-const domainRoutes = require('../api/domainRoutes')
-// Use routes
+const domainRoutes = require('../api/domainRoutes');
+
+// Use Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/chat', chatRoutes);
@@ -58,17 +64,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
 });
 
+app.use('/uploads', express.static('uploads'));
+
+// Error Handling Middleware
 app.use((err, req, res, next) => {
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
 });
-app.get('/', (req, res) => {
-    res.send('Chatbot Server is running');
-});
-app.use('/uploads', express.static('uploads'));
 
 // Token Generation Endpoint
-// This endpoint generates a JWT token containing both chatbotId and userId
 app.post('/api/token', async (req, res) => {
     const { chatbotId } = req.body;
     const token = req.headers['authorization']?.split(' ')[1];
@@ -82,22 +86,17 @@ app.post('/api/token', async (req, res) => {
     }
 
     try {
-        // Verify the existing token to extract userId
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
         const userId = decoded.id;
 
-        // Validate chatbotId
         const chatbot = await Chatbot.findById(chatbotId);
         if (!chatbot) {
             return res.status(404).json({ message: 'Invalid Chatbot ID' });
         }
 
-        // Create payload with both chatbotId and userId
         const payload = { chatbotId, userId };
-
-        // Sign the new token
         const newToken = jwt.sign(payload, process.env.JWT_SECRET || 'mysecretkey_12345', {
-            expiresIn: '24h', // Token expires in 24 hours
+            expiresIn: '24h',
         });
 
         res.json({ token: newToken });
@@ -107,6 +106,7 @@ app.post('/api/token', async (req, res) => {
     }
 });
 
+// Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
