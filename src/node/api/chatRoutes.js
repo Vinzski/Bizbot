@@ -1,12 +1,12 @@
 const express = require('express');
 const axios = require('axios');
 const FAQ = require('../models/faqModel');
-const Chatbot = require('../models/chatbotModel');
 const natural = require('natural');
-const tokenizer = new natural.WordTokenizer();
-const jwt = require('jsonwebtoken');
 const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware');
+const authenticate = require('../signup/middleware/authMiddleware');  // Adjust the path as necessary
+
+// Initialize the natural language tokenizer
+const tokenizer = new natural.WordTokenizer();
 
 // Function to calculate similarity score
 const getSimilarityScore = (input, faqQuestion) => {
@@ -47,7 +47,7 @@ router.post('/', authenticate, async (req, res) => {
         } else {
             // If no FAQ matches well, send the query to Rasa
             try {
-                const rasaResponse = await axios.post('https://smart-wings-tell.loca.lt/webhooks/rest/webhook', {
+                const rasaResponse = await axios.post('https://odd-bags-raise.loca.lt/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget'
                 });
