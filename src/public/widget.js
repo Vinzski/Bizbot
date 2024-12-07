@@ -43,6 +43,8 @@
         }
         const chatbotId = script.getAttribute('data-chatbot-id');
 
+        console.log(`Sending message to /api/chat: "${userInput}"`);
+
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
             headers: {
@@ -56,11 +58,13 @@
         })
             .then(response => {
                 if (!response.ok) {
+                    console.error('Network response was not OK:', response.statusText);
                     throw new Error('Network response was not OK');
                 }
                 return response.json();
             })
             .then(data => {
+                console.log('Received response from /api/chat:', data);
                 if (data.reply) {
                     appendBotMessage(data.reply, data.source);
                 } else {
@@ -95,6 +99,8 @@
         botMessageElement.appendChild(botText);
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the bottom
+
+        console.log(`Appended bot message: "${message}" (Source: ${source})`);
     }
 
     // Add a fallback welcome message
@@ -325,11 +331,13 @@
     document.getElementById('chat-toggle').onclick = function () {
         chatbotWidget.style.display = 'flex';
         chatToggle.style.display = 'none';
+        console.log('Chatbot widget opened.');
     };
 
     document.getElementById('close-chat').onclick = function () {
         chatbotWidget.style.display = 'none';
         chatToggle.style.display = 'flex';
+        console.log('Chatbot widget closed.');
     };
 
     // Event listener for sending a message
@@ -354,6 +362,8 @@
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+
+        console.log(`User sent message: "${userInput.value}"`);
 
         // Send the message to the API
         sendMessage(userInput.value);
