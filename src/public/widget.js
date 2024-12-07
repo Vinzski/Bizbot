@@ -2,6 +2,20 @@
 
 (function () {
     let token; // Store the widget token in memory
+    let username; // Store username
+    let email; // Store email
+
+    // Function to decode JWT token
+    function decodeToken(token) {
+        try {
+            const payload = token.split('.')[1];
+            const decoded = atob(payload);
+            return JSON.parse(decoded);
+        } catch (error) {
+            console.error('Error decoding token:', error);
+            return null;
+        }
+    }
 
     // Function to initialize the chatbot widget
     function initializeChatbot() {
@@ -26,6 +40,17 @@
 
         // Use the embedded token directly
         token = embeddedToken;
+
+        // Decode the token to get username and email
+        const decoded = decodeToken(token);
+        if (decoded) {
+            username = decoded.username;
+            email = decoded.email;
+            console.log(`Username: ${username}, Email: ${email}`);
+        } else {
+            console.error('Failed to decode token. Username and Email are unavailable.');
+        }
+
         console.log('Chatbot token set successfully');
     }
 
@@ -35,13 +60,6 @@
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
         }
-
-        const script = document.getElementById('bizbot-widget');
-        if (!script) {
-            console.error('Bizbot-widget script tag not found during sendMessage.');
-            return;
-        }
-        const chatbotId = script.getAttribute('data-chatbot-id');
 
         console.log(`Sending message to /api/chat: "${userInput}"`);
 
@@ -53,7 +71,7 @@
             },
             body: JSON.stringify({
                 question: userInput
-                // No need to send chatbotId here as it's extracted from the token
+                // chatbotId is extracted from the token in the backend
             })
         })
             .then(response => {
