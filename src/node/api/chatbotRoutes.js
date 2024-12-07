@@ -67,7 +67,7 @@ router.get('/:chatbotId', authenticate, async (req, res) => {
         }
 
         // Fetch FAQs associated with this chatbot
-        const faqs = await FAQ.find({ _id: { $in: chatbot.faqs } });
+
 
         // Send both chatbot and FAQs data
         res.json({ chatbot, faqs });
