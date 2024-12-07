@@ -1,3 +1,4 @@
+// faqRoutes.js
 const express = require('express');
 const router = express.Router();
 const FAQ = require('../models/faqModel');
@@ -84,7 +85,3 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 module.exports = router;
-0 commit comments
-Comments
-0
- (0)
