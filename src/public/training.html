@@ -36,14 +36,21 @@
                         <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name"
                             required>
                     </div>
-                    <div class="form-group">
-                        <label for="chatbot-select">Select Chatbot Type:</label>
-                        <select id="chatbot-select" name="chatbot-select" required>
-                            <option value="Clothing">Clothing</option>
-                            <option value="Food Services">Food Services</option>
-                            <option value="Automobile">Automobile</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label for="chatbot-select">Select Chatbot Type:</label>
+                            <input 
+                                list="chatbot-types" 
+                                id="chatbot-select" 
+                                name="chatbot-select" 
+                                required 
+                                placeholder="Type or select a type" />
+                            <datalist id="chatbot-types">
+                                <option value="Clothing"></option>
+                                <option value="Food Services"></option>
+                                <option value="Automobile"></option>
+                            </datalist>
+                        </div>
+
                 </form>
             </div>
             <div class="card">
