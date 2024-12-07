@@ -93,9 +93,13 @@ function loadFAQsForChatbot(faqIds) {
         const row = document.createElement('tr');
         row.setAttribute('data-faq-id', faq._id);
         row.innerHTML = `
-          <td>${faq.question}</td>
-          <td>${faq.answer}</td>
-        `;
+            <td>${faq.question}</td>
+            <td>${faq.answer}</td>
+            <td>
+              <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
+              <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
+            </td>
+          `;
         tbody.appendChild(row);
       });
       console.log(`Loaded ${filteredFaqs.length} FAQs for this chatbot`);
@@ -262,9 +266,9 @@ function editFunc(id) {
       console.error('Row not found!');
       return;
     }
-
+  
     const cells = row.querySelectorAll('td:not(:last-child)');
-
+  
     if (row.classList.contains('editing')) {
       cells.forEach(cell => {
         const input = cell.querySelector('input');
@@ -272,10 +276,10 @@ function editFunc(id) {
           cell.textContent = input.value;
         }
       });
-
+  
       const editButton = row.querySelector('.btn-edit');
       editButton.textContent = "EDIT";
-
+  
       row.classList.remove('editing');
       console.log(`Saved changes for FAQ with ID: ${id}`);
     } else {
@@ -283,19 +287,19 @@ function editFunc(id) {
         const text = cell.textContent;
         cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
       });
-
+  
       const editButton = row.querySelector('.btn-edit');
       editButton.textContent = "SAVE";
-
+  
       row.classList.add('editing');
       console.log(`Editing FAQ with ID: ${id}`);
     }
   }
-
+  
 function deleteFunc(id) {
     console.log(`Deleted FAQ with ID: ${id}`);
 }
-
+  
 
 function deleteFunc(id) {
     console.log(`Deleted FAQ with ID: ${id}`);
