@@ -8,33 +8,16 @@
         const chatbotElement = document.getElementById('bizbot-widget');
         const chatbotId = chatbotElement.getAttribute('data-chatbot-id');
         const userId = chatbotElement.getAttribute('data-user-id');
+        const embeddedToken = chatbotElement.getAttribute('data-token');
 
-        if (!chatbotId || !userId) {
-            console.error('Chatbot ID or User ID is missing.');
+        if (!chatbotId || !userId || !embeddedToken) {
+            console.error('Chatbot ID, User ID, or Token is missing.');
             return;
         }
 
-        // Fetch the token from the server using chatbotId and userId
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Send existing token for authentication
-            },
-            body: JSON.stringify({ chatbotId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.token) {
-                token = data.token; // Store token in memory
-                console.log('Chatbot token fetched successfully');
-            } else {
-                throw new Error('Failed to fetch token');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching chatbot token:', error);
-        });
+        // Use the embedded token directly (for presentation purposes)
+        token = embeddedToken;
+        console.log('Chatbot token set successfully');
     }
 
     // Function to send user messages to the server
