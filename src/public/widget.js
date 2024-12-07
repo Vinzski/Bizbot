@@ -473,8 +473,8 @@
     document.body.appendChild(chatToggle);
 
     // Elements for chat widget
-    const chatToggle = document.getElementById('chat-toggle');
-    const chatbotWidget = document.getElementById('chatbot-widget-container');
+    const chatToggles = document.getElementById('chat-toggle');
+    const chatbotWidgets = document.getElementById('chatbot-widget');
     const closeChatButton = document.getElementById('close-chat');
     const chatMsgs = document.getElementById('chat-messages');
     const chatInp = document.getElementById('chat-input');
@@ -485,16 +485,16 @@
 
     let selectedRating = ''; // Variable to store the selected rating
 
-    chatToggle.onclick = function () {
-        chatbotWidget.style.display = 'flex';
-        chatToggle.style.display = 'none';
+    chatToggles.onclick = function () {
+        chatbotWidgets.style.display = 'flex';
+        chatToggles.style.display = 'none';
         chatMsgs.style.display = 'flex';
         chatInp.style.display = 'flex';
     };
 
     closeChatButton.onclick = function () {
-        chatbotWidget.style.display = 'none';
-        chatToggle.style.display = 'flex';
+        chatbotWidgets.style.display = 'none';
+        chatToggles.style.display = 'flex';
         chatMsgs.style.display = 'none';
         chatInp.style.display = 'none';
 
