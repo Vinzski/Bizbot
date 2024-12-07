@@ -24,7 +24,7 @@
             return;
         }
 
-        // Use the embedded token directly (for presentation purposes)
+        // Use the embedded token directly
         token = embeddedToken;
         console.log('Chatbot token set successfully');
     }
@@ -37,6 +37,10 @@
         }
 
         const script = document.getElementById('bizbot-widget');
+        if (!script) {
+            console.error('Bizbot-widget script tag not found during sendMessage.');
+            return;
+        }
         const chatbotId = script.getAttribute('data-chatbot-id');
 
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
@@ -46,25 +50,31 @@
                 'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
-                question: userInput,
-                chatbotId: chatbotId
+                question: userInput
+                // No need to send chatbotId here as it's extracted from the token
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.reply) {
-                displayBotMessage(data.reply);
-            } else {
-                console.error('No reply received from the server.');
-            }
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not OK');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.reply) {
+                    appendBotMessage(data.reply, data.source);
+                } else {
+                    console.error('No reply received from the server.');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                appendBotMessage("An error occurred while processing your request.", 'Error');
+            });
     }
 
-    // Function to display bot messages
-    function displayBotMessage(message) {
+    // Function to append bot messages to the chat
+    function appendBotMessage(message, source) {
         const chatMessages = document.getElementById('chat-messages');
         if (!chatMessages) {
             console.error('Chat messages container not found.');
@@ -73,7 +83,16 @@
 
         const botMessageElement = document.createElement('div');
         botMessageElement.classList.add('message', 'bot-message');
-        botMessageElement.textContent = message;
+
+        const botProfileImage = document.createElement('div');
+        botProfileImage.classList.add('profile-image');
+
+        const botText = document.createElement('span');
+        botText.classList.add('message-content');
+        botText.textContent = message;
+
+        botMessageElement.appendChild(botProfileImage);
+        botMessageElement.appendChild(botText);
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the bottom
     }
@@ -343,6 +362,8 @@
         userInput.value = '';
     };
 
-    // Initialize the chatbot widget on load
-    initializeChatbot();
+    // Initialize the chatbot widget on DOMContentLoaded
+    document.addEventListener("DOMContentLoaded", function () {
+        initializeChatbot(); // Initialize chatbot after DOM is fully loaded
+    });
 })();
