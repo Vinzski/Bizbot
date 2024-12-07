@@ -95,7 +95,7 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Fetched domains:', data); // Log the fetched data for debugging
-                
+
                 if (data.domains && data.domains.length > 0) {
                     const domainsList = document.getElementById('domains-list');
                     domainsList.innerHTML = ''; // Clear the list first
@@ -112,7 +112,7 @@
                 console.error('Error fetching user domains:', error);
             });
         }
-        
+
         // Call to fetch user domains when the page is loaded
         document.addEventListener("DOMContentLoaded", function () {
             fetchUserDomains(); // Fetch user domains on page load
@@ -147,52 +147,35 @@
                 });
         }
 
-        async function generateCode() {
+        function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
-            if (!chatbotId) {
-                alert('Please select a chatbot first.');
-                return;
-            }
-
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You must be logged in to generate widget code.');
-                return;
-            }
-
-            try {
-                // Decode the token to extract userId
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                const userId = payload.id || payload.userId;
-
-                if (!userId) {
-                    alert('Unable to retrieve User ID from token.');
+            if (chatbotId) {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('You must be logged in to generate widget code.');
                     return;
                 }
 
-                // Request a new token from the backend that includes chatbotId and userId
-                const response = await fetch('https://bizbot-khpq.onrender.com/api/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ chatbotId: chatbotId })
-                });
+                try {
+                    // Decode the token to extract userId
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const userId = payload.id || payload.userId;
 
-                const data = await response.json();
+                    if (!userId) {
+                        alert('Unable to retrieve User ID from token.');
+                        return;
+                    }
 
-                if (response.ok && data.token) {
-                    const newToken = data.token;
-                    // Generate the widget code with chatbotId, userId, and the new token
-                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
+                    // For presentation, we'll include the existing token directly in the widget code
+                    // WARNING: This is insecure and should NOT be used in production
+                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${token}"><\/script>`;
                     document.getElementById('code-snippet').textContent = codeSnippet;
-                } else {
-                    throw new Error(data.message || 'Failed to generate new token');
+                } catch (error) {
+                    console.error('Error decoding token:', error);
+                    alert('Failed to generate widget code. Please ensure you are logged in correctly.');
                 }
-            } catch (error) {
-                console.error('Error generating widget code:', error);
-                alert('Failed to generate widget code: ' + error.message);
+            } else {
+                alert('Please select a chatbot first.');
             }
         }
 
