@@ -1,5 +1,3 @@
-<!-- integration.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -95,7 +93,7 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Fetched domains:', data); // Log the fetched data for debugging
-
+                
                 if (data.domains && data.domains.length > 0) {
                     const domainsList = document.getElementById('domains-list');
                     domainsList.innerHTML = ''; // Clear the list first
@@ -112,7 +110,7 @@
                 console.error('Error fetching user domains:', error);
             });
         }
-
+        
         // Call to fetch user domains when the page is loaded
         document.addEventListener("DOMContentLoaded", function () {
             fetchUserDomains(); // Fetch user domains on page load
@@ -121,7 +119,6 @@
         document.addEventListener("DOMContentLoaded", function () {
             loadChatbots();  // Call this function to populate the dropdown when the page loads.
         });
-
         function loadChatbots() {
             const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
             fetch("https://bizbot-khpq.onrender.com/api/chatbots", {
@@ -146,46 +143,34 @@
                     console.error('Error loading chatbots:', error);
                 });
         }
-
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
             if (chatbotId) {
+                // Retrieve userId from the stored token
                 const token = localStorage.getItem('token');
                 if (!token) {
                     alert('You must be logged in to generate widget code.');
                     return;
                 }
-
-                try {
-                    // Decode the token to extract userId
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    const userId = payload.id || payload.userId;
-
-                    if (!userId) {
-                        alert('Unable to retrieve User ID from token.');
-                        return;
-                    }
-
-                    // For presentation, we'll include the existing token directly in the widget code
-                    // WARNING: This is insecure and should NOT be used in production
-                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${token}"><\/script>`;
-                    document.getElementById('code-snippet').textContent = codeSnippet;
-                } catch (error) {
-                    console.error('Error decoding token:', error);
-                    alert('Failed to generate widget code. Please ensure you are logged in correctly.');
+                // Decode the token to extract userId
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userId = payload.userId || payload.id; // Adjust based on your token structure
+                if (!userId) {
+                    alert('Unable to retrieve User ID from token.');
+                    return;
                 }
+                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}"><\/script>`;
+                document.getElementById('code-snippet').textContent = codeSnippet;
             } else {
                 alert('Please select a chatbot first.');
             }
         }
-
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
             navigator.clipboard.writeText(codeSnippetElement.textContent)
                 .then(() => alert('Code copied to clipboard!'))
                 .catch(err => console.error('Error copying text: ', err));
         }
-
         function saveDomain() {
             const domainInput = document.getElementById('domain-input').value;
             if (!domainInput) {
@@ -209,7 +194,6 @@
                 })
                 .then(data => {
                     alert('Domain saved successfully!');
-                    fetchUserDomains(); // Refresh the domain list
                 })
                 .catch(error => {
                     console.error('Error saving domain:', error);
@@ -218,5 +202,4 @@
         }
     </script>
 </body>
-
 </html>
