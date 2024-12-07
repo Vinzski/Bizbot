@@ -147,35 +147,52 @@
                 });
         }
 
-        function generateCode() {
+        async function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
-            if (chatbotId) {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    alert('You must be logged in to generate widget code.');
+            if (!chatbotId) {
+                alert('Please select a chatbot first.');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You must be logged in to generate widget code.');
+                return;
+            }
+
+            try {
+                // Decode the token to extract userId
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userId = payload.id || payload.userId;
+
+                if (!userId) {
+                    alert('Unable to retrieve User ID from token.');
                     return;
                 }
 
-                try {
-                    // Decode the token to extract userId
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    const userId = payload.id || payload.userId;
+                // Request a new token from the backend that includes chatbotId and userId
+                const response = await fetch('https://bizbot-khpq.onrender.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ chatbotId: chatbotId })
+                });
 
-                    if (!userId) {
-                        alert('Unable to retrieve User ID from token.');
-                        return;
-                    }
+                const data = await response.json();
 
-                    // For presentation, we'll include the existing token directly in the widget code
-                    // WARNING: This is insecure and should NOT be used in production
-                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${token}"><\/script>`;
+                if (response.ok && data.token) {
+                    const newToken = data.token;
+                    // Generate the widget code with chatbotId, userId, and the new token
+                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
                     document.getElementById('code-snippet').textContent = codeSnippet;
-                } catch (error) {
-                    console.error('Error decoding token:', error);
-                    alert('Failed to generate widget code. Please ensure you are logged in correctly.');
+                } else {
+                    throw new Error(data.message || 'Failed to generate new token');
                 }
-            } else {
-                alert('Please select a chatbot first.');
+            } catch (error) {
+                console.error('Error generating widget code:', error);
+                alert('Failed to generate widget code: ' + error.message);
             }
         }
 
