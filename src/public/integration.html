@@ -14,7 +14,7 @@
             <h2>BizBot Admin</h2>
             <nav>
                 <ul>
-<li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
                     <li><a href="chatbot-management.html">Chatbot Management</a></li>
                     <li><a href="training.html">Training Data</a></li>
                     <li><a href="integration.html" class="active">Integration</a></li>
@@ -75,7 +75,7 @@
         </main>
     </div>
     <script>
-         // Function to fetch and display the logged-in user's domains
+        // Function to fetch and display the logged-in user's domains
         function fetchUserDomains() {
             const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
             if (!token) {
@@ -119,9 +119,10 @@
         document.addEventListener("DOMContentLoaded", function () {
             loadChatbots();  // Call this function to populate the dropdown when the page loads.
         });
+
         function loadChatbots() {
             const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
-            fetch("/api/chatbots", {
+            fetch("https://bizbot-khpq.onrender.com/api/chatbots", {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -143,21 +144,40 @@
                     console.error('Error loading chatbots:', error);
                 });
         }
+
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
             if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
+                // Retrieve userId from the stored token
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('You must be logged in to generate widget code.');
+                    return;
+                }
+
+                // Decode the token to extract userId
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const userId = payload.userId || payload.id; // Adjust based on your token structure
+
+                if (!userId) {
+                    alert('Unable to retrieve User ID from token.');
+                    return;
+                }
+
+                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}"><\/script>`;
                 document.getElementById('code-snippet').textContent = codeSnippet;
             } else {
                 alert('Please select a chatbot first.');
             }
         }
+
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
             navigator.clipboard.writeText(codeSnippetElement.textContent)
                 .then(() => alert('Code copied to clipboard!'))
                 .catch(err => console.error('Error copying text: ', err));
         }
+
         function saveDomain() {
             const domainInput = document.getElementById('domain-input').value;
             if (!domainInput) {
@@ -165,7 +185,7 @@
                 return;
             }
             const token = localStorage.getItem("token"); // Retrieve the auth token
-            fetch('/api/domains/add-domain', {
+            fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
