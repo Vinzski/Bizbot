@@ -482,6 +482,7 @@
     const emojiButtons = document.querySelectorAll('.emoji');
     const feedbackTextarea = document.getElementById('feedback');
     const feedbackbtn = document.getElementById('sendfeedback');
+    const sendMessageButton = document.getElementById('send-message');
 
     let selectedRating = ''; // Variable to store the selected rating
 
