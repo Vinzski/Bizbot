@@ -1,26 +1,25 @@
-// Toggle between login and signup forms
-function toggleForm() {
-  const isLogin = document
-    .getElementById("formTitle")
-    .textContent.includes("Login");
-  const usernameField = document.getElementById("username");
-  const usernameLabel = document.querySelector('label[for="username"]');
-  const formTitle = document.getElementById("formTitle");
-  const submitBtn = document.getElementById("submitBtn");
+document.getElementById('authForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    authenticateUser();
+});
 
-  if (isLogin) {
-    formTitle.textContent = "Signup";
-    submitBtn.textContent = "Signup";
-    usernameField.style.display = "block"; // Show the input field
-    usernameLabel.style.display = "block"; // Show the label
-    usernameField.required = true; // Make it required
-  } else {
-    formTitle.textContent = "Login";
-    submitBtn.textContent = "Login";
-    usernameField.style.display = "none"; // Hide the input field
-    usernameLabel.style.display = "none"; // Hide the label
-    usernameField.required = false; // Remove the required attribute
-  }
+function toggleForm() {
+    const formTitle = document.getElementById("formTitle");
+    const submitBtn = document.getElementById("submitBtn");
+    const usernameField = document.getElementById("username");
+    const switchBtn = document.querySelector(".switch-btn");
+
+    if (formTitle.textContent.includes("Login")) {
+        formTitle.textContent = "Signup";
+        usernameField.style.display = 'block';
+        switchBtn.textContent = "Switch to Login";
+        submitBtn.textContent = "Signup";
+    } else {
+        formTitle.textContent = "Login";
+        usernameField.style.display = 'none';
+        switchBtn.textContent = "Switch to Signup";
+        submitBtn.textContent = "Login";
+    }
 }
 
 
