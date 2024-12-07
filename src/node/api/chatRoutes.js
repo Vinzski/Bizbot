@@ -1,12 +1,11 @@
 const express = require('express');
 const axios = require('axios');
 const FAQ = require('../models/faqModel');
+const Chatbot = require('../models/chatbotModel');
 const natural = require('natural');
-const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware');  // Adjust the path as necessary
-
-// Initialize the natural language tokenizer
 const tokenizer = new natural.WordTokenizer();
+const jwt = require('jsonwebtoken');
+const router = express.Router();
 
 // Function to calculate similarity score
 const getSimilarityScore = (input, faqQuestion) => {
