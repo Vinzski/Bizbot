@@ -93,9 +93,13 @@ function loadFAQsForChatbot(faqIds) {
         const row = document.createElement('tr');
         row.setAttribute('data-faq-id', faq._id);
         row.innerHTML = `
-          <td>${faq.question}</td>
-          <td>${faq.answer}</td>
-        `;
+            <td>${faq.question}</td>
+            <td>${faq.answer}</td>
+            <td>
+              <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
+              <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
+            </td>
+          `;
         tbody.appendChild(row);
       });
       console.log(`Loaded ${filteredFaqs.length} FAQs for this chatbot`);
