@@ -12,6 +12,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
 
 connectDB();
+
 app.use(async (req, res, next) => {
     try {
         const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
@@ -37,6 +38,7 @@ app.use(async (req, res, next) => {
     }
 });
 
+
 // Import route modules
 const authRoutes = require('./routes/authRoutes');
 const faqRoutes = require('../api/faqRoutes');
@@ -44,6 +46,7 @@ const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
 const domainRoutes = require('../api/domainRoutes')
+
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/faqs', faqRoutes);
@@ -87,3 +90,4 @@ app.post('/api/token', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+});
