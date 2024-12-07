@@ -229,38 +229,34 @@ document
   });
 
 function authenticateUser() {
-    const isLogin = document
-        .getElementById("formTitle")
-        .textContent.includes("Login");
-    const username = isLogin ? null : document.getElementById("username").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const body = isLogin ? { email, password } : { username, email, password };
-    const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
+  const isLogin = document
+    .getElementById("formTitle")
+    .textContent.includes("Login");
+  const username = isLogin ? null : document.getElementById("username").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const body = isLogin ? { email, password } : { username, email, password };
+  const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
 
-    fetch(`https://bizbot-khpq.onrender.com${url}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-    })
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
     .then((response) => response.json())
     .then((data) => {
-        if (data.token) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user)); // Store user details
-            console.log(`Logged in as: ${data.user.username}`); // Log to console
-            document.getElementById("message").textContent = data.message;
-            if (isLogin && data.message === "Login successful") {
-                window.location.href = "dashboard.html"; // Redirect after successful login
-            }
-        } else {
-            document.getElementById("message").textContent = data.message || "Authentication failed.";
-        }
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user)); // Store user details
+      console.log(`Logged in as: ${data.user.username}`); // Log to console
+      document.getElementById("message").textContent = data.message;
+      if (data.message === "Login successful") {
+        window.location.href = "dashboard.html"; // Redirect after successful login
+      }
     })
     .catch((error) => {
-        console.error("Fetch error:", error);
-        document.getElementById("message").textContent =
-            "Failed to execute: " + error.message;
+      console.error("Fetch error:", error);
+      document.getElementById("message").textContent =
+        "Failed to execute: " + error.message;
     });
 }
 
