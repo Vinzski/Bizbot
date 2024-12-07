@@ -66,7 +66,6 @@ app.get('/', (req, res) => {
 app.use('/uploads', express.static('uploads'));
 
 // Token Generation Endpoint
-// This endpoint generates a JWT token containing both chatbotId and userId
 app.post('/api/token', async (req, res) => {
     const { chatbotId } = req.body;
     const token = req.headers['authorization']?.split(' ')[1];
@@ -84,14 +83,25 @@ app.post('/api/token', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
         const userId = decoded.id;
 
+        // Fetch user details
+        const user = await User.findById(userId).select('username email');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         // Validate chatbotId
         const chatbot = await Chatbot.findById(chatbotId);
         if (!chatbot) {
             return res.status(404).json({ message: 'Invalid Chatbot ID' });
         }
 
-        // Create payload with both chatbotId and userId
-        const payload = { chatbotId, userId };
+        // Create payload with chatbotId, userId, username, and email
+        const payload = {
+            chatbotId,
+            userId,
+            username: user.username,
+            email: user.email
+        };
 
         // Sign the new token
         const newToken = jwt.sign(payload, process.env.JWT_SECRET || 'mysecretkey_12345', {
