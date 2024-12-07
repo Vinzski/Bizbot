@@ -256,3 +256,11 @@ function authenticateUser() {
         "Failed to execute: " + error.message;
     });
 }
+
+function editFunc() {
+    console.log('edited!')
+}
+
+function deleteFunc() {
+   console.log('deleted!')
+}
