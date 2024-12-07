@@ -1,5 +1,3 @@
-// widget.js
-
 (function () {
     let token; // Store the widget token in memory
     let username; // Store username
