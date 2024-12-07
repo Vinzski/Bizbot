@@ -10,10 +10,10 @@
         const userId = script.getAttribute('data-user-id');
         const embeddedToken = script.getAttribute('data-token');
 
+        // Debugging logs
         console.log('Chatbot ID:', chatbotId);
         console.log('User ID:', userId);
         console.log('Token:', embeddedToken);
-
 
         if (!chatbotId || !userId || !embeddedToken) {
             console.error('Chatbot ID, User ID, or Token is missing.');
@@ -32,8 +32,8 @@
             return;
         }
 
-        const script = document.currentScript;
-        const chatbotId = script.getAttribute('data-chatbot-id');
+        // The chatbotId is already available during initialization
+        const chatbotId = document.currentScript.getAttribute('data-chatbot-id');
 
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
