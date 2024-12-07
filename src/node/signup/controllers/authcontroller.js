@@ -2,6 +2,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../../models/userModel'); // Ensure the path to userModel is correct
+
 exports.signup = async (req, res) => {
     console.log('Signup data received:', req.body);
     const { username, email, password } = req.body;
