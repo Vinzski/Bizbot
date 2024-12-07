@@ -5,7 +5,11 @@
 
     // Function to initialize the chatbot widget
     function initializeChatbot() {
-        const script = document.currentScript;
+        const script = document.getElementById('bizbot-widget');
+        if (!script) {
+            console.error('Bizbot-widget script tag not found.');
+            return;
+        }
         const chatbotId = script.getAttribute('data-chatbot-id');
         const userId = script.getAttribute('data-user-id');
         const embeddedToken = script.getAttribute('data-token');
@@ -32,8 +36,8 @@
             return;
         }
 
-        // The chatbotId is already available during initialization
-        const chatbotId = document.currentScript.getAttribute('data-chatbot-id');
+        const script = document.getElementById('bizbot-widget');
+        const chatbotId = script.getAttribute('data-chatbot-id');
 
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
@@ -48,7 +52,11 @@
         })
         .then(response => response.json())
         .then(data => {
-            displayBotMessage(data.reply);
+            if (data.reply) {
+                displayBotMessage(data.reply);
+            } else {
+                console.error('No reply received from the server.');
+            }
         })
         .catch(error => {
             console.error('Error sending message:', error);
@@ -58,6 +66,11 @@
     // Function to display bot messages
     function displayBotMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
+        if (!chatMessages) {
+            console.error('Chat messages container not found.');
+            return;
+        }
+
         const botMessageElement = document.createElement('div');
         botMessageElement.classList.add('message', 'bot-message');
         botMessageElement.textContent = message;
