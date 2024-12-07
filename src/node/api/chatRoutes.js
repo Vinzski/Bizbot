@@ -7,17 +7,16 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
-// This route uses old logic: first checks DB, if not found, fallback to Rasa
+// OLD logic for /chat route, but modified to ensure chatbotId from request body is used
 router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id; // user authenticated via 'authenticate' middleware
+    const userId = req.user.id; // user comes from token via authenticate middleware
 
     try {
-        // Retrieve FAQs for the given user and chatbot
+        // First try to find an answer in the FAQs
         const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
         let bestMatch = { score: 0, faq: null };
 
-        // Simple keyword-based matching
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
@@ -28,11 +27,11 @@ router.post('/chat', authenticate, async (req, res) => {
             }
         });
 
-        if (bestMatch.score >= 0.5) {
-            // If a good FAQ match is found
+        if (bestMatch.score >= 0.5) { 
+            // Return the best FAQ match
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            // No good FAQ match, fall back to Rasa
+            // If no FAQ matches well, send the query to Rasa
             try {
                 const rasaResponse = await axios.post('https://your-rasa-endpoint/webhooks/rest/webhook', {
                     message: question,
