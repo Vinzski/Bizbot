@@ -7,6 +7,7 @@ const connectDB = require('../config/db');
 const userModel = require('../models/userModel');
 const Domain = require('../models/domainModel');
 const jwt = require('jsonwebtoken');
+const authenticate = require('../signup/middleware/authMiddleware');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
@@ -66,39 +67,36 @@ app.get('/', (req, res) => {
 app.use('/uploads', express.static('uploads'));
 
 // Token Generation Endpoint
-app.post('/api/token', async (req, res) => {
-    const { chatbotId } = req.body;
-    const token = req.headers['authorization']?.split(' ')[1];
+app.post('/api/token', authenticate, async (req, res) => {
+    const { chatbotId } = req.body; // Expecting chatbotId in the request body
 
     if (!chatbotId) {
-        return res.status(400).json({ message: 'Chatbot ID is required' });
-    }
-
-    if (!token) {
-        return res.status(401).json({ message: 'Authorization token is missing' });
+        console.error('Chatbot ID is missing in the request body.');
+        return res.status(400).json({ message: 'Chatbot ID is required.' });
     }
 
     try {
-        // Verify the existing token to extract userId
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
-        const userId = decoded.id;
+        // Extract userId from the authenticated request
+        const userId = req.user.id;
 
         // Fetch user details
         const user = await User.findById(userId).select('username email');
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            console.error(`User not found: ID=${userId}`);
+            return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Validate chatbotId
-        const chatbot = await Chatbot.findById(chatbotId);
+        // Validate chatbotId and ensure it belongs to the user
+        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId: userId });
         if (!chatbot) {
-            return res.status(404).json({ message: 'Invalid Chatbot ID' });
+            console.error(`Chatbot not found or does not belong to the user. ChatbotID=${chatbotId}`);
+            return res.status(404).json({ message: 'Chatbot not found or does not belong to the user.' });
         }
 
         // Create payload with chatbotId, userId, username, and email
         const payload = {
-            chatbotId,
-            userId,
+            chatbotId: chatbotId,
+            userId: userId,
             username: user.username,
             email: user.email
         };
@@ -108,10 +106,11 @@ app.post('/api/token', async (req, res) => {
             expiresIn: '24h', // Token expires in 24 hours
         });
 
+        console.log(`Generated token for User: ${user.username}, Email: ${user.email}, ChatbotID=${chatbotId}`);
         res.json({ token: newToken });
     } catch (error) {
         console.error('Error generating token:', error);
-        res.status(403).json({ message: 'Invalid or expired token' });
+        res.status(500).json({ message: 'Internal server error while generating token.' });
     }
 });
 
