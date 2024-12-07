@@ -8,7 +8,7 @@ const userModel = require('../models/userModel');
 const Domain = require('../models/domainModel');
 const jwt = require('jsonwebtoken');
 const Chatbot = require('../models/chatbotModel');
-
+const router = express.Router();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
