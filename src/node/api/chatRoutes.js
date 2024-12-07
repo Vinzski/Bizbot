@@ -6,6 +6,7 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
+const authenticate = require('../signup/middleware/authMiddleware');
 
 // Function to calculate similarity score
 const getSimilarityScore = (input, faqQuestion) => {
