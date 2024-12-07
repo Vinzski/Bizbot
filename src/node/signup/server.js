@@ -65,21 +65,45 @@ app.get('/', (req, res) => {
 });
 app.use('/uploads', express.static('uploads'));
 
-app.post('/api/token', (req, res) => {
+// Token Generation Endpoint
+// This endpoint generates a JWT token containing both chatbotId and userId
+app.post('/api/token', async (req, res) => {
     const { chatbotId } = req.body;
+    const token = req.headers['authorization']?.split(' ')[1];
 
     if (!chatbotId) {
         return res.status(400).json({ message: 'Chatbot ID is required' });
     }
 
-    // Optionally validate chatbotId if needed
-    // For example: Check if chatbotId exists in your database
-    // const chatbot = await Chatbot.findById(chatbotId);
-    // if (!chatbot) return res.status(404).json({ message: 'Invalid chatbot ID' });
+    if (!token) {
+        return res.status(401).json({ message: 'Authorization token is missing' });
+    }
 
-    const token = jwt.sign({ chatbotId }, process.env.JWT_SECRET || 'mysecretkey_12345', {
-        expiresIn: '1h', // Token expires in 1 hour
-    });
+    try {
+        // Verify the existing token to extract userId
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
+        const userId = decoded.id;
+
+        // Validate chatbotId
+        const chatbot = await Chatbot.findById(chatbotId);
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Invalid Chatbot ID' });
+        }
+
+        // Create payload with both chatbotId and userId
+        const payload = { chatbotId, userId };
+
+        // Sign the new token
+        const newToken = jwt.sign(payload, process.env.JWT_SECRET || 'mysecretkey_12345', {
+            expiresIn: '24h', // Token expires in 24 hours
+        });
+
+        res.json({ token: newToken });
+    } catch (error) {
+        console.error('Error generating token:', error);
+        res.status(403).json({ message: 'Invalid or expired token' });
+    }
+});
 
     res.json({ token });
 });
