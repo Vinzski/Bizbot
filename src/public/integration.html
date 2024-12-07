@@ -166,7 +166,9 @@
                         return;
                     }
 
-                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}"><\/script>`;
+                    // For presentation, we'll include the existing token directly in the widget code
+                    // WARNING: This is insecure and should NOT be used in production
+                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${token}"><\/script>`;
                     document.getElementById('code-snippet').textContent = codeSnippet;
                 } catch (error) {
                     console.error('Error decoding token:', error);
