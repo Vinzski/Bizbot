@@ -319,3 +319,4 @@
     };
     // Initialize the chatbot widget on load
     initializeChatbot();
+})();
