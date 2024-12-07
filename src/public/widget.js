@@ -2,17 +2,17 @@
     let token; // Store the widget token in memory
 
     function addFontAwesome() {
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-    link.integrity = 'sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==';
-    link.crossOrigin = 'anonymous';
-    link.referrerPolicy = 'no-referrer';
-    document.head.appendChild(link);
-}
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+        link.integrity = 'sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==';
+        link.crossOrigin = 'anonymous';
+        link.referrerPolicy = 'no-referrer';
+        document.head.appendChild(link);
+    }
 
-// Call the function to add Font Awesome
-addFontAwesome();
+    // Call the function to add Font Awesome
+    addFontAwesome();
 
     // Function to initialize the chatbot widget
     function initializeChatbot() {
@@ -83,16 +83,15 @@ addFontAwesome();
     // Create elements for the chatbot widget
     var chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
-    chatbotWidget.innerHTML =
-        `<div id="chat-header">
+    chatbotWidget.innerHTML = `
+        <div id="chat-header">
             <span id="chat-title">BizBot</span>
             <button id="close-chat">X</button>
         </div>
-
         <div class="satisfactory">
             <div class="message bot-message">
                 <div class="profile-image"></div>
-                <span class="message-content">For better experiences, we would like to hear your feebacks about the performance</span>
+                <span class="message-content">For better experiences, we would like to hear your feedback about the performance.</span>
             </div>
             <div class="rating">
                 <p>How would you rate it?</p>
@@ -135,12 +134,14 @@ addFontAwesome();
         <div id="chat-input">
             <input type="text" id="user-input" placeholder="Type your message...">
             <button id="send-message">Send</button>
-        </div>`;
+        </div>
+    `;
 
+    // Create the toggle button once
     var chatToggle = document.createElement('button');
     chatToggle.id = 'chat-toggle';
     chatToggle.textContent = 'Chat';
-    chatToggle.style.display = 'block';
+    chatToggle.style.display = 'block'; // Ensure it is visible initially
 
     // Add styles directly or link to an external stylesheet
     var styles = `
@@ -178,19 +179,6 @@ addFontAwesome();
         cursor: pointer;
         font-size: 1.2em;
         transition: transform 0.2s ease;
-    }
-
-    #close-chats {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: transform 0.2s ease;
-    }
-
-    #close-chat:hover {
-        transform: scale(1.1);
     }
 
     #chat-messages {
@@ -277,211 +265,77 @@ addFontAwesome();
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .user-message {
-        background-color: #e6f3ff;
-        align-self: flex-end;
-        flex-direction: row-reverse;
-        border-bottom-right-radius: 5px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
 
     .bot-message {
-        background-color: #f0f0f0;
+        background-color: #e3e3e3;
         align-self: flex-start;
-        flex-direction: row;
-        border-bottom-left-radius: 5px;
     }
 
     .profile-image {
-        width: 35px;
-        height: 35px;
+        width: 30px;
+        height: 30px;
+        background-color: #888;
         border-radius: 50%;
-        background-color: #ccc;
-        flex-shrink: 0;
-        margin: 0 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: #fff;
-        font-size: 16px;
+        margin-right: 10px;
     }
 
     .message-content {
-        flex-grow: 1;
-        word-break: break-word;
         font-size: 14px;
-        line-height: 1.4;
     }
 
-    /* Scrollbar Styles */
-    #chat-messages::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    #chat-messages::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    #chat-messages::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
-    }
-
-    #chat-messages::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-
-    .satisfactory{
-        display: none;
-        flex-direction: column;
-        height: 100%;
-        text-align: center;
-        background-color: white;
-    }
-
-    .satisfactory span{
-        text-align: left;
-        height: 100%;
-    }
-
-    .satisfactory .rating{
+    .satisfactory {
         display: flex;
         flex-direction: column;
-    }
-    .satisfactory .rating p{
-        margin: 0.5em;
+        padding: 10px;
     }
 
-    .satisfactory .rating textarea{
-        margin: 0.5em;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
-
-    .satisfactory .rating .sendfeedback{
-        display: flex;
-        align-self: center;
-        border-radius: 5px;
-        background-color: #3a80d2;
-        color: white;
-    }
-
-    .emojis{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-evenly;
-    }
-    .emoji{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+    .emoji {
+        background: none;
         border: none;
-        background-color: white;
+        font-size: 1.5em;
+        margin-right: 10px;
         cursor: pointer;
-        color:#127999;
-        width: 80px;
-    }
-    .emoji i{
-        color: gray;
     }
 
-    .emoji i.active#poor {
-    color: red;
-    }
-
-    .emoji i.active#unsatisfied {
-        color: orangered;
-    }
-
-    .emoji i.active#neutral {
-        color: yellow;
-    }
-
-    .emoji i.active#satisfied {
-        color: yellowgreen;
-    }
-
-    .emoji i.active#excellent {
-        color: green;
-    }
-
-    .emoji:hover #poor {
-        color: red;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #unsatisfied {
-        color: orangered;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #neutral {
-        color: yellow;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #satisfied {
-        color: yellowgreen;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #excellent {
-        color: green;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-
-    /* Prevent hover effects from overriding the active state */
-    .emoji i:hover:not(.active) {
-        transform: scale(1.2); /* Keep hover effects for non-active buttons */
-    }
-
-    .emoji i{
-        font-size: 2em;
-    }
-
-    .emoji p{
-        margin: 0.5em;
-    }
-
-    .top-emojis{
-        display: flex;
-        flex-direction: row;
-    }
-
-    .bot-emojis{
-        display: flex;
-        flex-direction: row;
+    .sendfeedback {
+        background-color: #4a90e2;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-top: 10px;
     }
     `;
+
     var styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 
+    // Append elements to body
     document.body.appendChild(chatbotWidget);
     document.body.appendChild(chatToggle);
 
-    // Append elements to body
-    const chatToggle = document.getElementById('chat-toggle');
-    const chatbotWidget = document.getElementById('chatbot-widget-container');
+    // Elements for chat widget
     const closeChatButton = document.getElementById('close-chat');
     const chatMsgs = document.getElementById('chat-messages');
     const chatInp = document.getElementById('chat-input');
-    const satisfactory = document.querySelector('.satisfactory');
-    const emojiButtons = document.querySelectorAll('.emoji');
-    const feedbackTextarea = document.getElementById('feedback');
-    const feedbackbtn = document.getElementById('sendfeedback');
+    const sendMessageButton = document.getElementById('send-message');
+    const userInput = document.getElementById('user-input');
 
-    let selectedRating = ''; // Variable to store the selected rating
+    // Elements for feedback rating
+    const sendFeedbackButton = document.getElementById('sendfeedback');
+    const feedbackInput = document.getElementById('feedback');
 
+    // Toggle chat visibility
     chatToggle.onclick = function () {
         chatbotWidget.style.display = 'flex';
         chatToggle.style.display = 'none';
@@ -489,74 +343,31 @@ addFontAwesome();
         chatInp.style.display = 'flex';
     };
 
+    // Close chat widget
     closeChatButton.onclick = function () {
         chatbotWidget.style.display = 'none';
         chatToggle.style.display = 'flex';
         chatMsgs.style.display = 'none';
         chatInp.style.display = 'none';
-
-        setTimeout(function () {
-            chatbotWidget.style.display = 'flex';
-            chatToggle.style.display = 'none';
-            chatMsgs.style.display = 'none';
-            satisfactory.style.display = 'flex';
-        }, 1000);
     };
 
-    emojiButtons.forEach((button) => {
-        button.addEventListener('click', function () {
-            emojiButtons.forEach(btn => {
-                btn.querySelector('i').classList.remove('active');
-            });
-
-            const icon = this.querySelector('i');
-            icon.classList.add('active');
-
-            selectedRating = this.querySelector('p').innerText; // Update the selected rating
-        });
-    });
-
-    feedbackbtn.onclick = function () {
-        if (selectedRating) {
-            const feedbackText = feedbackTextarea.value; 
-            if (feedbackText.trim() === '') {
-                console.log('Feedback is empty.');
-            } else {
-                console.log(`Feedback submitted: ${feedbackText}`);
-                console.log(`Feedback submitted with rating: ${selectedRating}`);
-            }
-        } else {
-            console.log('No rating selected.');
+    // Send user message
+    sendMessageButton.onclick = function () {
+        const userInputText = userInput.value.trim();
+        if (userInputText) {
+            sendMessage(userInputText);
+            userInput.value = ''; // Clear the input field
         }
     };
 
-    // Event listener for sending a message
-    document.getElementById('send-message').onclick = function () {
-        var userInput = document.getElementById('user-input');
-        var chatMessages = document.getElementById('chat-messages');
-
-        if (userInput.value.trim() === '') {
-            alert('Please enter a message.');
-            return; // Prevent sending empty messages
+    // Send feedback
+    sendFeedbackButton.onclick = function () {
+        const feedback = feedbackInput.value.trim();
+        if (feedback) {
+            console.log('Feedback sent:', feedback);
+            alert('Thank you for your feedback!');
+            feedbackInput.value = ''; // Clear the feedback textarea
         }
-
-        // Append the user's message to the chat
-        var userMessageElement = document.createElement('div');
-        userMessageElement.classList.add('message', 'user-message');
-        var userProfileImage = document.createElement('div');
-        userProfileImage.classList.add('profile-image');
-        var userText = document.createElement('span');
-        userText.classList.add('message-content');
-        userText.textContent = userInput.value;
-        userMessageElement.appendChild(userProfileImage);
-        userMessageElement.appendChild(userText);
-        chatMessages.appendChild(userMessageElement);
-
-        // Send the message to the API
-        sendMessage(userInput.value);
-
-        // Clear the input field after sending
-        userInput.value = '';
     };
 
     // Initialize the chatbot widget on load
