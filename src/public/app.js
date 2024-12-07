@@ -95,6 +95,7 @@ function loadFAQsForChatbot(faqIds) {
         row.innerHTML = `
           <td>${faq.question}</td>
           <td>${faq.answer}</td>
+          <td>Actions</td>
         `;
         tbody.appendChild(row);
       });
