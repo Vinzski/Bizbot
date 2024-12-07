@@ -1,3 +1,5 @@
+<!-- integration.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,7 +16,7 @@
             <h2>BizBot Admin</h2>
             <nav>
                 <ul>
-<li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
                     <li><a href="chatbot-management.html">Chatbot Management</a></li>
                     <li><a href="training.html">Training Data</a></li>
                     <li><a href="integration.html" class="active">Integration</a></li>
@@ -75,7 +77,7 @@
         </main>
     </div>
     <script>
-         // Function to fetch and display the logged-in user's domains
+        // Function to fetch and display the logged-in user's domains
         function fetchUserDomains() {
             const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
             if (!token) {
@@ -93,7 +95,7 @@
             .then(response => response.json())
             .then(data => {
                 console.log('Fetched domains:', data); // Log the fetched data for debugging
-
+                
                 if (data.domains && data.domains.length > 0) {
                     const domainsList = document.getElementById('domains-list');
                     domainsList.innerHTML = ''; // Clear the list first
@@ -110,7 +112,7 @@
                 console.error('Error fetching user domains:', error);
             });
         }
-
+        
         // Call to fetch user domains when the page is loaded
         document.addEventListener("DOMContentLoaded", function () {
             fetchUserDomains(); // Fetch user domains on page load
@@ -119,9 +121,10 @@
         document.addEventListener("DOMContentLoaded", function () {
             loadChatbots();  // Call this function to populate the dropdown when the page loads.
         });
+
         function loadChatbots() {
             const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
-            fetch("/api/chatbots", {
+            fetch("https://bizbot-khpq.onrender.com/api/chatbots", {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -143,21 +146,44 @@
                     console.error('Error loading chatbots:', error);
                 });
         }
+
         function generateCode() {
             const chatbotId = document.getElementById('chatbot-select').value;
             if (chatbotId) {
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}"><\/script>`;
-                document.getElementById('code-snippet').textContent = codeSnippet;
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('You must be logged in to generate widget code.');
+                    return;
+                }
+
+                try {
+                    // Decode the token to extract userId
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const userId = payload.id || payload.userId;
+
+                    if (!userId) {
+                        alert('Unable to retrieve User ID from token.');
+                        return;
+                    }
+
+                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}"><\/script>`;
+                    document.getElementById('code-snippet').textContent = codeSnippet;
+                } catch (error) {
+                    console.error('Error decoding token:', error);
+                    alert('Failed to generate widget code. Please ensure you are logged in correctly.');
+                }
             } else {
                 alert('Please select a chatbot first.');
             }
         }
+
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
             navigator.clipboard.writeText(codeSnippetElement.textContent)
                 .then(() => alert('Code copied to clipboard!'))
                 .catch(err => console.error('Error copying text: ', err));
         }
+
         function saveDomain() {
             const domainInput = document.getElementById('domain-input').value;
             if (!domainInput) {
@@ -165,7 +191,7 @@
                 return;
             }
             const token = localStorage.getItem("token"); // Retrieve the auth token
-            fetch('/api/domains/add-domain', {
+            fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -181,6 +207,7 @@
                 })
                 .then(data => {
                     alert('Domain saved successfully!');
+                    fetchUserDomains(); // Refresh the domain list
                 })
                 .catch(error => {
                     console.error('Error saving domain:', error);
@@ -189,3 +216,5 @@
         }
     </script>
 </body>
+
+</html>
