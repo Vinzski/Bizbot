@@ -5,10 +5,10 @@
 
     // Function to initialize the chatbot widget
     function initializeChatbot() {
-        const chatbotElement = document.getElementById('bizbot-widget');
-        const chatbotId = chatbotElement.getAttribute('data-chatbot-id');
-        const userId = chatbotElement.getAttribute('data-user-id');
-        const embeddedToken = chatbotElement.getAttribute('data-token');
+        const script = document.currentScript;
+        const chatbotId = script.getAttribute('data-chatbot-id');
+        const userId = script.getAttribute('data-user-id');
+        const embeddedToken = script.getAttribute('data-token');
 
         if (!chatbotId || !userId || !embeddedToken) {
             console.error('Chatbot ID, User ID, or Token is missing.');
@@ -27,7 +27,8 @@
             return;
         }
 
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
+        const script = document.currentScript;
+        const chatbotId = script.getAttribute('data-chatbot-id');
 
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
