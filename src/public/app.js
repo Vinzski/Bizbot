@@ -240,20 +240,8 @@ function saveChatbot() {
   }
 
 const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr'))
-    .map(row => {
-      const faqId = row.getAttribute('data-faq-id');
-      const questionCell = row.querySelector('td:nth-child(1)');
-      const answerCell = row.querySelector('td:nth-child(2)');
-      const updatedQuestion = questionCell.textContent.trim();
-      const updatedAnswer = answerCell.textContent.trim();
-
-      return {
-        faqId, 
-        question: updatedQuestion,
-        answer: updatedAnswer
-      };
-    })
-    .filter(faq => faq.faqId && faq.question && faq.answer); // Filter out incomplete rows
+   .map(row => row.getAttribute('data-faq-id'))
+   .filter(Boolean);
 
   console.log(faqs);  // Debugging step to see if the array is correct
 
