@@ -53,41 +53,29 @@ function initializeChatbot() {
     });
 }
 
+    // Function to send user messages to the server
+    function sendMessage(userInput) {
+        if (!token) {
+            console.error('Token is not available. Ensure the widget is initialized correctly.');
+            return;
+        }
 
-function sendMessage(userInput) {
-
-    if (!token) {
-        console.error('Token is not available. Ensure the widget is initialized correctly.');
-        return;
-    }
-
-    const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-    
-    // Check if chatbotId exists before sending the request
-    if (!chatbotId) {
-        console.error('Chatbot ID is missing');
-        return;
-    }
-
-    fetch('https://bizbot-khpq.onrender.com/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-            question: userInput,
-            chatbotId: chatbotId, // Ensure chatbotId is passed
+        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ question: userInput, chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id') })
         })
-    })
-        .then(response => response.json())
-        .then(data => {
-            displayBotMessage(data.reply);
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-        });
-}
+            .then(response => response.json())
+            .then(data => {
+                displayBotMessage(data.reply);
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
+    }
 
     // Function to display bot messages
     function displayBotMessage(message) {
