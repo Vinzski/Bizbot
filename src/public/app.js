@@ -147,7 +147,7 @@ function addOrUpdateFAQ() {
 function testChatbot() {
   const queryElement = document.getElementById("test-query");
   const query = queryElement.value.trim();
-
+  
   // Log the user input
   console.log("User Query:", query);
 
@@ -168,55 +168,24 @@ function testChatbot() {
     return;
   }
 
-  // Get userId from widget attributes (assuming the widget is already initialized)
-  const widgetElement = document.getElementById('bizbot-widget');
-  const userId = widgetElement.getAttribute('data-user-id');
+  // Prepare the payload
+  const payload = { question: query };
+  
+  // Log the payload being sent
+  console.log("Payload to be sent:", payload);
 
-  if (!userId) {
-    console.error("User ID not found. Exiting function.");
-    alert("User ID is missing. Please check the widget setup.");
-    return;
-  }
+  // Optionally, log the headers
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
+  };
+  console.log("Request Headers:", headers);
 
-  // Log the userId (can be used to fetch additional user data from your backend)
-  console.log("User ID:", userId);
-
-  // Fetch user details using the userId (you might need to adjust this part depending on your backend structure)
-  fetch(`https://your-backend-api.com/api/users/${userId}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`, // Make sure the token is included for authentication
-    },
+  fetch("/api/chat", {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(payload),
   })
-  .then(response => response.json())
-  .then(userData => {
-    // Assuming the API returns user data with username and email
-    const username = userData.username;
-    const email = userData.email;
-
-    // Log the user details
-    console.log(`User ID: ${userId}`);
-    console.log(`Username: ${username}`);
-    console.log(`Email: ${email}`);
-
-    // Now, send the query to the backend
-    const payload = { question: query, userId: userId };
-
-    // Log the payload being sent
-    console.log("Payload to be sent:", payload);
-
-    // Request headers
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
-    };
-    console.log("Request Headers:", headers);
-
-    fetch("/api/chat", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(payload),
-    })
     .then((response) => {
       // Log the response status
       console.log("Response Status:", response.status, response.statusText);
@@ -232,7 +201,7 @@ function testChatbot() {
       console.log("Received Data from Server:", data);
 
       const resultDiv = document.getElementById("simulation-result");
-      
+
       // Safeguard against missing data
       if (data.reply && data.source) {
         resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply} <br><strong>Source:</strong> ${data.source}`;
@@ -248,11 +217,6 @@ function testChatbot() {
       const resultDiv = document.getElementById("simulation-result");
       resultDiv.textContent = "Error: " + error.message;
     });
-  })
-  .catch(error => {
-    console.error('Error fetching user data:', error);
-    alert("Error fetching user details. Please try again later.");
-  });
 }
 
 
