@@ -67,21 +67,29 @@ app.use('/uploads', express.static('uploads'));
 
 app.post('/api/token', (req, res) => {
     const { chatbotId } = req.body;
+    const token = req.headers.authorization.split(' ')[1];
 
-    if (!chatbotId) {
-        return res.status(400).json({ message: 'Chatbot ID is required' });
+    if (!chatbotId || !token) {
+        return res.status(400).json({ message: 'Chatbot ID and authorization token are required' });
     }
 
-    // Optionally validate chatbotId if needed
-    // For example: Check if chatbotId exists in your database
-    // const chatbot = await Chatbot.findById(chatbotId);
-    // if (!chatbot) return res.status(404).json({ message: 'Invalid chatbot ID' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
+        const userId = decoded.id || decoded.userId;
 
-    const token = jwt.sign({ chatbotId }, process.env.JWT_SECRET || 'mysecretkey_12345', {
-        expiresIn: '1h', // Token expires in 1 hour
-    });
+        if (!userId) {
+            return res.status(400).json({ message: 'Invalid user token' });
+        }
 
-    res.json({ token });
+        const newToken = jwt.sign({ chatbotId, userId }, process.env.JWT_SECRET || 'mysecretkey_12345', {
+            expiresIn: '1h', // Token expires in 1 hour
+        });
+
+        res.json({ token: newToken });
+    } catch (error) {
+        console.error('Error generating token:', error);
+        res.status(401).json({ message: 'Invalid token' });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
