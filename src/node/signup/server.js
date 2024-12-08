@@ -7,6 +7,7 @@ const connectDB = require('../config/db');
 const userModel = require('../models/userModel');
 const Domain = require('../models/domainModel');
 const jwt = require('jsonwebtoken');
+const Feedback = require('../models/feedbackModel');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
@@ -44,6 +45,7 @@ const chatRoutes = require('../api/chatRoutes');
 const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
 const domainRoutes = require('../api/domainRoutes')
+const feedbackRoutes = require('../api/feedbackRoutes');
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/faqs', faqRoutes);
@@ -51,6 +53,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes);
 app.use('/api/customization', customizationRoutes);
 app.use('/api/domains', domainRoutes);
+app.use(feedbackRoutes);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
@@ -96,28 +99,27 @@ app.post('/api/token', (req, res) => {
 });
 
 // Feedback function
-app.post('/api/feedback', async (req, res) => {
-    const { userId, chatbotId, rating, feedbackText } = req.body;
+router.post('/api/feedback', async (req, res) => {
+    const { userId, chatbotId, rating, feedback } = req.body;
 
-    // Validate incoming data
-    if (!userId || !chatbotId || !rating || !feedbackText) {
-        return res.status(400).json({ message: 'All fields are required' });
+    if (!userId || !chatbotId || !rating || !feedback) {
+        return res.status(400).json({ success: false, message: 'Missing required fields.' });
     }
 
     try {
-        const feedback = new Feedback({
-            userId,
-            chatbotId,
-            rating,
-            feedbackText,
+        const newFeedback = new Feedback({
+            userId: userId,
+            chatbotId: chatbotId,
+            rating: rating,
+            feedback: feedback,
         });
 
-        // Save feedback to database
-        await feedback.save();
-        res.status(200).json({ message: 'Feedback saved successfully' });
+        await newFeedback.save();
+
+        res.json({ success: true, message: 'Feedback submitted successfully.' });
     } catch (error) {
         console.error('Error saving feedback:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ success: false, message: 'Server error. Could not save feedback.' });
     }
 });
 
