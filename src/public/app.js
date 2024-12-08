@@ -353,8 +353,7 @@ function deleteFunc(id) {
   const token = localStorage.getItem('token');
     // Log the ID that will be deleted
     console.log(`Attempting to delete FAQ with ID: ${id}`);
-    // Fetch the FAQ data to check if it exists
-    const token = localStorage.getItem('token'); // Get token from local storage
+
 
   // Confirm the deletion action
   if (confirm('Are you sure you want to delete this FAQ?')) {
