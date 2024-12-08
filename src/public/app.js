@@ -324,6 +324,7 @@ function logout() {
 
 function editFunc(id) {
     console.log(id);
+  
   }
 
 function deleteFunc(id) {
