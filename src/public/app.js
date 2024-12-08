@@ -323,7 +323,8 @@ function logout() {
   }
 
 function editFunc(id) {
-    const row = document.querySelector(tr[data-faq-id="${id}"]);
+    const row = document.querySelector(`tr[data-faq-id="${id}"]`);
+
     if (!row) {
       console.error('Row not found!');
       return;
