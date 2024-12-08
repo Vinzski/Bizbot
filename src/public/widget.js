@@ -13,11 +13,6 @@
     }
 
     // Inject SweetAlert2 CDN dynamically
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
-    document.head.appendChild(script);
-    
-    // After the script is loaded, handle the feedback button click event
     script.onload = function () {
         // Event listener for sending feedback
         feedbackBtn.onclick = function () {
@@ -64,12 +59,17 @@
                                 title: 'Thank you!',
                                 text: 'Your feedback has been submitted successfully.'
                             }).then(() => {
+                                // Set the flag to indicate feedback was submitted
+                                isFeedbackSubmitted = true;
+                                
                                 // Reset feedback form after user acknowledges success
                                 feedbackTextarea.value = '';
                                 selectedRating = '';
                                 emojiButtons.forEach(btn => {
                                     btn.querySelector('i').classList.remove('active');
                                 });
+                                
+                                // Hide the satisfaction widget
                                 satisfactory.style.display = 'none';
                                 chatbotWidgetElement.style.display = 'flex';
                             });
@@ -101,7 +101,6 @@
             }
         };
     };
-
 
 
     addFontAwesome(); // Add Font Awesome on load
@@ -671,15 +670,6 @@
             alert('Please select a rating before submitting feedback.');
         }
     };
-
-        // Event listener to close chat
-        feedbackBtn.onclick = function () {
-            chatbotWidgetElement.style.display = 'none';
-            chatToggleButton.style.display = 'block';
-            chatMsgs.style.display = 'none';
-            chatInp.style.display = 'none';
-        };
-
 
         document.getElementById('sendfeedback').addEventListener('click', function () {
         const feedback = document.getElementById('feedback').value;
