@@ -1,5 +1,6 @@
 (function () {
     let token; // Store the widget token in memory
+    let isFeedbackSubmitted = false;
 
     // Function to add Font Awesome
     function addFontAwesome() {
