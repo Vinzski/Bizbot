@@ -355,21 +355,6 @@ function deleteFunc(id) {
     // Fetch the FAQ data to check if it exists
     const token = localStorage.getItem('token'); // Get token from local storage
     fetch(`/api/faqs/${id}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,  // Include the JWT token
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Failed to find FAQ: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log(`FAQ found: ${data.message}`);
-        // Proceed with deletion after confirming the FAQ exists
-        fetch(`/api/faqs/${id}`, {
             method: 'GET',  // This GET method will handle both existence check and deletion on the server
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -384,11 +369,6 @@ function deleteFunc(id) {
             console.error('Error deleting FAQ:', error);
             alert(`Failed to delete FAQ: ${error.message}`);
         });
-    })
-    .catch(error => {
-        console.error('Error fetching FAQ:', error);
-        alert('FAQ not found or you don\'t have permission to delete it.');
-    });
 }
 
 // Function to remove the deleted FAQ row from the table
