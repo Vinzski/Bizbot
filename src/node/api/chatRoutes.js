@@ -6,7 +6,7 @@ const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Adjust path as necessary
-const ChatHistory = require('../models/chatHistoryModel'); // Import the ChatHistory model
+const ChatHistory = require('../models/chatLogModel'); // Import the ChatHistory model
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
