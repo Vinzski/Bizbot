@@ -340,7 +340,7 @@ function editFunc(id) {
       const editButton = row.querySelector('.btn-edit');
       editButton.textContent = "EDIT";
       row.classList.remove('editing');
-      console.log(Saved changes for FAQ with ID: ${id});
+      console.log('Saved changes for FAQ with ID: ${id}');
     } else {
       cells.forEach(cell => {
         const text = cell.textContent;
