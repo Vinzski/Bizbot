@@ -15,6 +15,7 @@ router.post('/send_message', (req, res) => {
     res.json({ reply: "Response based on " + userMessage });
 });
 
+// Protected chat route
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
@@ -41,6 +42,13 @@ router.post('/', authenticate, async (req, res) => {
 
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            // Save chat log
+            await ChatLog.create({
+                chatbotId,
+                userId,
+                question,
+                answer: exactMatch.answer,
+            });
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
@@ -61,6 +69,13 @@ router.post('/', authenticate, async (req, res) => {
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+            // Save chat log
+            await ChatLog.create({
+                chatbotId,
+                userId,
+                question,
+                answer: bestMatch.faq.answer,
+            });
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found. Forwarding to Rasa.');
@@ -71,6 +86,13 @@ router.post('/', authenticate, async (req, res) => {
                 });
                 const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
                 console.log(`Rasa Response: "${botReply}"`);
+                // Save chat log
+                await ChatLog.create({
+                    chatbotId,
+                    userId,
+                    question,
+                    answer: botReply,
+                });
                 res.json({ reply: botReply, source: 'Rasa' });
             } catch (error) {
                 console.error('Error querying Rasa:', error);
