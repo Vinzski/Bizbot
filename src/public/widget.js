@@ -44,8 +44,6 @@ function initializeChatbot() {
         if (data.token) {
             token = data.token; // Store new token in memory
             console.log('Chatbot token fetched successfully');
-            // Initialize the rest of the chatbot functionality here
-            setupChatbotUI();
         } else {
             throw new Error('Token not received in the response');
         }
