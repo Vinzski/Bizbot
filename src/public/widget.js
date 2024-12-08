@@ -672,6 +672,14 @@
         }
     };
 
+        // Event listener to close chat
+        feedbackBtn.onclick = function () {
+            chatbotWidgetElement.style.display = 'none';
+            chatToggleButton.style.display = 'block';
+            chatMsgs.style.display = 'none';
+            chatInp.style.display = 'none';
+        };
+
 
         document.getElementById('sendfeedback').addEventListener('click', function () {
         const feedback = document.getElementById('feedback').value;
