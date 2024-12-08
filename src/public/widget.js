@@ -17,7 +17,7 @@
     // Function to initialize the chatbot widget
     function initializeChatbot() {
         const widgetElement = document.getElementById('bizbot-widget');
-        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id'); // May be undefined
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
 
@@ -26,8 +26,8 @@
         console.log(`userId: ${userId}`);
         console.log(`initialToken: ${initialToken}`);
 
-        if (!chatbotId || !userId || !initialToken) {
-            console.error('Chatbot ID, User ID, or initial token is missing.');
+        if (!userId || !initialToken) { // chatbotId is optional
+            console.error('User ID or initial token is missing.');
             return;
         }
 
@@ -72,7 +72,7 @@
     // Function to send user messages to the server
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
-        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id'); // May be undefined
         const userId = widgetElement.getAttribute('data-user-id');
 
         if (!token) {
@@ -86,13 +86,24 @@
         console.log(`userId: ${userId}`);
         console.log(`userInput: ${userInput}`);
 
+        // Prepare the request body
+        const requestBody = {
+            question: userInput,
+            userId: userId,
+        };
+
+        // Add chatbotId only if it exists
+        if (chatbotId) {
+            requestBody.chatbotId = chatbotId;
+        }
+
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Use the updated token
+                'Authorization': `Bearer ${token}`, // Corrected template literal
             },
-            body: JSON.stringify({ question: userInput, userId: userId, chatbotId: chatbotId})
+            body: JSON.stringify(requestBody),
         })
             .then(response => {
                 if (!response.ok) {
