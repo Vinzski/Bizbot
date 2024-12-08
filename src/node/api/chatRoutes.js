@@ -20,14 +20,14 @@ router.post('/', authenticate, async (req, res) => {
     const userId = req.user.id; // Get user ID from token
 
     console.log('--- Incoming Chat Request ---');
-    console.log(User ID: ${userId});
-    console.log(Chatbot ID: ${chatbotId});
-    console.log(Question: "${question}");
+    console.log(`User ID: ${userId}`);
+    console.log(`Chatbot ID: ${chatbotId}`);
+    console.log(`Question: "${question}"`);
 
     try {
         // Fetch FAQs specific to the chatbot and user
         const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-        console.log(Number of FAQs found: ${faqs.length});
+        console.log(`Number of FAQs found: ${faqs.length}`);
 
         if (faqs.length === 0) {
             console.log('No FAQs found for the given userId and chatbotId.');
@@ -40,7 +40,7 @@ router.post('/', authenticate, async (req, res) => {
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
 
         if (exactMatch) {
-            console.log(Exact FAQ Match Found: "${exactMatch.question}");
+            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
@@ -49,7 +49,7 @@ router.post('/', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const similarity = natural.JaroWinklerDistance(faqText, normalizedUserQuestion);
-            console.log(FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)});
+            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
 
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
@@ -60,7 +60,7 @@ router.post('/', authenticate, async (req, res) => {
         const SIMILARITY_THRESHOLD = 0.8; // Adjust as needed
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)});
+            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found. Forwarding to Rasa.');
@@ -70,7 +70,7 @@ router.post('/', authenticate, async (req, res) => {
                     sender: 'chatbot-widget',
                 });
                 const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                console.log(Rasa Response: "${botReply}");
+                console.log(`Rasa Response: "${botReply}"`);
                 res.json({ reply: botReply, source: 'Rasa' });
             } catch (error) {
                 console.error('Error querying Rasa:', error);
