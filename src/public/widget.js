@@ -62,9 +62,9 @@
 // Function to send user messages to the server
 function sendMessage(userInput) {
     const widgetElement = document.getElementById('bizbot-widget');
-    const initialToken = widgetElement.getAttribute('data-token');
     
-    // Ensure token is available
+    // Retrieve the token and ensure it's available
+    const initialToken = widgetElement.getAttribute('data-token');
     if (!initialToken) {
         console.error('Token is not available. Ensure the widget is initialized correctly.');
         return;
@@ -72,31 +72,34 @@ function sendMessage(userInput) {
 
     // Get the userId (this is passed to the backend API)
     const userId = widgetElement.getAttribute('data-user-id');  
-
     if (!userId) {
         console.error('User ID is not available.');
         return;
     }
 
-    console.log('Sending message with the following details:');
-    console.log(`userId: ${userId}`);
-    console.log(`token: ${initialToken}`);
-    console.log(`userInput: ${userInput}`);
+    console.log(`User Query: ${userInput}`);
 
-    // Prepare the payload with userId instead of chatbotId
+    // Log the retrieved token and prepare the payload to be sent
+    console.log(`app.js:163 Retrieved Token from localStorage: ${initialToken}`);
     const payload = {
-        question: userInput,
-        userId: userId  // Send userId to the backend API
+        question: userInput
     };
 
-    // Send the request to the server
+    console.log(`app.js:175 Payload to be sent: ${JSON.stringify(payload)}`);
+
+    // Request Headers for the API call
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${initialToken}` // Add Bearer token for authorization
+    };
+
+    console.log(`app.js:182 Request Headers: ${JSON.stringify(headers)}`);
+
+    // Send the user input to the backend API
     fetch('https://bizbot-khpq.onrender.com/api/chat', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${initialToken}`, // Use the token for authorization
-        },
-        body: JSON.stringify(payload)  // Include userId in the payload
+        headers: headers,
+        body: JSON.stringify(payload)  // Include the user input in the request body
     })
         .then(response => {
             if (!response.ok) {
@@ -105,14 +108,19 @@ function sendMessage(userInput) {
             return response.json();
         })
         .then(data => {
-            console.log('Received response from server:', data);
-            displayBotMessage(data.reply);  // Assuming this function displays the bot's reply
-            console.log(`Response Source: ${data.source}`);
+            // Log the response status and received data
+            console.log(`app.js:191 Response Status: ${data.status}`);
+            console.log(`app.js:201 Received Data from Server: ${JSON.stringify(data)}`);
+
+            // Assuming this function displays the bot's reply
+            displayBotMessage(data.reply); 
+            console.log(`app.js:208 Displayed Response and Source in UI.`);
         })
         .catch(error => {
             console.error('Error sending message:', error);
         });
 }
+
 
 
     // Function to display bot messages
