@@ -24,7 +24,7 @@ function toggleForm() {
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const urlParams = new URLSearchParams(window.location.search);
   const chatbotId = urlParams.get('chatbotId');
   const faqs = urlParams.get('faqs')?.split(',') || [];  // Fetch FAQ IDs from the URL
@@ -35,8 +35,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (faqs.length) {
     loadFAQsForChatbot(faqs);  // Load FAQ IDs passed in the URL
+  } else {
+    loadFAQsForChatbot();  // Fetch FAQs after page reload
   }
 });
+
 
 function loadUserInfo() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
