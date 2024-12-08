@@ -19,7 +19,7 @@ router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
 
-    console.log('Incoming Chat Request:');
+    console.log('--- Incoming Chat Request ---');
     console.log(`User ID: ${userId}`);
     console.log(`Chatbot ID: ${chatbotId}`);
     console.log(`Question: ${question}`);
@@ -29,28 +29,34 @@ router.post('/', authenticate, async (req, res) => {
         const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
         console.log(`Number of FAQs found: ${faqs.length}`);
 
+        if (faqs.length === 0) {
+            console.log('No FAQs found for the given userId and chatbotId.');
+        }
+
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const tokens1 = question.toLowerCase().split(' ');
             const tokens2 = faq.question.toLowerCase().split(' ');
             let intersection = tokens1.filter(token => tokens2.includes(token));
             let score = intersection.length / tokens1.length;
+            console.log(`FAQ Question: "${faq.question}" | Score: ${score.toFixed(2)}`);
             if (score > bestMatch.score) {
                 bestMatch = { score, faq };
             }
         });
 
         if (bestMatch.score >= 0.5) {
-            console.log(`FAQ Match Found: ${bestMatch.faq.question} with score ${bestMatch.score}`);
+            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with score ${bestMatch.score.toFixed(2)}`);
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            console.log('No FAQ Match Found. Forwarding to Rasa.');
+            console.log('No adequate FAQ match found. Forwarding to Rasa.');
             try {
                 const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget',
                 });
                 const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+                console.log(`Rasa Response: ${botReply}`);
                 res.json({ reply: botReply, source: 'Rasa' });
             } catch (error) {
                 console.error('Error querying Rasa:', error);
