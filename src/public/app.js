@@ -24,7 +24,7 @@ function toggleForm() {
 }
 
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
   const urlParams = new URLSearchParams(window.location.search);
   const chatbotId = urlParams.get('chatbotId');
   const faqs = urlParams.get('faqs')?.split(',') || [];  // Fetch FAQ IDs from the URL
@@ -35,11 +35,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (faqs.length) {
     loadFAQsForChatbot(faqs);  // Load FAQ IDs passed in the URL
-  } else {
-    loadFAQsForChatbot();  // Fetch FAQs after page reload
   }
 });
-
 
 function loadUserInfo() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -158,7 +155,7 @@ function addOrUpdateFAQ() {
 function testChatbot() {
   const queryElement = document.getElementById("test-query");
   const query = queryElement.value.trim();
-  
+
   // Log the user input
   console.log("User Query:", query);
 
@@ -181,7 +178,7 @@ function testChatbot() {
 
   // Prepare the payload
   const payload = { question: query };
-  
+
   // Log the payload being sent
   console.log("Payload to be sent:", payload);
 
@@ -242,12 +239,7 @@ function saveChatbot() {
       return;
   }
 
-const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr'))
-   .map(row => row.getAttribute('data-faq-id'))
-   .filter(Boolean);
-
-  console.log(faqs);  // Debugging step to see if the array is correct
-
+  const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr')).map(row => row.getAttribute('data-faq-id')).filter(Boolean);
 
   fetch('/api/chatbots', {
       method: 'POST',
@@ -275,8 +267,6 @@ const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr'))
       alert(`Failed to save chatbot: ${error.message}`);
   });
 }
-
-
 
 // Handling authentication and form submissions
 document
@@ -330,101 +320,34 @@ function logout() {
   }
 
 function editFunc(id) {
-  // Find the table row with the matching ID
-  const row = document.querySelector(`tr[data-faq-id="${id}"]`);
-  if (!row) {
-    console.error('Row not found!');
-    return;
-  }
-
-  // Get all <td> elements in the row (excluding the Actions column)
-  const cells = row.querySelectorAll('td:not(:last-child)');
-
-  // Toggle between editable and non-editable states
-  if (row.classList.contains('editing')) {
-    // Save changes
-    cells.forEach(cell => {
-      const input = cell.querySelector('input');
-      if (input) {
-        // Replace input value back into the cell
-        cell.textContent = input.value;
-      }
-    });
-
-    // Change button text back to "EDIT"
-    const editButton = row.querySelector('.btn-edit');
-    editButton.textContent = "EDIT";
-
-    row.classList.remove('editing');
-    console.log(`Saved changes for FAQ with ID: ${id}`);
-  } else {
-    // Make cells editable
-    cells.forEach(cell => {
-      const text = cell.textContent; // Get the current text content of the cell
-      cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
-    });
-
-    const editButton = row.querySelector('.btn-edit');
-    editButton.textContent = "SAVE";
-
-    row.classList.add('editing');
-    console.log(`Editing FAQ with ID: ${id}`);
-  }
-}
-
-
-// Function to delete FAQ
-function deleteFunc(id) {
-    // Log the ID that will be deleted
-    console.log(`Attempting to delete FAQ with ID: ${id}`);
-
-    // Fetch the FAQ data to check if it exists
-    const token = localStorage.getItem('token'); // Get token from local storage
-
-    fetch(`/api/faqs/${id}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,  // Include the JWT token
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Failed to find FAQ: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log(`FAQ found: ${data.message}`);
-
-        // Proceed with deletion after confirming the FAQ exists
-        fetch(`/api/faqs/${id}`, {
-            method: 'GET',  // This GET method will handle both existence check and deletion on the server
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            }
-        })
-        .then(deleteResponse => deleteResponse.json())
-        .then(deleteData => {
-            alert(deleteData.message);  // Show success message
-            removeFaqRow(id);  // Remove the FAQ row from the table
-        })
-        .catch(error => {
-            console.error('Error deleting FAQ:', error);
-            alert(`Failed to delete FAQ: ${error.message}`);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching FAQ:', error);
-        alert('FAQ not found or you don\'t have permission to delete it.');
-    });
-}
-
-// Function to remove the deleted FAQ row from the table
-function removeFaqRow(id) {
     const row = document.querySelector(`tr[data-faq-id="${id}"]`);
-    if (row) {
-        row.remove(); // Remove the row from the table
-    } else {
-        console.warn('Row not found to remove!');
+    if (!row) {
+      console.error('Row not found!');
+      return;
     }
+    const cells = row.querySelectorAll('td:not(:last-child)');
+    if (row.classList.contains('editing')) {
+      cells.forEach(cell => {
+        const input = cell.querySelector('input');
+        if (input) {
+          cell.textContent = input.value;
+        }
+      });
+      const editButton = row.querySelector('.btn-edit');
+      editButton.textContent = "EDIT";
+      row.classList.remove('editing');
+      console.log(`Saved changes for FAQ with ID: ${id}`);
+    } else {
+      cells.forEach(cell => {
+        const text = cell.textContent;
+        cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
+      });
+      const editButton = row.querySelector('.btn-edit');
+      editButton.textContent = "SAVE";
+      row.classList.add('editing');
+      console.log(`Editing FAQ with ID: ${id}`);
+    }
+  }
+function deleteFunc(id) {
+    console.log(`Deleted FAQ with ID: ${id}`);
 }
