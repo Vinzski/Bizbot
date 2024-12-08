@@ -255,34 +255,31 @@ function saveChatbot() {
     })
     .filter(faq => faq.faqId && faq.question && faq.answer); // Filter out incomplete rows
 
-  fetch('/api/chatbots', {
-  method: 'POST',
-  headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-  },
-  body: JSON.stringify({
+ fetch('/api/chatbots', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
           name: chatbotNameInput.value,
           type: chatbotTypeSelect.value,
-          faqs: faqs,  // Send the updated FAQs (including question and answer)
+          faqs: faqs,
       }),
-})
-.then(response => {
-  if (!response.ok) {
-    return response.json().then(errorData => {
-      throw new Error(`Server Error: ${errorData.message || response.statusText}`);
-    });
-  }
-  return response.json();
-})
-.then(data => {
-  alert('Chatbot saved successfully!');
-})
-.catch(error => {
-  console.error('Error saving chatbot:', error);
-  alert(`Failed to save chatbot: ${error.message}`);
-});
-
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok: ' + response.statusText);
+      }
+      return response.json();
+  })
+  .then(data => {
+      alert('Chatbot saved successfully!');
+  })
+  .catch(error => {
+      console.error('Error saving chatbot:', error);
+      alert(`Failed to save chatbot: ${error.message}`);
+  });
 }
 
 
