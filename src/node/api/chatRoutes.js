@@ -1,15 +1,5 @@
 const express = require('express');
 const axios = require('axios');
-const natural = require('natural');
-const tokenizer = new natural.WordTokenizer();
-const jwt = require('jsonwebtoken');
-const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware');
-const FAQ = require('../models/faqModel');
-const ChatLog = require('../models/chatLogModel');
-
-const express = require('express');
-const axios = require('axios');
 const FAQ = require('../models/faqModel');
 const ChatLog = require('../models/chatLogModel'); // Import ChatLog model
 const natural = require('natural');
