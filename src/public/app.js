@@ -323,34 +323,7 @@ function logout() {
   }
 
 function editFunc(id) {
-    const row = document.querySelector(`tr[data-faq-id="${id}"]`);
-
-    if (!row) {
-      console.error('Row not found!');
-      return;
-    }
-    const cells = row.querySelectorAll('td:not(:last-child)');
-    if (row.classList.contains('editing')) {
-      cells.forEach(cell => {
-        const input = cell.querySelector('input');
-        if (input) {
-          cell.textContent = input.value;
-        }
-      });
-      const editButton = row.querySelector('.btn-edit');
-      editButton.textContent = "EDIT";
-      row.classList.remove('editing');
-      console.log('Saved changes for FAQ with ID: ${id}');
-    } else {
-      cells.forEach(cell => {
-        const text = cell.textContent;
-        cell.innerHTML = <input type="text" value="${text}" style="width: 100%;" />;
-      });
-      const editButton = row.querySelector('.btn-edit');
-      editButton.textContent = "SAVE";
-      row.classList.add('editing');
-      console.log(Editing FAQ with ID: ${id});
-    }
+    console.log(id);
   }
 
 function deleteFunc(id) {
