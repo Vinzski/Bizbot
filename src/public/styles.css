@@ -289,3 +289,14 @@ table button{
     transform: scale(1.1);
     color: black;
 }
+
+.btn-logout{
+    background-color: red;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+}
