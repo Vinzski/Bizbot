@@ -14,6 +14,7 @@ router.post('/chat', async (req, res) => {
 
     // First try to find an answer in the FAQs
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    console.log("Fetched FAQs:", faqs);
     let bestMatch = { score: 0, faq: null };
 
     faqs.forEach(faq => {
