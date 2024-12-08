@@ -145,37 +145,80 @@ function addOrUpdateFAQ() {
 }
 
 function testChatbot() {
-  const query = document.getElementById("test-query").value;
+  const queryElement = document.getElementById("test-query");
+  const query = queryElement.value.trim();
+  
+  // Log the user input
+  console.log("User Query:", query);
+
   if (!query) {
     alert("Please enter a query.");
+    console.warn("No query entered. Exiting function.");
     return;
   }
+
   const token = localStorage.getItem("token"); // Retrieve the JWT from localStorage
+
+  // Log the retrieved token
+  console.log("Retrieved Token from localStorage:", token);
+
+  if (!token) {
+    console.error("No token found in localStorage. Authentication may fail.");
+    alert("Authentication token is missing. Please log in again.");
+    return;
+  }
+
+  // Prepare the payload
+  const payload = { question: query };
+  
+  // Log the payload being sent
+  console.log("Payload to be sent:", payload);
+
+  // Optionally, log the headers
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
+  };
+  console.log("Request Headers:", headers);
 
   fetch("/api/chat", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
-    },
-    body: JSON.stringify({ question: query }),
+    headers: headers,
+    body: JSON.stringify(payload),
   })
     .then((response) => {
+      // Log the response status
+      console.log("Response Status:", response.status, response.statusText);
+
       if (!response.ok) {
+        console.error("Network response was not ok:", response.statusText);
         throw new Error("Network response was not ok: " + response.statusText);
       }
       return response.json();
     })
     .then((data) => {
+      // Log the received data
+      console.log("Received Data from Server:", data);
+
       const resultDiv = document.getElementById("simulation-result");
-      resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply} <br><strong>Source:</strong> ${data.source}`;
+      
+      // Safeguard against missing data
+      if (data.reply && data.source) {
+        resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply} <br><strong>Source:</strong> ${data.source}`;
+        console.log("Displayed Response and Source in UI.");
+      } else {
+        console.warn("Received data is incomplete:", data);
+        resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply || "No reply received."} <br><strong>Source:</strong> ${data.source || "Unknown"}`;
+      }
     })
     .catch((error) => {
+      // Log detailed error information
       console.error("Error testing chatbot:", error);
-      document.getElementById("simulation-result").textContent =
-        "Error: " + error.message;
+      const resultDiv = document.getElementById("simulation-result");
+      resultDiv.textContent = "Error: " + error.message;
     });
 }
+
 
 function saveChatbot() {
   const chatbotTypeSelect = document.getElementById('chatbot-select');
