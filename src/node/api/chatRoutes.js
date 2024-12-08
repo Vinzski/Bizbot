@@ -5,7 +5,8 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
+const authenticate = require('../signup/middleware/authMiddleware'); // Adjust path as necessary
+const ChatHistory = require('../models/chatHistoryModel'); // Import the ChatHistory model
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
@@ -39,49 +40,68 @@ router.post('/', authenticate, async (req, res) => {
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
 
+        let reply;
+        let source;
+
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
+            reply = exactMatch.answer;
+            source = 'FAQ';
+        } else {
+            // 2. Similarity-Based Matching
+            let bestMatch = { score: 0, faq: null };
+            faqs.forEach(faq => {
+                const faqText = faq.question.toLowerCase().trim();
+                const similarity = natural.JaroWinklerDistance(faqText, normalizedUserQuestion);
+                console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
+
+                if (similarity > bestMatch.score) {
+                    bestMatch = { score: similarity, faq };
+                }
+            });
+
+            // Define similarity threshold
+            const SIMILARITY_THRESHOLD = 0.8; // Adjust as needed
+
+            if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+                console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+                reply = bestMatch.faq.answer;
+                source = 'FAQ';
+            } else {
+                console.log('No adequate FAQ match found. Forwarding to Rasa.');
+                try {
+                    const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
+                        message: question,
+                        sender: 'chatbot-widget',
+                    });
+                    reply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+                    console.log(`Rasa Response: "${reply}"`);
+                    source = 'Rasa';
+                } catch (error) {
+                    console.error('Error querying Rasa:', error);
+                    return res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+                }
+            }
         }
 
-        // 2. Similarity-Based Matching
-        let bestMatch = { score: 0, faq: null };
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const similarity = natural.JaroWinklerDistance(faqText, normalizedUserQuestion);
-            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
-
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
-            }
+        // Save the interaction to the database
+        const chatHistory = new ChatHistory({
+            chatbotId,
+            userId,
+            question,
+            answer: reply,
+            // timestamp will be set automatically
         });
 
-        // Define similarity threshold
-        const SIMILARITY_THRESHOLD = 0.8; // Adjust as needed
+        await chatHistory.save();
+        console.log('Chat interaction saved successfully.');
 
-        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
-            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            console.log('No adequate FAQ match found. Forwarding to Rasa.');
-            try {
-                const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
-                    message: question,
-                    sender: 'chatbot-widget',
-                });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                console.log(`Rasa Response: "${botReply}"`);
-                res.json({ reply: botReply, source: 'Rasa' });
-            } catch (error) {
-                console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-            }
-        }
+        // Respond to the client
+        res.json({ reply, source });
     } catch (error) {
         console.error('Error processing chat request:', error);
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
-
 
 module.exports = router;
