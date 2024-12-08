@@ -15,7 +15,7 @@ router.post('/send_message', (req, res) => {
     res.json({ reply: "Response based on " + userMessage });
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
 
