@@ -1,7 +1,7 @@
 (function () {
     let token; // Store the widget token in memory
 
-    var initialToken = widgetElement.getAttribute('data-token');
+    const initialToken = widgetElement.getAttribute('data-token');
     
     function addFontAwesome() {
         var link = document.createElement('link');
