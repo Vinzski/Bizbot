@@ -7,7 +7,6 @@ const connectDB = require('../config/db');
 const userModel = require('../models/userModel');
 const Domain = require('../models/domainModel');
 const jwt = require('jsonwebtoken');
-const Feedback = require('../models/feedbackModel');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
@@ -53,7 +52,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/chatbots', chatbotRoutes);
 app.use('/api/customization', customizationRoutes);
 app.use('/api/domains', domainRoutes);
-app.use(feedbackRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
@@ -98,30 +97,7 @@ app.post('/api/token', (req, res) => {
     }
 });
 
-// Feedback function
-router.post('/api/feedback', async (req, res) => {
-    const { userId, chatbotId, rating, feedback } = req.body;
 
-    if (!userId || !chatbotId || !rating || !feedback) {
-        return res.status(400).json({ success: false, message: 'Missing required fields.' });
-    }
-
-    try {
-        const newFeedback = new Feedback({
-            userId: userId,
-            chatbotId: chatbotId,
-            rating: rating,
-            feedback: feedback,
-        });
-
-        await newFeedback.save();
-
-        res.json({ success: true, message: 'Feedback submitted successfully.' });
-    } catch (error) {
-        console.error('Error saving feedback:', error);
-        res.status(500).json({ success: false, message: 'Server error. Could not save feedback.' });
-    }
-});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
