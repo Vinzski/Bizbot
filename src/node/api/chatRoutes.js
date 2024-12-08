@@ -8,6 +8,16 @@ const authenticate = require('../signup/middleware/authMiddleware');
 const FAQ = require('../models/faqModel');
 const ChatLog = require('../models/chatLogModel');
 
+const express = require('express');
+const axios = require('axios');
+const FAQ = require('../models/faqModel');
+const ChatLog = require('../models/chatLogModel'); // Import ChatLog model
+const natural = require('natural');
+const tokenizer = new natural.WordTokenizer();
+const jwt = require('jsonwebtoken');
+const router = express.Router();
+const authenticate = require('../signup/middleware/authMiddleware'); // Ensure the path is correct
+
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
     console.log("Received message:", req.body.message); // Log the received message to ensure it's reaching here
@@ -16,6 +26,7 @@ router.post('/send_message', (req, res) => {
     res.json({ reply: "Response based on " + userMessage });
 });
 
+// Protected chat route
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
@@ -110,6 +121,5 @@ router.post('/', authenticate, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
-
 
 module.exports = router;
