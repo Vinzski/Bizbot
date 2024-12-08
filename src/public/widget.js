@@ -1,4 +1,3 @@
-
 (function () {
     let token; // Store the widget token in memory
 
@@ -72,45 +71,45 @@
 
     // Function to send user messages to the server
     function sendMessage(userInput) {
-    const widgetElement = document.getElementById('bizbot-widget');
-    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    const userId = widgetElement.getAttribute('data-user-id'); // Retain if needed elsewhere
+        const widgetElement = document.getElementById('bizbot-widget');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
 
-    if (!token) {
-        console.error('Token is not available. Ensure the widget is initialized correctly.');
-        return;
+        if (!token) {
+            console.error('Token is not available. Ensure the widget is initialized correctly.');
+            return;
+        }
+
+        console.log('Sending message with the following details:');
+        console.log(`chatbotId: ${chatbotId}`);
+        console.log(`token: ${token}`);
+        console.log(`userId: ${userId}`);
+        console.log(`userInput: ${userInput}`);
+
+        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`, // Use the updated token
+            },
+            body: JSON.stringify({ question: userInput, userId: userId }) // Send chatbotId instead of userId
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received response from server:', data);
+                displayBotMessage(data.reply);
+                console.log(`Response Source: ${data.source}`);
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                displayBotMessage("Sorry, something went wrong. Please try again later.");
+            });
     }
-
-    console.log('Sending message with the following details:');
-    console.log(`chatbotId: ${chatbotId}`);
-    console.log(`token: ${token}`);
-    console.log(`userId: ${userId}`);
-    console.log(`userInput: ${userInput}`);
-
-    fetch('https://bizbot-khpq.onrender.com/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`, // Use the updated token
-        },
-        body: JSON.stringify({ question: userInput, chatbotId: chatbotId, userId: userId }) // Add chatbotId
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Received response from server:', data);
-            displayBotMessage(data.reply);
-            console.log(`Response Source: ${data.source}`);
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            displayBotMessage("Sorry, something went wrong. Please try again later.");
-        });
-}
 
     // Function to display bot messages
     function displayBotMessage(message) {
