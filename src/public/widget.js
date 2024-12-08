@@ -527,6 +527,10 @@
     // Event listener for sending feedback
     feedbackBtn.onclick = function () {
         if (selectedRating) {
+        const widgetElement = document.getElementById('bizbot-widget');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
+            
             const feedbackText = feedbackTextarea.value; 
             if (feedbackText.trim() === '') {
                 alert('Please enter your feedback.');
@@ -535,10 +539,11 @@
                 console.log(`Feedback submitted with rating: ${selectedRating}`);
     
                 // Send feedback to the server
-                fetch('https://your-server-url/api/feedback', {
+                fetch('https://bizbot-khpq.onrender.com/api/feedback', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         userId: userId,
@@ -580,7 +585,7 @@
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
-            return; // Prevent sending empty messages
+            return; 
         }
 
         // Append the user's message to the chat
