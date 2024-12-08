@@ -67,11 +67,13 @@ app.use('/uploads', express.static('uploads'));
 
 app.post('/api/token', (req, res) => {
     const { chatbotId } = req.body;
-    const token = req.headers.authorization.split(' ')[1];
+    const authHeader = req.headers.authorization;
 
-    if (!chatbotId || !token) {
+    if (!chatbotId || !authHeader) {
         return res.status(400).json({ message: 'Chatbot ID and authorization token are required' });
     }
+
+    const token = authHeader.split(' ')[1];
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
@@ -82,13 +84,13 @@ app.post('/api/token', (req, res) => {
         }
 
         const newToken = jwt.sign({ chatbotId, userId }, process.env.JWT_SECRET || 'mysecretkey_12345', {
-            expiresIn: '24h', // Token expires in 1 hour
+            expiresIn: '1h', // Token expires in 1 hour
         });
 
         res.json({ token: newToken });
     } catch (error) {
         console.error('Error generating token:', error);
-        res.status(401).json({ message: 'Invalid token' });
+        res.status(401).json({ message: 'Invalid token', error: error.message });
     }
 });
 
