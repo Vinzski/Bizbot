@@ -18,7 +18,7 @@
         const widgetElement = document.getElementById('bizbot-widget');
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
-        const token = widgetElement.getAttribute('data-token')
+
 
         // Logging the initial attributes
         console.log('Initializing Chatbot Widget:');
@@ -60,6 +60,7 @@
 
     // Function to send user messages to the server
     function sendMessage(userInput) {
+        const token = widgetElement.getAttribute('data-token');
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
