@@ -25,7 +25,7 @@
         console.log(`userId: ${userId}`);
         console.log(`initialToken: ${initialToken}`);
 
-        if (!chatbotId || !userId || !initialToken) {
+        if (!userId || !initialToken) {
             console.error('Chatbot ID, User ID, or initial token is missing.');
             return;
         }
