@@ -650,19 +650,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Clear feedback form
-                        feedbackTextarea.value = '';
-                        selectedRating = '';
-                        emojiButtons.forEach(btn => {
-                            btn.querySelector('i').classList.remove('active');
-                        });
-                        satisfactory.style.display = 'none';
-                        chatbotWidgetElement.style.display = 'flex';
-                        
-                        // Close the widget (Hide the widget)
-                        widgetElement.style.display = 'none'; // Hide the widget
-                        // Or, if you want to remove the widget:
-                        // widgetElement.remove(); // Remove the widget from DOM
+                    chatbotWidgetElement.style.display = 'none';
+                    chatToggleButton.style.display = 'block';
+                    chatMsgs.style.display = 'none';
+                    chatInp.style.display = 'none';
                     } else {
                         alert('Error submitting feedback. Please try again.');
                     }
