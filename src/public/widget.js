@@ -630,7 +630,7 @@
                 const widgetElement = document.getElementById('bizbot-widget');
                 const userId = widgetElement.getAttribute('data-user-id');
                 const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    
+        
                 // Prepare the feedback data
                 const feedbackData = {
                     userId: userId,
@@ -638,7 +638,7 @@
                     rating: selectedRating,
                     feedback: feedbackText,
                 };
-    
+        
                 // Send feedback to the server
                 fetch('https://bizbot-khpq.onrender.com/api/feedback', {
                     method: 'POST',
@@ -650,8 +650,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Thank you for your feedback!');
-                        // Reset feedback form
+                        // Clear feedback form
                         feedbackTextarea.value = '';
                         selectedRating = '';
                         emojiButtons.forEach(btn => {
@@ -659,6 +658,11 @@
                         });
                         satisfactory.style.display = 'none';
                         chatbotWidgetElement.style.display = 'flex';
+                        
+                        // Close the widget (Hide the widget)
+                        widgetElement.style.display = 'none'; // Hide the widget
+                        // Or, if you want to remove the widget:
+                        // widgetElement.remove(); // Remove the widget from DOM
                     } else {
                         alert('Error submitting feedback. Please try again.');
                     }
@@ -673,10 +677,10 @@
         }
     };
 
+
         document.getElementById('sendfeedback').addEventListener('click', function () {
         const feedback = document.getElementById('feedback').value;
         if (feedback) {
-            alert("Thank you for your feedback!");  // Show thank you message
             document.getElementById('feedback').value = ''; // Clear the feedback input
         }
     });
