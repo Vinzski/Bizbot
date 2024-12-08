@@ -20,11 +20,15 @@ router.post('/send_message', (req, res) => {
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
-    console.log(`Received question: "${question}" from user: ${userId} for chatbot: ${chatbotId}`);
+
+    console.log('Incoming Chat Request:');
+    console.log(`User ID: ${userId}`);
+    console.log(`Chatbot ID: ${chatbotId}`);
+    console.log(`Question: ${question}`);
 
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-    console.log(`Fetched ${faqs.length} FAQs for user: ${userId} and chatbot: ${chatbotId}`);
+    console.log(`Number of FAQs found: ${faqs.length}`);
 
     let bestMatch = { score: 0, faq: null };
     faqs.forEach(faq => {
@@ -38,16 +42,16 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     if (bestMatch.score >= 0.5) {
-        console.log(`Best match score: ${bestMatch.score} with FAQ: ${bestMatch.faq.question}`);
+        console.log(`FAQ Match Found: ${bestMatch.faq.question} with score ${bestMatch.score}`);
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
+        console.log('No FAQ Match Found. Forwarding to Rasa.');
         try {
             const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget',
             });
             const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            console.log(`No sufficient FAQ match. Rasa response: ${botReply}`);
             res.json({ reply: botReply, source: 'Rasa' });
         } catch (error) {
             console.error('Error querying Rasa:', error);
