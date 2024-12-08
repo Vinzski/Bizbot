@@ -59,44 +59,55 @@
         });
     }
     
-    // Function to send user messages to the server
-    function sendMessage(userInput) {
-        const widgetElement = document.getElementById('bizbot-widget');
-        const initialToken = widgetElement.getAttribute('data-token');
-        if (!token) {
-            console.error('Token is not available. Ensure the widget is initialized correctly.');
-            return;
-        }
-
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-        console.log('Sending message with the following details:');
-        console.log(`chatbotId: ${chatbotId}`);
-        console.log(`token: ${token}`);
-        console.log(`userInput: ${userInput}`);
-
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${initialToken}`,
-            },
-            body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received response from server:', data);
-                displayBotMessage(data.reply);
-                console.log(`Response Source: ${data.source}`);
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-            });
+  // Function to send user messages to the server
+function sendMessage(userInput) {
+    const widgetElement = document.getElementById('bizbot-widget');
+    const initialToken = widgetElement.getAttribute('data-token');
+    
+    // Ensure token is available
+    if (!initialToken) {
+        console.error('Token is not available. Ensure the widget is initialized correctly.');
+        return;
     }
+
+    // Get the userId (assuming it's available in the widget element)
+    const userId = widgetElement.getAttribute('data-user-id');  // Or retrieve it from localStorage if needed
+
+    if (!userId) {
+        console.error('User ID is not available.');
+        return;
+    }
+
+    console.log('Sending message with the following details:');
+    console.log(`userId: ${userId}`);
+    console.log(`token: ${initialToken}`);
+    console.log(`userInput: ${userInput}`);
+
+    // Send the user input along with the userId instead of chatbotId
+    fetch('https://bizbot-khpq.onrender.com/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${initialToken}`, // Use the token for authorization
+        },
+        body: JSON.stringify({ question: userInput, userId: userId })  // Pass userId instead of chatbotId
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Received response from server:', data);
+            displayBotMessage(data.reply);  // Assuming this function displays the bot's reply
+            console.log(`Response Source: ${data.source}`);
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+        });
+}
+
 
     // Function to display bot messages
     function displayBotMessage(message) {
