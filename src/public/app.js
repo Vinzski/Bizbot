@@ -354,8 +354,6 @@ function deleteFunc(id) {
     // Log the ID that will be deleted
     console.log(`Attempting to delete FAQ with ID: ${id}`);
 
-
-  // Confirm the deletion action
   if (confirm('Are you sure you want to delete this FAQ?')) {
     fetch(`/api/faqs/${id}`, {
       method: 'DELETE',
@@ -368,7 +366,6 @@ function deleteFunc(id) {
             'Authorization': `Bearer ${token}`,  // Include the JWT token
         }
     })
-      .then(response => {
     .then(response => {
         if (!response.ok) {
           throw new Error('Failed to delete FAQ');
