@@ -1,8 +1,10 @@
+
 (function () {
     let token; // Store the widget token in memory
 
+    // Function to add Font Awesome
     function addFontAwesome() {
-        var link = document.createElement('link');
+        const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
         link.integrity = 'sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==';
@@ -10,8 +12,8 @@
         link.referrerPolicy = 'no-referrer';
         document.head.appendChild(link);
     }
-    // Call the function to add Font Awesome
-    addFontAwesome();
+
+    addFontAwesome(); // Add Font Awesome on load
 
     // Function to initialize the chatbot widget
     function initializeChatbot() {
@@ -20,7 +22,6 @@
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
 
-        // Logging the initial attributes
         console.log('Initializing Chatbot Widget:');
         console.log(`chatbotId: ${chatbotId}`);
         console.log(`userId: ${userId}`);
@@ -30,6 +31,7 @@
             console.error('Chatbot ID, User ID, or initial token is missing.');
             return;
         }
+
         // Fetch the token from the server
         fetch('https://bizbot-khpq.onrender.com/api/token', {
             method: 'POST',
@@ -49,6 +51,7 @@
             if (data.token) {
                 token = data.token; // Store token in memory
                 console.log('Chatbot token fetched successfully:', token);
+                enableSendButton(); // Enable send button once token is ready
             } else {
                 throw new Error('Failed to fetch token');
             }
@@ -58,21 +61,27 @@
         });
     }
 
+    // Function to enable the send button after token is fetched
+    function enableSendButton() {
+        const sendButton = document.getElementById('send-message');
+        if (sendButton) {
+            sendButton.disabled = false;
+            sendButton.style.cursor = 'pointer';
+        }
+    }
+
     // Function to send user messages to the server
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const userId = widgetElement.getAttribute('data-user-id');
-        const initialToken = widgetElement.getAttribute('data-token');
+
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
         }
 
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
         console.log('Sending message with the following details:');
         console.log(`chatbotId: ${chatbotId}`);
-        console.log(`userId: ${userId}`);
         console.log(`token: ${token}`);
         console.log(`userInput: ${userInput}`);
 
@@ -80,9 +89,9 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${initialToken}`,
+                'Authorization': `Bearer ${token}`, // Use the updated token
             },
-            body: JSON.stringify({ question: userInput, userId: userId })
+            body: JSON.stringify({ question: userInput, chatbotId: chatbotId }) // Send chatbotId instead of userId
         })
             .then(response => {
                 if (!response.ok) {
@@ -97,9 +106,9 @@
             })
             .catch(error => {
                 console.error('Error sending message:', error);
+                displayBotMessage("Sorry, something went wrong. Please try again later.");
             });
     }
-
 
     // Function to display bot messages
     function displayBotMessage(message) {
@@ -108,12 +117,11 @@
         botMessageElement.classList.add('message', 'bot-message');
         botMessageElement.textContent = message;
         chatMessages.appendChild(botMessageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
     }
-    // Add a fallback welcome message
-    let welcomeMessage = "Welcome! How can I assist you today?";
 
     // Create elements for the chatbot widget
-    var chatbotWidget = document.createElement('div');
+    const chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
     chatbotWidget.innerHTML = `
         <div id="chat-header">
@@ -153,30 +161,30 @@
                         </button>
                     </div>
                 </div>
-                <textarea name="feedback" id="feedback"></textarea>
+                <textarea name="feedback" id="feedback" placeholder="Your feedback..."></textarea>
                 <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
             </div>
         </div>
         <div id="chat-messages">
             <div class="message bot-message">
                 <div class="profile-image"></div>
-                <span class="message-content">${welcomeMessage}</span>
+                <span class="message-content">Welcome! How can I assist you today?</span>
             </div>
         </div>
         <div id="chat-input">
             <input type="text" id="user-input" placeholder="Type your message...">
-            <button id="send-message">Send</button>
+            <button id="send-message" disabled>Send</button> <!-- Disabled until token is ready -->
         </div>
     `;
 
     // Create the toggle button once
-    var chatToggle = document.createElement('button');
+    const chatToggle = document.createElement('button');
     chatToggle.id = 'chat-toggle';
     chatToggle.textContent = 'Chat';
     chatToggle.style.display = 'block'; // Ensure it is visible initially
 
     // Add styles directly or link to an external stylesheet
-    var styles = `
+    const styles = `
     #chatbot-widget {
         position: fixed;
         bottom: 20px;
@@ -455,7 +463,7 @@
         flex-direction: row;
     }
     `;
-    var styleSheet = document.createElement('style');
+   const styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
@@ -465,37 +473,45 @@
     document.body.appendChild(chatToggle);
 
     // Elements for chat widget
-    const chatToggles = document.getElementById('chat-toggle');
-    const chatbotWidgets = document.getElementById('chatbot-widget');
+    const chatToggleButton = document.getElementById('chat-toggle');
+    const chatbotWidgetElement = document.getElementById('chatbot-widget');
     const closeChatButton = document.getElementById('close-chat');
     const chatMsgs = document.getElementById('chat-messages');
     const chatInp = document.getElementById('chat-input');
     const satisfactory = document.querySelector('.satisfactory');
     const emojiButtons = document.querySelectorAll('.emoji');
     const feedbackTextarea = document.getElementById('feedback');
-    const feedbackbtn = document.getElementById('sendfeedback');
+    const feedbackBtn = document.getElementById('sendfeedback');
     const sendMessageButton = document.getElementById('send-message');
     let selectedRating = ''; // Variable to store the selected rating
-    chatToggles.onclick = function () {
-        chatbotWidgets.style.display = 'flex';
-        chatToggles.style.display = 'none';
+
+    // Disable send button until token is fetched
+    sendMessageButton.disabled = true;
+    sendMessageButton.style.cursor = 'not-allowed';
+
+    // Event listener to open chat
+    chatToggleButton.onclick = function () {
+        chatbotWidgetElement.style.display = 'flex';
+        chatToggleButton.style.display = 'none';
         chatMsgs.style.display = 'flex';
         chatInp.style.display = 'flex';
     };
 
+    // Event listener to close chat
     closeChatButton.onclick = function () {
-        chatbotWidgets.style.display = 'none';
-        chatToggles.style.display = 'flex';
+        chatbotWidgetElement.style.display = 'none';
+        chatToggleButton.style.display = 'block';
         chatMsgs.style.display = 'none';
         chatInp.style.display = 'none';
         setTimeout(function () {
-            chatbotWidget.style.display = 'flex';
-            chatToggle.style.display = 'none';
+            chatbotWidgetElement.style.display = 'flex';
+            chatToggleButton.style.display = 'none';
             chatMsgs.style.display = 'none';
             satisfactory.style.display = 'flex';
         }, 1000);
     };
 
+    // Event listeners for emoji buttons
     emojiButtons.forEach((button) => {
         button.addEventListener('click', function () {
             emojiButtons.forEach(btn => {
@@ -507,23 +523,34 @@
         });
     });
 
-    feedbackbtn.onclick = function () {
+    // Event listener for sending feedback
+    feedbackBtn.onclick = function () {
         if (selectedRating) {
             const feedbackText = feedbackTextarea.value; 
             if (feedbackText.trim() === '') {
-                console.log('Feedback is empty.');
+                alert('Please enter your feedback.');
             } else {
                 console.log(`Feedback submitted: ${feedbackText}`);
                 console.log(`Feedback submitted with rating: ${selectedRating}`);
+                // TODO: Send feedback to the server or handle it as needed
+                // Reset feedback form
+                feedbackTextarea.value = '';
+                selectedRating = '';
+                emojiButtons.forEach(btn => {
+                    btn.querySelector('i').classList.remove('active');
+                });
+                satisfactory.style.display = 'none';
+                chatbotWidgetElement.style.display = 'flex';
             }
         } else {
-            console.log('No rating selected.');
+            alert('Please select a rating before submitting feedback.');
         }
     };
-    // Send user message
-document.getElementById('send-message').onclick = function () {
-        var userInput = document.getElementById('user-input');
-        var chatMessages = document.getElementById('chat-messages');
+
+    // Event listener for sending user message
+    sendMessageButton.onclick = function () {
+        const userInput = document.getElementById('user-input');
+        const chatMessages = document.getElementById('chat-messages');
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
@@ -531,16 +558,17 @@ document.getElementById('send-message').onclick = function () {
         }
 
         // Append the user's message to the chat
-        var userMessageElement = document.createElement('div');
+        const userMessageElement = document.createElement('div');
         userMessageElement.classList.add('message', 'user-message');
-        var userProfileImage = document.createElement('div');
+        const userProfileImage = document.createElement('div');
         userProfileImage.classList.add('profile-image');
-        var userText = document.createElement('span');
+        const userText = document.createElement('span');
         userText.classList.add('message-content');
         userText.textContent = userInput.value;
         userMessageElement.appendChild(userProfileImage);
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
 
         // Send the message to the API
         sendMessage(userInput.value);
@@ -548,8 +576,6 @@ document.getElementById('send-message').onclick = function () {
         // Clear the input field after sending
         userInput.value = '';
     };
-    // Send feedback
-
 
     // Initialize the chatbot widget on load
     initializeChatbot();
