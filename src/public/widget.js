@@ -71,7 +71,7 @@
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        // userId is not sent from frontend; it's obtained from the token on the backend
+        const userId = widgetElement.getAttribute('data-user-id');
 
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
