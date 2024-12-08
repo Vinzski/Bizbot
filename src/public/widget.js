@@ -53,8 +53,7 @@ function initializeChatbot() {
     });
 }
 
-    // Function to send user messages to the server
-// Function to send user messages to the server
+
 function sendMessage(userInput) {
     if (!token) {
         console.error('Token is not available. Ensure the widget is initialized correctly.');
@@ -62,7 +61,12 @@ function sendMessage(userInput) {
     }
 
     const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-    const userId = document.getElementById('bizbot-widget').getAttribute('data-user-id');
+    
+    // Check if chatbotId exists before sending the request
+    if (!chatbotId) {
+        console.error('Chatbot ID is missing');
+        return;
+    }
 
     fetch('https://bizbot-khpq.onrender.com/api/chat', {
         method: 'POST',
@@ -70,48 +74,29 @@ function sendMessage(userInput) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ 
-            question: userInput, 
-            chatbotId: chatbotId,
-            userId: userId
+        body: JSON.stringify({
+            question: userInput,
+            chatbotId: chatbotId, // Ensure chatbotId is passed
         })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        displayBotMessage(data.reply);
-        console.log('Response source:', data.source); // Log the source of the response (FAQ or Rasa)
-    })
-    .catch(error => {
-        console.error('Error sending message:', error);
-        displayBotMessage("Sorry, I'm having trouble connecting to the server. Please try again later.");
-    });
+        .then(response => response.json())
+        .then(data => {
+            displayBotMessage(data.reply);
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+        });
 }
 
-// Function to display bot messages
-function displayBotMessage(message) {
-    const chatMessages = document.getElementById('chat-messages');
-    const botMessageElement = document.createElement('div');
-    botMessageElement.classList.add('message', 'bot-message');
-    
-    const profileImage = document.createElement('div');
-    profileImage.classList.add('profile-image');
-    
-    const messageContent = document.createElement('span');
-    messageContent.classList.add('message-content');
-    messageContent.textContent = message;
-    
-    botMessageElement.appendChild(profileImage);
-    botMessageElement.appendChild(messageContent);
-    chatMessages.appendChild(botMessageElement);
-    
-    // Scroll to the bottom of the chat
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+    // Function to display bot messages
+    function displayBotMessage(message) {
+        const chatMessages = document.getElementById('chat-messages');
+        const botMessageElement = document.createElement('div');
+        botMessageElement.classList.add('message', 'bot-message');
+        botMessageElement.textContent = message;
+        chatMessages.appendChild(botMessageElement);
+    }
+
     // Add a fallback welcome message
     let welcomeMessage = "Welcome! How can I assist you today?";
 
