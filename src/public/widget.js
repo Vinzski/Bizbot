@@ -61,6 +61,7 @@
     
     // Function to send user messages to the server
     function sendMessage(userInput) {
+        const initialToken = widgetElement.getAttribute('data-token');
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
