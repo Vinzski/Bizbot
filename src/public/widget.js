@@ -71,7 +71,7 @@
     }
 
     // Function to send user messages to the server
-function sendMessage(userInput) {
+    function sendMessage(userInput) {
     const widgetElement = document.getElementById('bizbot-widget');
     const chatbotId = widgetElement.getAttribute('data-chatbot-id');
     const userId = widgetElement.getAttribute('data-user-id'); // Retain if needed elsewhere
@@ -111,7 +111,6 @@ function sendMessage(userInput) {
             displayBotMessage("Sorry, something went wrong. Please try again later.");
         });
 }
-
 
     // Function to display bot messages
     function displayBotMessage(message) {
