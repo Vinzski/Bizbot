@@ -19,7 +19,8 @@ body {
 
 .container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    overflow:hidden;
 }
 
 .sidebar {
@@ -27,6 +28,7 @@ body {
     background-color: #fff;
     border-right: 1px solid var(--border-color);
     padding: 20px;
+    height:100%;
 }
 
 .sidebar h2 {
@@ -60,6 +62,8 @@ body {
 .main-content {
     flex: 1;
     padding: 20px;
+    heigth:100%;
+    overflow-x:scroll;
 }
 
 .dashboard-header {
