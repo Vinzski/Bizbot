@@ -1,6 +1,7 @@
 (function () {
     let token; // Store the widget token in memory
 
+    // Function to add Font Awesome for icons
     function addFontAwesome() {
         var link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -13,50 +14,51 @@
     // Call the function to add Font Awesome
     addFontAwesome();
 
+    // Function to parse JWT token (for logging purposes)
+    function parseJwt(token) {
+        try {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        } catch (e) {
+            console.error("Failed to parse JWT:", e);
+            return null;
+        }
+    }
+
     // Function to initialize the chatbot widget
     function initializeChatbot() {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
         const userId = widgetElement.getAttribute('data-user-id');
-        const initialToken = widgetElement.getAttribute('data-token');
+        // const initialToken = widgetElement.getAttribute('data-token'); // Removed as we're using localStorage
 
         // Logging the initial attributes
         console.log('Initializing Chatbot Widget:');
         console.log(`chatbotId: ${chatbotId}`);
         console.log(`userId: ${userId}`);
-        console.log(`initialToken: ${initialToken}`);
 
-        if (!chatbotId || !userId || !initialToken) {
-            console.error('Chatbot ID, User ID, or initial token is missing.');
+        // Retrieve token from localStorage
+        token = localStorage.getItem("token"); // Retrieve the JWT from localStorage
+
+        // Log the retrieved token
+        console.log("Retrieved Token from localStorage:", token);
+
+        if (!token) {
+            console.error("No token found in localStorage. Authentication may fail.");
             return;
         }
 
-        // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${initialToken}`
-            },
-            body: JSON.stringify({ chatbotId, userId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.token) {
-                token = data.token; // Store token in memory
-                console.log('Chatbot token fetched successfully:', token);
-            } else {
-                throw new Error('Failed to fetch token');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching chatbot token:', error);
-        });
+        // Decode and log token contents for verification
+        const decodedToken = parseJwt(token);
+        if (decodedToken) {
+            console.log("Decoded Token Payload:", decodedToken);
+        } else {
+            console.warn("Token could not be decoded properly.");
+        }
     }
 
     // Function to send user messages to the server
@@ -66,33 +68,50 @@
             return;
         }
 
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
         console.log('Sending message with the following details:');
-        console.log(`chatbotId: ${chatbotId}`);
         console.log(`token: ${token}`);
         console.log(`userInput: ${userInput}`);
 
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+        const payload = { question: userInput };
+        console.log("Payload to be sent:", payload);
+
+        const headers = {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        };
+        console.log("Request Headers:", headers);
+
+        fetch('/api/chat', { // Ensure the correct endpoint is used, adjust if necessary
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
+            headers: headers,
+            body: JSON.stringify(payload),
         })
             .then(response => {
+                console.log("Response Status:", response.status, response.statusText);
+
                 if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                    console.error("Network response was not ok:", response.statusText);
+                    throw new Error("Network response was not ok: " + response.statusText);
                 }
                 return response.json();
             })
             .then(data => {
-                console.log('Received response from server:', data);
-                displayBotMessage(data.reply);
-                console.log(`Response Source: ${data.source}`);
+                console.log("Received Data from Server:", data);
+
+                const resultDiv = document.getElementById("simulation-result");
+                
+                if (data.reply && data.source) {
+                    resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply} <br><strong>Source:</strong> ${data.source}`;
+                    console.log("Displayed Response and Source in UI.");
+                } else {
+                    console.warn("Received data is incomplete:", data);
+                    resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply || "No reply received."} <br><strong>Source:</strong> ${data.source || "Unknown"}`;
+                }
             })
             .catch(error => {
-                console.error('Error sending message:', error);
+                console.error("Error testing chatbot:", error);
+                const resultDiv = document.getElementById("simulation-result");
+                resultDiv.textContent = "Error: " + error.message;
             });
     }
 
