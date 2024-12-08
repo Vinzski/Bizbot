@@ -535,13 +535,13 @@
     };
 
     // Send user message
-    sendMessageButton.onclick = function () {
-        const userInputText = userInput.value.trim();
-        if (userInputText) {
-            sendMessage(userInputText);
-            userInput.value = ''; // Clear the input field
-        }
-    };
+sendMessageButton.onclick = function () {
+    const userInput = document.getElementById('user-input').value;  // Get the value from the input field
+    if (userInput.trim() !== '') {  // Check if the input is not empty
+        sendMessage(userInput);  // Call sendMessage with the user input
+    }
+};
+
 
     // Send feedback
 
