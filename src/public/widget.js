@@ -527,51 +527,54 @@
     // Event listener for sending feedback
     feedbackBtn.onclick = function () {
         if (selectedRating) {
-        const widgetElement = document.getElementById('bizbot-widget');
-        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const userId = widgetElement.getAttribute('data-user-id');
-            
             const feedbackText = feedbackTextarea.value; 
             if (feedbackText.trim() === '') {
                 alert('Please enter your feedback.');
             } else {
                 console.log(`Feedback submitted: ${feedbackText}`);
                 console.log(`Feedback submitted with rating: ${selectedRating}`);
+                
+                // Get the user ID and chatbot ID from the widget
+                const widgetElement = document.getElementById('bizbot-widget');
+                const userId = widgetElement.getAttribute('data-user-id');
+                const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+    
+                // Prepare the feedback data
+                const feedbackData = {
+                    userId: userId,
+                    chatbotId: chatbotId,
+                    rating: selectedRating,
+                    feedback: feedbackText,
+                };
     
                 // Send feedback to the server
-                fetch('https://bizbot-khpq.onrender.com/api/feedback', {
+                fetch('https://your-server-url.com/api/feedback', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        userId: userId,
-                        chatbotId: chatbotId,
-                        rating: selectedRating,
-                        feedbackText: feedbackText,
-                    }),
+                    body: JSON.stringify(feedbackData),
                 })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                         alert('Thank you for your feedback!');
+                        // Reset feedback form
+                        feedbackTextarea.value = '';
+                        selectedRating = '';
+                        emojiButtons.forEach(btn => {
+                            btn.querySelector('i').classList.remove('active');
+                        });
+                        satisfactory.style.display = 'none';
+                        chatbotWidgetElement.style.display = 'flex';
                     } else {
-                        alert('There was an error submitting your feedback. Please try again later.');
+                        alert('Error submitting feedback. Please try again.');
                     }
                 })
                 .catch(error => {
                     console.error('Error submitting feedback:', error);
-                    alert('There was an error submitting your feedback. Please try again later.');
+                    alert('Error submitting feedback. Please try again.');
                 });
-    
-                // Reset feedback form
-                feedbackTextarea.value = '';
-                selectedRating = '';
-                emojiButtons.forEach(btn => {
-                    btn.querySelector('i').classList.remove('active');
-                });
-                satisfactory.style.display = 'none';
-                chatbotWidgetElement.style.display = 'flex';
             }
         } else {
             alert('Please select a rating before submitting feedback.');
