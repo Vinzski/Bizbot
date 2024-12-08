@@ -61,7 +61,6 @@
     
     // Function to send user messages to the server
     function sendMessage(userInput) {
-        const localtoken = localStorage.getItem("token");
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
@@ -77,7 +76,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localtoken}`,
+                'Authorization': `Bearer ${initialToken}`,
             },
             body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
         })
