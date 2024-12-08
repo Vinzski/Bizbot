@@ -256,7 +256,7 @@ function authenticateUser() {
     });
 }
 
-function logoutUser() {
+function logout() {
     // Clear user data and token from localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
