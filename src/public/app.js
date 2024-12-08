@@ -133,6 +133,10 @@ function addOrUpdateFAQ() {
     row.innerHTML = `
       <td>${data.question}</td>
       <td>${data.answer}</td>
+      <td>
+          <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
+          <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
+      </td>
     `;
     tbody.appendChild(row);
     questionInput.value = '';
