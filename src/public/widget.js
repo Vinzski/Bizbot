@@ -16,13 +16,12 @@
     // Function to initialize the chatbot widget
     function initializeChatbot() {
         const widgetElement = document.getElementById('bizbot-widget');
-        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
+        const token = widgetElement.getAttribute('data-token')
 
         // Logging the initial attributes
         console.log('Initializing Chatbot Widget:');
-        console.log(`chatbotId: ${chatbotId}`);
         console.log(`userId: ${userId}`);
         console.log(`initialToken: ${initialToken}`);
 
@@ -68,7 +67,6 @@
 
         const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
         console.log('Sending message with the following details:');
-        console.log(`chatbotId: ${chatbotId}`);
         console.log(`token: ${token}`);
         console.log(`userInput: ${userInput}`);
 
