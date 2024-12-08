@@ -20,8 +20,12 @@ router.post('/send_message', (req, res) => {
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
+    console.log(`Received question: "${question}" from user: ${userId} for chatbot: ${chatbotId}`);
+
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    console.log(`Fetched ${faqs.length} FAQs for user: ${userId} and chatbot: ${chatbotId}`);
+
     let bestMatch = { score: 0, faq: null };
     faqs.forEach(faq => {
         const tokens1 = question.toLowerCase().split(' ');
@@ -34,6 +38,7 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     if (bestMatch.score >= 0.5) {
+        console.log(`Best match score: ${bestMatch.score} with FAQ: ${bestMatch.faq.question}`);
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
         try {
@@ -42,6 +47,7 @@ router.post('/', authenticate, async (req, res) => {
                 sender: 'chatbot-widget',
             });
             const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+            console.log(`No sufficient FAQ match. Rasa response: ${botReply}`);
             res.json({ reply: botReply, source: 'Rasa' });
         } catch (error) {
             console.error('Error querying Rasa:', error);
