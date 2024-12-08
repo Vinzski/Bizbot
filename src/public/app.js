@@ -397,8 +397,16 @@ function editFunc(id) {
 
 
 function deleteFunc(id) {
+    // Show a confirmation dialog
+    const isConfirmed = confirm("Are you sure you want to delete this FAQ? This action cannot be undone.");
+    if (!isConfirmed) {
+        console.log("Deletion canceled by the user.");
+        return; // Exit the function if the user cancels
+    }
+
     // Log the ID that will be deleted
     console.log(`Attempting to delete FAQ with ID: ${id}`);
+    
     // Fetch the FAQ data to check if it exists
     const token = localStorage.getItem('token'); // Get token from local storage
     fetch(`/api/faqs/${id}`, {
@@ -427,4 +435,5 @@ function removeFaqRow(id) {
     console.warn('Row not found to remove!');
   }
 }
+
 
