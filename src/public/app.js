@@ -350,50 +350,45 @@ function editFunc(id) {
   }
 
 function deleteFunc(id) {
-  const token = localStorage.getItem('token');
-  // Log the ID that will be deleted
-  console.log(`Attempting to delete FAQ with ID: ${id}`);
-
-  if (confirm('Are you sure you want to delete this FAQ?')) {
-    // Check if the FAQ exists before deleting
+    // Log the ID that will be deleted
+    console.log(`Attempting to delete FAQ with ID: ${id}`);
+    // Fetch the FAQ data to check if it exists
+    const token = localStorage.getItem('token'); // Get token from local storage
     fetch(`/api/faqs/${id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`  // Include the JWT token
-      }
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,  // Include the JWT token
+        }
     })
-      .then(response => {
+    .then(response => {
         if (!response.ok) {
-          throw new Error(`Failed to find FAQ: ${response.statusText}`);
+            throw new Error(`Failed to find FAQ: ${response.statusText}`);
         }
         return response.json();
-      })
-      .then(data => {
+    })
+    .then(data => {
         console.log(`FAQ found: ${data.message}`);
         // Proceed with deletion after confirming the FAQ exists
-        return fetch(`/api/faqs/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+        fetch(`/api/faqs/${id}`, {
+            method: 'GET',  // This GET method will handle both existence check and deletion on the server
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        })
+        .then(deleteResponse => deleteResponse.json())
+        .then(deleteData => {
+            alert(deleteData.message);  // Show success message
+            removeFaqRow(id);  // Remove the FAQ row from the table
+        })
+        .catch(error => {
+            console.error('Error deleting FAQ:', error);
+            alert(`Failed to delete FAQ: ${error.message}`);
         });
-      })
-      .then(deleteResponse => {
-        if (!deleteResponse.ok) {
-          throw new Error('Failed to delete FAQ');
-        }
-        return deleteResponse.json();
-      })
-      .then(deleteData => {
-        alert(deleteData.message); // Show success message
-        removeFaqRow(id); // Remove the FAQ row from the table
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert(`Failed to delete FAQ: ${error.message}`);
-      });
-  }
+    })
+    .catch(error => {
+        console.error('Error fetching FAQ:', error);
+        alert('FAQ not found or you don\'t have permission to delete it.');
+    });
 }
 
 // Function to remove the deleted FAQ row from the table
