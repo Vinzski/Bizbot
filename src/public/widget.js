@@ -487,12 +487,33 @@
         }
     };
     // Send user message
-sendMessageButton.onclick = function () {
-    const userInput = document.getElementById('user-input').value;  // Get the value from the input field
-    if (userInput.trim() !== '') {  // Check if the input is not empty
-        sendMessage(userInput);  // Call sendMessage with the user input
-    }
-};
+document.getElementById('send-message').onclick = function () {
+        var userInput = document.getElementById('user-input');
+        var chatMessages = document.getElementById('chat-messages');
+
+        if (userInput.value.trim() === '') {
+            alert('Please enter a message.');
+            return; // Prevent sending empty messages
+        }
+
+        // Append the user's message to the chat
+        var userMessageElement = document.createElement('div');
+        userMessageElement.classList.add('message', 'user-message');
+        var userProfileImage = document.createElement('div');
+        userProfileImage.classList.add('profile-image');
+        var userText = document.createElement('span');
+        userText.classList.add('message-content');
+        userText.textContent = userInput.value;
+        userMessageElement.appendChild(userProfileImage);
+        userMessageElement.appendChild(userText);
+        chatMessages.appendChild(userMessageElement);
+
+        // Send the message to the API
+        sendMessage(userInput.value);
+
+        // Clear the input field after sending
+        userInput.value = '';
+    };
     // Send feedback
 
 
