@@ -498,3 +498,4 @@ sendMessageButton.onclick = function () {
 
     // Initialize the chatbot widget on load
     initializeChatbot();
+})();
