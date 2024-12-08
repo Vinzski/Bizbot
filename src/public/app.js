@@ -255,31 +255,35 @@ function saveChatbot() {
     })
     .filter(faq => faq.faqId && faq.question && faq.answer); // Filter out incomplete rows
 
- fetch('/api/chatbots', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-          name: chatbotNameInput.value,
-          type: chatbotTypeSelect.value,
-          faqs: faqs,
-      }),
-  })
-  .then(response => {
-      if (!response.ok) {
-          throw new Error('Network response was not ok: ' + response.statusText);
-      }
-      return response.json();
-  })
-  .then(data => {
-      alert('Chatbot saved successfully!');
-  })
-  .catch(error => {
-      console.error('Error saving chatbot:', error);
-      alert(`Failed to save chatbot: ${error.message}`);
-  });
+ const payload = {
+  name: chatbotNameInput.value,
+  type: chatbotTypeSelect.value,
+  faqs: faqs,
+};
+
+console.log("Sending request with payload:", payload);
+
+fetch('/api/chatbots', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+  body: JSON.stringify(payload),
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error('Network response was not ok: ' + response.statusText);
+  }
+  return response.json();
+})
+.then(data => {
+  alert('Chatbot saved successfully!');
+})
+.catch(error => {
+  console.error('Error saving chatbot:', error);
+  alert(`Failed to save chatbot: ${error.message}`);
+});
 }
 
 
