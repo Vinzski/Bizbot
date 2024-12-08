@@ -1,3 +1,7 @@
+const express = require('express');
+const Feedback = require('../models/feedbackModel'); // Assuming you have a feedback model
+const router = express.Router();
+
 // Feedback function
 router.post('/api/feedback', async (req, res) => {
     const { userId, chatbotId, rating, feedback } = req.body;
