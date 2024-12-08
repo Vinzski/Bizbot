@@ -45,4 +45,27 @@ router.post('/', authenticate, async (req, res) => {
     }
 });
 
+// First, search for the FAQ and if it exists, delete it
+router.get('/:id', authenticate, async (req, res) => {
+    const faqId = req.params.id;
+
+    try {
+        // Find the FAQ by ID and ensure it belongs to the authenticated user
+        const faq = await FAQ.findOne({ _id: faqId, userId: req.user.id });
+
+        if (!faq) {
+            return res.status(404).json({ message: 'FAQ not found or you do not have permission to delete it' });
+        }
+
+        // FAQ found, now delete it
+        await FAQ.deleteOne({ _id: faqId });
+
+        res.json({ message: 'FAQ deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting FAQ:', error);
+        res.status(500).json({ message: 'Failed to delete FAQ', error: error.toString() });
+    }
+});
+
+
 module.exports = router;
