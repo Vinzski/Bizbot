@@ -48,20 +48,6 @@ router.post('/', authenticate, async (req, res) => {
         if (bestMatch.score >= 0.5) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with score ${bestMatch.score.toFixed(2)}`);
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            console.log('No adequate FAQ match found. Forwarding to Rasa.');
-            try {
-                const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
-                    message: question,
-                    sender: 'chatbot-widget',
-                });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                console.log(`Rasa Response: ${botReply}`);
-                res.json({ reply: botReply, source: 'Rasa' });
-            } catch (error) {
-                console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-            }
         }
     } catch (error) {
         console.error('Error processing chat request:', error);
