@@ -323,67 +323,46 @@ function logout() {
   }
 
 function editFunc(id) {
+    // Find the table row with the matching ID
     const row = document.querySelector(`tr[data-faq-id="${id}"]`);
     if (!row) {
       console.error('Row not found!');
       return;
     }
+  
+    // Get all <td> elements in the row (excluding the Actions column)
     const cells = row.querySelectorAll('td:not(:last-child)');
-    const editButton = row.querySelector('.btn-edit');
-
+  
+    // Toggle between editable and non-editable states
     if (row.classList.contains('editing')) {
-      // Collect updated data
-      const updatedQuestion = cells[0].querySelector('input').value.trim();
-      const updatedAnswer = cells[1].querySelector('input').value.trim();
-
-      // Basic validation
-      if (!updatedQuestion || !updatedAnswer) {
-        alert('Both question and answer fields are required.');
-        return;
-      }
-
-      // Send update request to the server
-      const token = localStorage.getItem('token');
-      fetch(`/api/faqs/${id}`, {
-        method: 'PUT', // or 'PATCH' depending on your API design
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          question: updatedQuestion,
-          answer: updatedAnswer,
-        }),
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to update FAQ: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        // Update the row with new data
-        cells[0].textContent = data.question;
-        cells[1].textContent = data.answer;
-        editButton.textContent = "EDIT";
-        row.classList.remove('editing');
-        console.log(`Saved changes for FAQ with ID: ${id}`);
-      })
-      .catch(error => {
-        console.error('Error updating FAQ:', error);
-        alert(`Failed to update FAQ: ${error.message}`);
-      });
-    } else {
-      // Enter editing mode
+      // Save changes
       cells.forEach(cell => {
-        const text = cell.textContent;
+        const input = cell.querySelector('input');
+        if (input) {
+          // Replace input value back into the cell
+          cell.textContent = input.value;
+        }
+      });
+  
+      // Change button text back to "EDIT"
+      const editButton = row.querySelector('.btn-edit');
+      editButton.textContent = "EDIT";
+  
+      row.classList.remove('editing');
+      console.log(`Saved changes for FAQ with ID: ${id}`);
+    } else {
+      // Make cells editable
+      cells.forEach(cell => {
         cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
       });
+  
+      const editButton = row.querySelector('.btn-edit');
       editButton.textContent = "SAVE";
+  
       row.classList.add('editing');
       console.log(`Editing FAQ with ID: ${id}`);
     }
-}
+  }
 
 function deleteFunc(id) {
     console.log(`Deleted FAQ with ID: ${id}`);
