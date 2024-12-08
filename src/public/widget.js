@@ -13,45 +13,51 @@
     // Call the function to add Font Awesome
     addFontAwesome();
 
-// Function to initialize the chatbot widget
-function initializeChatbot() {
-    const widgetElement = document.getElementById('bizbot-widget');
-    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    const userId = widgetElement.getAttribute('data-user-id');
-    const initialToken = widgetElement.getAttribute('data-token');
+    // Function to initialize the chatbot widget
+    function initializeChatbot() {
+        const widgetElement = document.getElementById('bizbot-widget');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
+        const initialToken = widgetElement.getAttribute('data-token');
 
-    if (!chatbotId || !userId || !initialToken) {
-        console.error('Chatbot ID, User ID, or initial token is missing.');
-        return;
+        // Logging the initial attributes
+        console.log('Initializing Chatbot Widget:');
+        console.log(`chatbotId: ${chatbotId}`);
+        console.log(`userId: ${userId}`);
+        console.log(`initialToken: ${initialToken}`);
+
+        if (!chatbotId || !userId || !initialToken) {
+            console.error('Chatbot ID, User ID, or initial token is missing.');
+            return;
+        }
+
+        // Fetch the token from the server
+        fetch('https://bizbot-khpq.onrender.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${initialToken}`
+            },
+            body: JSON.stringify({ chatbotId, userId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.token) {
+                token = data.token; // Store token in memory
+                console.log('Chatbot token fetched successfully:', token);
+            } else {
+                throw new Error('Failed to fetch token');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching chatbot token:', error);
+        });
     }
-
-    // Fetch the token from the server
-    fetch('https://bizbot-khpq.onrender.com/api/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${initialToken}`
-        },
-        body: JSON.stringify({ chatbotId, userId })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.token) {
-            token = data.token; // Store token in memory
-            console.log('Chatbot token fetched successfully');
-        } else {
-            throw new Error('Failed to fetch token');
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching chatbot token:', error);
-    });
-}
 
     // Function to send user messages to the server
     function sendMessage(userInput) {
@@ -60,17 +66,30 @@ function initializeChatbot() {
             return;
         }
 
+        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
+        console.log('Sending message with the following details:');
+        console.log(`chatbotId: ${chatbotId}`);
+        console.log(`token: ${token}`);
+        console.log(`userInput: ${userInput}`);
+
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ question: userInput, chatbotId: document.getElementById('bizbot-widget').getAttribute('data-chatbot-id') })
+            body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Received response from server:', data);
                 displayBotMessage(data.reply);
+                console.log(`Response Source: ${data.source}`);
             })
             .catch(error => {
                 console.error('Error sending message:', error);
