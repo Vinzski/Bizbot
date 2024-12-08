@@ -239,7 +239,9 @@ function saveChatbot() {
       return;
   }
 
-  const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr')).map(row => row.getAttribute('data-faq-id')).filter(Boolean);
+  const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr'))
+    .map(row => row.getAttribute('data-faq-id'))
+    .filter(Boolean);
 
   fetch('/api/chatbots', {
       method: 'POST',
@@ -267,6 +269,7 @@ function saveChatbot() {
       alert(`Failed to save chatbot: ${error.message}`);
   });
 }
+
 
 // Handling authentication and form submissions
 document
@@ -326,28 +329,62 @@ function editFunc(id) {
       return;
     }
     const cells = row.querySelectorAll('td:not(:last-child)');
+    const editButton = row.querySelector('.btn-edit');
+
     if (row.classList.contains('editing')) {
-      cells.forEach(cell => {
-        const input = cell.querySelector('input');
-        if (input) {
-          cell.textContent = input.value;
+      // Collect updated data
+      const updatedQuestion = cells[0].querySelector('input').value.trim();
+      const updatedAnswer = cells[1].querySelector('input').value.trim();
+
+      // Basic validation
+      if (!updatedQuestion || !updatedAnswer) {
+        alert('Both question and answer fields are required.');
+        return;
+      }
+
+      // Send update request to the server
+      const token = localStorage.getItem('token');
+      fetch(`/api/faqs/${id}`, {
+        method: 'PUT', // or 'PATCH' depending on your API design
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question: updatedQuestion,
+          answer: updatedAnswer,
+        }),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to update FAQ: ${response.statusText}`);
         }
+        return response.json();
+      })
+      .then(data => {
+        // Update the row with new data
+        cells[0].textContent = data.question;
+        cells[1].textContent = data.answer;
+        editButton.textContent = "EDIT";
+        row.classList.remove('editing');
+        console.log(`Saved changes for FAQ with ID: ${id}`);
+      })
+      .catch(error => {
+        console.error('Error updating FAQ:', error);
+        alert(`Failed to update FAQ: ${error.message}`);
       });
-      const editButton = row.querySelector('.btn-edit');
-      editButton.textContent = "EDIT";
-      row.classList.remove('editing');
-      console.log(`Saved changes for FAQ with ID: ${id}`);
     } else {
+      // Enter editing mode
       cells.forEach(cell => {
         const text = cell.textContent;
         cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
       });
-      const editButton = row.querySelector('.btn-edit');
       editButton.textContent = "SAVE";
       row.classList.add('editing');
       console.log(`Editing FAQ with ID: ${id}`);
     }
-  }
+}
+
 function deleteFunc(id) {
     console.log(`Deleted FAQ with ID: ${id}`);
 }
