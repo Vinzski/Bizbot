@@ -371,5 +371,34 @@ function editFunc(id) {
 
 
 function deleteFunc(id) {
-    console.log(`Deleted FAQ with ID: ${id}`);
+  const token = localStorage.getItem('token');
+
+  // Confirm the deletion action
+  if (confirm('Are you sure you want to delete this FAQ?')) {
+    fetch(`/api/faqs/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to delete FAQ');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Successfully deleted, now remove the row from the table
+        const row = document.querySelector(`tr[data-faq-id="${id}"]`);
+        if (row) {
+          row.remove();  // Remove the row from the table
+        }
+        alert('FAQ deleted successfully!');
+      })
+      .catch(error => {
+        console.error('Error deleting FAQ:', error);
+        alert(`Failed to delete FAQ: ${error.message}`);
+      });
+  }
 }
