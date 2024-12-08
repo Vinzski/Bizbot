@@ -266,7 +266,7 @@ function logout() {
     document.getElementById("message").textContent = "You have been logged out.";
 
     // Redirect to login page
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   }
 
 function editFunc(id) {
