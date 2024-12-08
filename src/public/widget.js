@@ -59,54 +59,90 @@
         });
     }
     
-  // Function to send user messages to the server
+// Function to send user messages to the server
 function sendMessage(userInput) {
-    const widgetElement = document.getElementById('bizbot-widget');
-    const initialToken = widgetElement.getAttribute('data-token');
-    
-    // Ensure token is available
-    if (!initialToken) {
-        console.error('Token is not available. Ensure the widget is initialized correctly.');
+    // Log the user input
+    console.log("User Input:", userInput);
+
+    if (!userInput) {
+        alert("Please enter a query.");
+        console.warn("No query entered. Exiting function.");
         return;
     }
 
-    // Get the userId (assuming it's available in the widget element)
-    const userId = widgetElement.getAttribute('data-user-id');  // Or retrieve it from localStorage if needed
+    // Retrieve token from localStorage
+    const token = localStorage.getItem("token"); // JWT token
+    console.log("Retrieved Token from localStorage:", token);
+
+    if (!token) {
+        console.error("No token found in localStorage. Authentication may fail.");
+        alert("Authentication token is missing. Please log in again.");
+        return;
+    }
+
+    // Get the userId from the widget element or localStorage
+    const widgetElement = document.getElementById('bizbot-widget');
+    const userId = widgetElement.getAttribute('data-user-id') || localStorage.getItem("userId");
 
     if (!userId) {
-        console.error('User ID is not available.');
+        console.error("User ID is not available.");
         return;
     }
 
-    console.log('Sending message with the following details:');
-    console.log(`userId: ${userId}`);
-    console.log(`token: ${initialToken}`);
-    console.log(`userInput: ${userInput}`);
+    // Log the userId being used
+    console.log("User ID:", userId);
 
-    // Send the user input along with the userId instead of chatbotId
+    // Prepare the payload
+    const payload = { question: userInput, userId: userId };
+
+    // Log the payload being sent
+    console.log("Payload to be sent:", payload);
+
+    // Prepare headers with the token for authorization
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
+    };
+    console.log("Request Headers:", headers);
+
+    // Send the user input and userId to the backend
     fetch('https://bizbot-khpq.onrender.com/api/chat', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${initialToken}`, // Use the token for authorization
-        },
-        body: JSON.stringify({ question: userInput, userId: userId })  // Pass userId instead of chatbotId
+        headers: headers,
+        body: JSON.stringify(payload),
     })
-        .then(response => {
+        .then((response) => {
+            // Log the response status
+            console.log("Response Status:", response.status, response.statusText);
+
             if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
+                console.error("Network response was not ok:", response.statusText);
+                throw new Error("Network response was not ok: " + response.statusText);
             }
             return response.json();
         })
-        .then(data => {
-            console.log('Received response from server:', data);
-            displayBotMessage(data.reply);  // Assuming this function displays the bot's reply
-            console.log(`Response Source: ${data.source}`);
+        .then((data) => {
+            // Log the received data
+            console.log("Received Data from Server:", data);
+
+            // Display the response in the UI
+            const resultDiv = document.getElementById("chat-response");
+            if (data.reply && data.source) {
+                resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply} <br><strong>Source:</strong> ${data.source}`;
+                console.log("Displayed Response and Source in UI.");
+            } else {
+                console.warn("Received data is incomplete:", data);
+                resultDiv.innerHTML = `<strong>Response:</strong> ${data.reply || "No reply received."} <br><strong>Source:</strong> ${data.source || "Unknown"}`;
+            }
         })
-        .catch(error => {
-            console.error('Error sending message:', error);
+        .catch((error) => {
+            // Log detailed error information
+            console.error("Error sending message:", error);
+            const resultDiv = document.getElementById("chat-response");
+            resultDiv.textContent = "Error: " + error.message;
         });
 }
+
 
 
     // Function to display bot messages
