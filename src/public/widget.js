@@ -13,117 +13,92 @@
     // Call the function to add Font Awesome
     addFontAwesome();
 
-// Function to initialize the chatbot widget
-function initializeChatbot() {
-    const widgetElement = document.getElementById('bizbot-widget');
-    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    const userId = widgetElement.getAttribute('data-user-id');
-    const initialToken = widgetElement.getAttribute('data-token');
+    // Function to initialize the chatbot widget
+    function initializeChatbot() {
+        const widgetElement = document.getElementById('bizbot-widget');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
+        const initialToken = widgetElement.getAttribute('data-token');
 
-    // Logging the initial attributes
-    console.log('Initializing Chatbot Widget:');
-    console.log(`chatbotId: ${chatbotId}`);
-    console.log(`userId: ${userId}`);
-    console.log(`initialToken: ${initialToken}`);
+        // Logging the initial attributes
+        console.log('Initializing Chatbot Widget:');
+        console.log(`chatbotId: ${chatbotId}`);
+        console.log(`userId: ${userId}`);
+        console.log(`initialToken: ${initialToken}`);
 
-    if (!chatbotId || !userId || !initialToken) {
-        console.error('Chatbot ID, User ID, or initial token is missing.');
-        return;
+        if (!chatbotId || !userId || !initialToken) {
+            console.error('Chatbot ID, User ID, or initial token is missing.');
+            return;
+        }
+        // Fetch the token from the server
+        fetch('https://bizbot-khpq.onrender.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${initialToken}`
+            },
+            body: JSON.stringify({ chatbotId, userId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.token) {
+                token = data.token; // Store token in memory
+                console.log('Chatbot token fetched successfully:', token);
+            } else {
+                throw new Error('Failed to fetch token');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching chatbot token:', error);
+        });
     }
 
-    // Fetch user details using the userId (you might need to adjust this part depending on your backend structure)
-    fetch(`https://your-backend-api.com/api/users/${userId}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${initialToken}`, // Make sure the token is included for authentication
-        },
-    })
-    .then(response => response.json())
-    .then(userData => {
-        // Assuming the API returns user data with username and email
-        const username = userData.username;
-        const email = userData.email;
-
-        // Log the user details
-        console.log(`User ID: ${userId}`);
-        console.log(`Username: ${username}`);
-        console.log(`Email: ${email}`);
-    })
-    .catch(error => {
-        console.error('Error fetching user data:', error);
-    });
-
-    // Fetch the token from the server for further use
-    fetch('https://bizbot-khpq.onrender.com/api/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${initialToken}`,
-        },
-        body: JSON.stringify({ chatbotId, userId }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // Function to send user messages to the server
+    function sendMessage(userInput) {
+        const widgetElement = document.getElementById('bizbot-widget');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
+        const initialToken = widgetElement.getAttribute('data-token');
+        if (!token) {
+            console.error('Token is not available. Ensure the widget is initialized correctly.');
+            return;
         }
-        return response.json();
-    })
-    .then(data => {
-        if (data.token) {
-            token = data.token; // Store token in memory
-            console.log('Chatbot token fetched successfully:', token);
-        } else {
-            throw new Error('Failed to fetch token');
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching chatbot token:', error);
-    });
-}
 
-// Function to send user messages to the server
-function sendMessage(userInput) {
-    const widgetElement = document.getElementById('bizbot-widget');
-    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    const userId = widgetElement.getAttribute('data-user-id');
-    const initialToken = widgetElement.getAttribute('data-token');
+        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
+        console.log('Sending message with the following details:');
+        console.log(`chatbotId: ${chatbotId}`);
+        console.log(`userId: ${userId}`);
+        console.log(`token: ${token}`);
+        console.log(`userInput: ${userInput}`);
 
-    if (!token) {
-        console.error('Token is not available. Ensure the widget is initialized correctly.');
-        return;
+        fetch('https://bizbot-khpq.onrender.com/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${initialToken}`,
+            },
+            body: JSON.stringify({ question: userInput, userId: userId })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received response from server:', data);
+                displayBotMessage(data.reply);
+                console.log(`Response Source: ${data.source}`);
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
     }
-
-    // Logging the details
-    console.log('Sending message with the following details:');
-    console.log(`chatbotId: ${chatbotId}`);
-    console.log(`userId: ${userId}`);
-    console.log(`token: ${token}`);
-    console.log(`userInput: ${userInput}`);
-
-    // Send the user message to the server
-    fetch('https://bizbot-khpq.onrender.com/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${initialToken}`,
-        },
-        body: JSON.stringify({ question: userInput, userId: userId }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Received response from server:', data);
-        displayBotMessage(data.reply);
-        console.log(`Response Source: ${data.source}`);
-    })
-    .catch(error => {
-        console.error('Error sending message:', error);
-    });
-}
 
 
     // Function to display bot messages
