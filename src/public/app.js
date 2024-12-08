@@ -263,8 +263,6 @@ function logout() {
 
     // Display a message or redirect to the login page
     console.log("User logged out successfully");
-    document.getElementById("message").textContent = "You have been logged out.";
-
     // Redirect to login page
     window.location.href = "index.html";
   }
