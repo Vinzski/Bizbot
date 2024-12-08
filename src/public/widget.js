@@ -533,7 +533,32 @@
             } else {
                 console.log(`Feedback submitted: ${feedbackText}`);
                 console.log(`Feedback submitted with rating: ${selectedRating}`);
-                // TODO: Send feedback to the server or handle it as needed
+    
+                // Send feedback to the server
+                fetch('https://your-server-url/api/feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        chatbotId: chatbotId,
+                        rating: selectedRating,
+                        feedbackText: feedbackText,
+                    }),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Thank you for your feedback!');
+                    } else {
+                        alert('There was an error submitting your feedback. Please try again later.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting feedback:', error);
+                    alert('There was an error submitting your feedback. Please try again later.');
+                });
+    
                 // Reset feedback form
                 feedbackTextarea.value = '';
                 selectedRating = '';
