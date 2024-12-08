@@ -72,7 +72,7 @@
         const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
         console.log('Sending message with the following details:');
         console.log(`chatbotId: ${chatbotId}`);
-        console.log(`userId: ${userID\d}`);
+        console.log(`userId: ${userId}`);
         console.log(`token: ${token}`);
         console.log(`userInput: ${userInput}`);
 
