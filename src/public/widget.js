@@ -163,7 +163,7 @@
                     </div>
                 </div>
                 <textarea name="feedback" id="feedback" placeholder="Your feedback..."></textarea>
-                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
+                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>  <!-- Added "Send Feedback" button -->
             </div>
         </div>
         <div id="chat-messages">
@@ -580,6 +580,14 @@
             alert('Please select a rating before submitting feedback.');
         }
     };
+
+        document.getElementById('sendfeedback').addEventListener('click', function () {
+        const feedback = document.getElementById('feedback').value;
+        if (feedback) {
+            alert("Thank you for your feedback!");  // Show thank you message
+            document.getElementById('feedback').value = ''; // Clear the feedback input
+        }
+    });
 
     // Event listener for sending user message
     sendMessageButton.onclick = function () {
