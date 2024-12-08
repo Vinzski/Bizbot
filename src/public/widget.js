@@ -13,34 +13,48 @@
     // Call the function to add Font Awesome
     addFontAwesome();
     // Function to initialize the chatbot widget
-    function initializeChatbot() {
-        const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
-        if (!chatbotId) {
-            console.error('Chatbot ID is missing.');
-            return;
-        }
+// Function to initialize the chatbot widget
+function initializeChatbot() {
+    const widgetElement = document.getElementById('bizbot-widget');
+    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+    const userId = widgetElement.getAttribute('data-user-id');
+    const initialToken = widgetElement.getAttribute('data-token');
 
-        // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ chatbotId })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.token) {
-                    token = data.token; // Store token in memory
-                    console.log('Chatbot token fetched successfully');
-                } else {
-                    throw new Error('Failed to fetch token');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching chatbot token:', error);
-            });
+    if (!chatbotId || !userId || !initialToken) {
+        console.error('Chatbot ID, User ID, or initial token is missing.');
+        return;
     }
+
+    // Fetch a new token from the server
+    fetch('https://bizbot-khpq.onrender.com/api/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${initialToken}`
+        },
+        body: JSON.stringify({ chatbotId, userId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.token) {
+            token = data.token; // Store new token in memory
+            console.log('Chatbot token fetched successfully');
+            // Initialize the rest of the chatbot functionality here
+            setupChatbotUI();
+        } else {
+            throw new Error('Token not received in the response');
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching chatbot token:', error);
+        displayErrorMessage('Failed to initialize chatbot. Please try again later.');
+    });
+}
 
     // Function to send user messages to the server
     function sendMessage(userInput) {
