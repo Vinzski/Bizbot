@@ -19,16 +19,17 @@ router.post('/send_message', (req, res) => {
 
 // Protected route using middleware
 router.post('/', authenticate, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
+    const { question, chatbotId, userId } = req.body;
+    
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+    
     let bestMatch = { score: 0, faq: null };
     faqs.forEach(faq => {
         const tokens1 = question.toLowerCase().split(' ');
         const tokens2 = faq.question.toLowerCase().split(' ');
         let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / tokens1.length;
+        let score = intersection.length / Math.max(tokens1.length, tokens2.length);
         if (score > bestMatch.score) {
             bestMatch = { score, faq };
         }
