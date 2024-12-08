@@ -18,6 +18,7 @@
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
         const initialToken = widgetElement.getAttribute('data-token');
+        const userId = widgetElement.getAttribute('data-user-id');
 
         // Logging the initial attributes
         console.log('Initializing Chatbot Widget:');
@@ -57,10 +58,10 @@
             console.error('Error fetching chatbot token:', error);
         });
     }
-
+    
     // Function to send user messages to the server
     function sendMessage(userInput) {
-        const userId = widgetElement.getAttribute('data-user-id');
+        const localtoken = localStorage.getItem("token");
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
@@ -76,7 +77,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${localtoken}`,
             },
             body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
         })
