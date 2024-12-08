@@ -5,7 +5,7 @@ const natural = require('natural');
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Ensure the path is correct
 
-const { saveChatLog } = require('chatLogger');
+const { saveChatLog } = require('./chatLogger');
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
