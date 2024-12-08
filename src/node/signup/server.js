@@ -82,7 +82,7 @@ app.post('/api/token', (req, res) => {
         }
 
         const newToken = jwt.sign({ chatbotId, userId }, process.env.JWT_SECRET || 'mysecretkey_12345', {
-            expiresIn: '1h', // Token expires in 1 hour
+            expiresIn: '24h', // Token expires in 1 hour
         });
 
         res.json({ token: newToken });
