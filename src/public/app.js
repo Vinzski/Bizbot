@@ -330,12 +330,12 @@ function editFunc(id) {
   // Get all <td> elements in the row (excluding the Actions column)
   const cells = row.querySelectorAll('td:not(:last-child)');
 
-  // Toggle between editable and non-editable states
+  // Check if the row is already in editing mode
   if (row.classList.contains('editing')) {
     // Save changes
     const updatedData = {};
-    const questionInput = cells[0].querySelector('input'); // Assuming the first cell is the question
-    const answerInput = cells[1].querySelector('input'); // Assuming the second cell is the answer
+    const questionInput = cells[0].querySelector('input'); // First cell for question
+    const answerInput = cells[1].querySelector('input');   // Second cell for answer
 
     if (questionInput && answerInput) {
       updatedData.question = questionInput.value;
@@ -352,55 +352,40 @@ function editFunc(id) {
 
     row.classList.remove('editing');
 
-    // Check if the ID exists in the database
+    // Update the database with the edited data
     const token = localStorage.getItem('token');
     fetch(`/api/faqs/${id}`, {
-      method: 'GET',
+      method: 'PUT',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
-      }
+      },
+      body: JSON.stringify(updatedData)
     })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`FAQ with ID ${id} not found.`);
+          throw new Error(`Failed to update FAQ with ID ${id}.`);
         }
         return response.json();
-      })
-      .then(data => {
-        console.log(`FAQ with ID ${id} exists. Proceeding to update.`);
-        // Proceed to update the question and answer
-        return fetch(`/api/faqs/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(updatedData)
-        });
-      })
-      .then(updateResponse => {
-        if (!updateResponse.ok) {
-          throw new Error('Failed to update FAQ.');
-        }
-        return updateResponse.json();
       })
       .then(updateData => {
         console.log(`FAQ with ID ${id} updated successfully:`, updateData);
         alert('FAQ updated successfully!');
       })
       .catch(error => {
-        console.error('Error:', error);
-        alert(`Error: ${error.message}`);
+        console.error('Error updating FAQ:', error);
+        alert(`Error updating FAQ: ${error.message}`);
       });
 
     console.log(`Saved changes for FAQ with ID: ${id}`);
   } else {
     // Make cells editable
-    cells.forEach((cell, index) => {
+    cells.forEach((cell) => {
       const text = cell.textContent; // Get the current text content of the cell
       cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
     });
 
+    // Change button text to "SAVE"
     const editButton = row.querySelector('.btn-edit');
     editButton.textContent = "SAVE";
 
@@ -408,6 +393,7 @@ function editFunc(id) {
     console.log(`Editing FAQ with ID: ${id}`);
   }
 }
+
 
 
 function deleteFunc(id) {
