@@ -1,6 +1,8 @@
 (function () {
     let token; // Store the widget token in memory
 
+    var initialToken = widgetElement.getAttribute('data-token');
+    
     function addFontAwesome() {
         var link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -17,7 +19,6 @@
     function initializeChatbot() {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const initialToken = widgetElement.getAttribute('data-token');
         const userId = widgetElement.getAttribute('data-user-id');
 
         // Logging the initial attributes
