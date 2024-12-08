@@ -261,7 +261,11 @@ function saveChatbot() {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
   },
-  body: JSON.stringify(payload),
+  body: JSON.stringify({
+          name: chatbotNameInput.value,
+          type: chatbotTypeSelect.value,
+          faqs: faqs,  // Send the updated FAQs (including question and answer)
+      }),
 })
 .then(response => {
   if (!response.ok) {
