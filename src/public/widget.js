@@ -578,7 +578,3 @@
     // Initialize the chatbot widget on load
     initializeChatbot();
 })();
-
-    // Initialize the chatbot widget on load
-    initializeChatbot();
-})();
