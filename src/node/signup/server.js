@@ -65,6 +65,7 @@ app.get('/', (req, res) => {
 });
 app.use('/uploads', express.static('uploads'));
 
+// Authentication Token
 app.post('/api/token', (req, res) => {
     const { chatbotId } = req.body;
     const authHeader = req.headers.authorization;
@@ -91,6 +92,32 @@ app.post('/api/token', (req, res) => {
     } catch (error) {
         console.error('Error generating token:', error);
         res.status(401).json({ message: 'Invalid token', error: error.message });
+    }
+});
+
+// Feedback function
+app.post('/api/feedback', async (req, res) => {
+    const { userId, chatbotId, rating, feedbackText } = req.body;
+
+    // Validate incoming data
+    if (!userId || !chatbotId || !rating || !feedbackText) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    try {
+        const feedback = new Feedback({
+            userId,
+            chatbotId,
+            rating,
+            feedbackText,
+        });
+
+        // Save feedback to database
+        await feedback.save();
+        res.status(200).json({ message: 'Feedback saved successfully' });
+    } catch (error) {
+        console.error('Error saving feedback:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
