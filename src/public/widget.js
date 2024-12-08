@@ -13,6 +13,11 @@
     }
 
     // Inject SweetAlert2 CDN dynamically
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+    document.head.appendChild(script);
+
+    // Inject SweetAlert2 CDN dynamically
     script.onload = function () {
         // Event listener for sending feedback
         feedbackBtn.onclick = function () {
