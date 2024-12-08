@@ -5,7 +5,7 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
- // Add path to your auth middleware
+const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
