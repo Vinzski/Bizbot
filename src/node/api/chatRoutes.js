@@ -8,40 +8,52 @@ const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
 // Middleware for token-based authentication in the /chat route
-router.post('/', authenticate, async (req, res) => {
+router.post('/chat', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
-    // First try to find an answer in the FAQs
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-    console.log("Fetched FAQs:", faqs);
-    let bestMatch = { score: 0, faq: null };
-
-    faqs.forEach(faq => {
-        const tokens1 = question.toLowerCase().split(' ');
-        const tokens2 = faq.question.toLowerCase().split(' ');
-        let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / tokens1.length;
-        if (score > bestMatch.score) {
-            bestMatch = { score, faq };
+    try {
+        // Fetch the chatbot to get associated FAQs
+        const chatbot = await Chatbot.findById(chatbotId).populate('faqs');
+        if (!chatbot) {
+            return res.status(404).json({ message: "Chatbot not found" });
         }
-    });
 
-    if (bestMatch.score >= 0.5) { // You can adjust threshold according to your accuracy needs
-        return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-    } else {
-        // If no FAQ matches well, send the query to Rasa
-        try {
-            const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget'
-            });
-            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            res.json({ reply: botReply, source: 'Rasa' });
-        } catch (error) {
-            console.error('Error querying Rasa:', error);
-            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+        // Extract FAQs associated with this chatbot
+        const faqs = chatbot.faqs;
+        console.log("Fetched FAQs:", faqs);
+
+        let bestMatch = { score: 0, faq: null };
+
+        faqs.forEach(faq => {
+            const tokens1 = tokenizer.tokenize(question.toLowerCase());
+            const tokens2 = tokenizer.tokenize(faq.question.toLowerCase());
+            let intersection = tokens1.filter(token => tokens2.includes(token));
+            let score = intersection.length / Math.max(tokens1.length, tokens2.length);
+            if (score > bestMatch.score) {
+                bestMatch = { score, faq };
+            }
+        });
+
+        if (bestMatch.score >= 0.5) { // Adjust threshold as needed
+            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+        } else {
+            // If no FAQ matches well, send the query to Rasa
+            try {
+                const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
+                    message: question,
+                    sender: 'chatbot-widget'
+                });
+                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+                return res.json({ reply: botReply, source: 'Rasa' });
+            } catch (error) {
+                console.error('Error querying Rasa:', error);
+                return res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+            }
         }
+    } catch (error) {
+        console.error('Error in chat route:', error);
+        res.status(500).json({ message: "Internal server error", error: error.toString() });
     }
 });
 
