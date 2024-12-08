@@ -1,19 +1,6 @@
 (function () {
     let token; // Store the widget token in memory
 
-    function addFontAwesome() {
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-        link.integrity = 'sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==';
-        link.crossOrigin = 'anonymous';
-        link.referrerPolicy = 'no-referrer';
-        document.head.appendChild(link);
-    }
-
-    // Call the function to add Font Awesome
-    addFontAwesome();
-
     // Function to initialize the chatbot widget
     function initializeChatbot() {
         const chatbotId = document.getElementById('bizbot-widget').getAttribute('data-chatbot-id');
@@ -83,47 +70,10 @@
     // Create elements for the chatbot widget
     var chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
-    chatbotWidget.innerHTML = `
-        <div id="chat-header">
-            <span id="chat-title">BizBot</span>
+    chatbotWidget.innerHTML =
+        `<div id="chat-header">
+            <span id="chat-title">Chatbot</span>
             <button id="close-chat">X</button>
-        </div>
-        <div class="satisfactory">
-            <div class="message bot-message">
-                <div class="profile-image"></div>
-                <span class="message-content">For better experiences, we would like to hear your feedback about the performance.</span>
-            </div>
-            <div class="rating">
-                <p>How would you rate it?</p>
-                <div class="emojis">
-                    <div class="top-emojis">
-                        <button class="emoji">
-                            <i id="poor" class="fa-solid fa-face-sad-tear"></i>
-                            <p>Poor</p>
-                        </button>
-                        <button class="emoji">
-                            <i id="unsatisfied" class="fa-solid fa-face-frown"></i>
-                            <p>Unsatisfied</p>
-                        </button>
-                    </div>
-                    <div class="bot-emojis">
-                        <button class="emoji">
-                            <i id="neutral" class="fa-solid fa-face-meh"></i>
-                            <p>Neutral</p>
-                        </button>
-                        <button class="emoji">
-                            <i id="satisfied" class="fa-solid fa-face-smile"></i>
-                            <p>Satisfied</p>
-                        </button>
-                        <button class="emoji">
-                            <i id="excellent" class="fa-solid fa-face-laugh-beam"></i>
-                            <p>Excellent</p>
-                        </button>
-                    </div>
-                </div>
-                <textarea name="feedback" id="feedback"></textarea>
-                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
-            </div>
         </div>
         <div id="chat-messages">
             <div class="message bot-message">
@@ -134,335 +84,196 @@
         <div id="chat-input">
             <input type="text" id="user-input" placeholder="Type your message...">
             <button id="send-message">Send</button>
-        </div>
-    `;
+        </div>`;
 
-    // Create the toggle button once
     var chatToggle = document.createElement('button');
     chatToggle.id = 'chat-toggle';
     chatToggle.textContent = 'Chat';
-    chatToggle.style.display = 'block'; // Ensure it is visible initially
+    chatToggle.style.display = 'block';
 
     // Add styles directly or link to an external stylesheet
     var styles = `
     #chatbot-widget {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 300px;
-        height: 400px;
-        background-color: #f0f0f0;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-        display: none;
-        flex-direction: column;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        z-index: 1000;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      height: 400px;
+      background-color: var(--theme-color, #f0f0f0);
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s ease;
     }
-
+    
     #chat-header {
-        background-color: #4a90e2;
-        color: white;
-        padding: 15px;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+      background-color: var(--theme-color, #4a90e2);
+      color: white;
+      padding: 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-
+    
     #close-chat {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: transform 0.2s ease;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: transform 0.2s ease;
     }
-
-    #close-chats {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: transform 0.2s ease;
-    }
-
+    
     #close-chat:hover {
-        transform: scale(1.1);
+      transform: scale(1.1);
     }
-
+    
     #chat-messages {
-        flex-grow: 1;
-        overflow-y: auto;
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        scroll-behavior: smooth;
-        background-color: #ffffff;
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
     }
-
+    
     #chat-input {
-        display: flex;
-        padding: 10px;
-        background-color: #fff;
-        border-top: 1px solid #e0e0e0;
+      display: flex;
+      padding: 10px;
+      background-color: #fff;
+      border-top: 1px solid #e0e0e0;
     }
-
+    
     #user-input {
-        flex-grow: 1;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 20px;
-        font-size: 14px;
-        transition: border-color 0.2s ease;
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 14px;
+      transition: border-color 0.2s ease;
     }
-
+    
     #user-input:focus {
-        outline: none;
-        border-color: #4a90e2;
+      outline: none;
+      border-color: var(--theme-color, #4a90e2);
     }
-
+    
     #send-message {
-        background-color: #4a90e2;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        margin-left: 10px;
-        cursor: pointer;
-        border-radius: 20px;
-        transition: background-color 0.2s ease;
+      background-color: var(--theme-color, #4a90e2);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-left: 10px;
+      cursor: pointer;
+      border-radius: 20px;
+      transition: background-color 0.2s ease;
     }
-
+    
     #send-message:hover {
-        background-color: #3a80d2;
+      background-color: var(--theme-color-dark, #3a80d2);
     }
-
+    
     #chat-toggle {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #4a90e2;
-        color: white;
-        border: none;
-        padding: 15px;
-        border-radius: 50%;
-        cursor: pointer;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        transition: all 0.3s ease;
-        z-index: 1000;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--theme-color, #4a90e2);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10%;
+      cursor: pointer;
+      width: 5%; 
+      height: 6%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
     }
-
+    
     #chat-toggle:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        background-color: #3a80d2;
+      transform: translateY(-3px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      background-color: var(--theme-color-dark, #3a80d2);
     }
-
+    
     .message {
-        display: flex;
-        align-items: flex-start;
-        margin: 10px 0;
-        padding: 10px;
-        border-radius: 15px;
-        max-width: 80%;
-        animation: fadeIn 0.3s ease;
+      display: flex;
+      align-items: flex-start;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 15px;
+      max-width: 80%;
+      animation: fadeIn 0.3s ease;
     }
-
+    
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
+    
     .user-message {
-        background-color: #e6f3ff;
-        align-self: flex-end;
-        flex-direction: row-reverse;
-        border-bottom-right-radius: 5px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+      background-color: #e6f3ff;
+      align-self: flex-end;
+      flex-direction: row-reverse;
+      border-bottom-right-radius: 5px;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
-
+    
     .bot-message {
-        background-color: #f0f0f0;
-        align-self: flex-start;
-        flex-direction: row;
-        border-bottom-left-radius: 5px;
+      background-color: #f0f0f0;
+      align-self: flex-start;
+      flex-direction: row;
+      border-bottom-left-radius: 5px;
     }
-
+    
     .profile-image {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        background-color: #ccc;
-        flex-shrink: 0;
-        margin: 0 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: #fff;
-        font-size: 16px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background-color: #ccc;
+      flex-shrink: 0;
+      margin: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+      font-size: 16px;
     }
-
+    
     .message-content {
-        flex-grow: 1;
-        word-break: break-word;
-        font-size: 14px;
-        line-height: 1.4;
+      flex-grow: 1;
+      word-break: break-word;
+      font-size: 14px;
+      line-height: 1.4;
     }
-
+    
     /* Scrollbar Styles */
     #chat-messages::-webkit-scrollbar {
-        width: 6px;
+      width: 6px;
     }
-
+    
     #chat-messages::-webkit-scrollbar-track {
-        background: #f1f1f1;
+      background: #f1f1f1;
     }
-
+    
     #chat-messages::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
+      background: #888;
+      border-radius: 3px;
     }
-
+    
     #chat-messages::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-
-    .satisfactory{
-        display: none;
-        flex-direction: column;
-        height: 100%;
-        text-align: center;
-        background-color: white;
-    }
-
-    .satisfactory span{
-        text-align: left;
-        height: 100%;
-    }
-
-    .satisfactory .rating{
-        display: flex;
-        flex-direction: column;
-    }
-    .satisfactory .rating p{
-        margin: 0.5em;
-    }
-
-    .satisfactory .rating textarea{
-        margin: 0.5em;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
-
-    .satisfactory .rating .sendfeedback{
-        display: flex;
-        align-self: center;
-        border-radius: 5px;
-        background-color: #3a80d2;
-        color: white;
-    }
-
-    .emojis{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-evenly;
-    }
-    .emoji{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border: none;
-        background-color: white;
-        cursor: pointer;
-        color:#127999;
-        width: 80px;
-    }
-    .emoji i{
-        color: gray;
-    }
-
-    .emoji i.active#poor {
-    color: red;
-    }
-
-    .emoji i.active#unsatisfied {
-        color: orangered;
-    }
-
-    .emoji i.active#neutral {
-        color: yellow;
-    }
-
-    .emoji i.active#satisfied {
-        color: yellowgreen;
-    }
-
-    .emoji i.active#excellent {
-        color: green;
-    }
-
-    .emoji:hover #poor {
-        color: red;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #unsatisfied {
-        color: orangered;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #neutral {
-        color: yellow;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #satisfied {
-        color: yellowgreen;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-    .emoji:hover #excellent {
-        color: green;
-        transform: scale(1.2); /* Scale up slightly on hover */
-        transition: transform 0.3s ease; /* Smooth scaling transition */
-    }
-
-    /* Prevent hover effects from overriding the active state */
-    .emoji i:hover:not(.active) {
-        transform: scale(1.2); /* Keep hover effects for non-active buttons */
-    }
-
-    .emoji i{
-        font-size: 2em;
-    }
-
-    .emoji p{
-        margin: 0.5em;
-    }
-
-    .top-emojis{
-        display: flex;
-        flex-direction: row;
-    }
-
-    .bot-emojis{
-        display: flex;
-        flex-direction: row;
+      background: #555;
     }
     `;
-
     var styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
@@ -472,79 +283,45 @@
     document.body.appendChild(chatbotWidget);
     document.body.appendChild(chatToggle);
 
-    // Elements for chat widget
-    const chatToggles = document.getElementById('chat-toggle');
-    const chatbotWidgets = document.getElementById('chatbot-widget');
-    const closeChatButton = document.getElementById('close-chat');
-    const chatMsgs = document.getElementById('chat-messages');
-    const chatInp = document.getElementById('chat-input');
-    const satisfactory = document.querySelector('.satisfactory');
-    const emojiButtons = document.querySelectorAll('.emoji');
-    const feedbackTextarea = document.getElementById('feedback');
-    const feedbackbtn = document.getElementById('sendfeedback');
-    const sendMessageButton = document.getElementById('send-message');
-
-    let selectedRating = ''; // Variable to store the selected rating
-
-    chatToggles.onclick = function () {
-        chatbotWidgets.style.display = 'flex';
-        chatToggles.style.display = 'none';
-        chatMsgs.style.display = 'flex';
-        chatInp.style.display = 'flex';
+    // Event listeners for toggling the widget
+    document.getElementById('chat-toggle').onclick = function () {
+        chatbotWidget.style.display = 'flex';
+        chatToggle.style.display = 'none';
     };
 
-    closeChatButton.onclick = function () {
-        chatbotWidgets.style.display = 'none';
-        chatToggles.style.display = 'flex';
-        chatMsgs.style.display = 'none';
-        chatInp.style.display = 'none';
-
-        setTimeout(function () {
-            chatbotWidget.style.display = 'flex';
-            chatToggle.style.display = 'none';
-            chatMsgs.style.display = 'none';
-            satisfactory.style.display = 'flex';
-        }, 1000);
+    document.getElementById('close-chat').onclick = function () {
+        chatbotWidget.style.display = 'none';
+        chatToggle.style.display = 'block';
     };
 
-    emojiButtons.forEach((button) => {
-        button.addEventListener('click', function () {
-            emojiButtons.forEach(btn => {
-                btn.querySelector('i').classList.remove('active');
-            });
+    // Event listener for sending a message
+    document.getElementById('send-message').onclick = function () {
+        var userInput = document.getElementById('user-input');
+        var chatMessages = document.getElementById('chat-messages');
 
-            const icon = this.querySelector('i');
-            icon.classList.add('active');
-
-            selectedRating = this.querySelector('p').innerText; // Update the selected rating
-        });
-    });
-
-    feedbackbtn.onclick = function () {
-        if (selectedRating) {
-            const feedbackText = feedbackTextarea.value; 
-            if (feedbackText.trim() === '') {
-                console.log('Feedback is empty.');
-            } else {
-                console.log(`Feedback submitted: ${feedbackText}`);
-                console.log(`Feedback submitted with rating: ${selectedRating}`);
-            }
-        } else {
-            console.log('No rating selected.');
+        if (userInput.value.trim() === '') {
+            alert('Please enter a message.');
+            return; // Prevent sending empty messages
         }
+
+        // Append the user's message to the chat
+        var userMessageElement = document.createElement('div');
+        userMessageElement.classList.add('message', 'user-message');
+        var userProfileImage = document.createElement('div');
+        userProfileImage.classList.add('profile-image');
+        var userText = document.createElement('span');
+        userText.classList.add('message-content');
+        userText.textContent = userInput.value;
+        userMessageElement.appendChild(userProfileImage);
+        userMessageElement.appendChild(userText);
+        chatMessages.appendChild(userMessageElement);
+
+        // Send the message to the API
+        sendMessage(userInput.value);
+
+        // Clear the input field after sending
+        userInput.value = '';
     };
-
-    // Send user message
-sendMessageButton.onclick = function () {
-    const userInput = document.getElementById('user-input').value;  // Get the value from the input field
-    if (userInput.trim() !== '') {  // Check if the input is not empty
-        sendMessage(userInput);  // Call sendMessage with the user input
-    }
-};
-
-
-    // Send feedback
-
 
     // Initialize the chatbot widget on load
     initializeChatbot();
