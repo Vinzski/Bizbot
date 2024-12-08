@@ -92,7 +92,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, // Use the updated token
             },
-            body: JSON.stringify({ question: userInput, userId: userId, chatbotId: chatbotId }) // Send chatbotId instead of userId
+            body: JSON.stringify({ question: userInput, userId: userId }) // Send chatbotId instead of userId
         })
             .then(response => {
                 if (!response.ok) {
