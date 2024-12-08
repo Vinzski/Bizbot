@@ -239,51 +239,33 @@ function saveChatbot() {
       return;
   }
 
-  const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr'))
-    .map(row => {
-      const faqId = row.getAttribute('data-faq-id');
-      const questionCell = row.querySelector('td:nth-child(1)');
-      const answerCell = row.querySelector('td:nth-child(2)');
-      const updatedQuestion = questionCell.textContent.trim();
-      const updatedAnswer = answerCell.textContent.trim();
+  const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr')).map(row => row.getAttribute('data-faq-id')).filter(Boolean);
 
-      return {
-        faqId, 
-        question: updatedQuestion,
-        answer: updatedAnswer
-      };
-    })
-    .filter(faq => faq.faqId && faq.question && faq.answer); // Filter out incomplete rows
-
- const payload = {
-  name: chatbotNameInput.value,
-  type: chatbotTypeSelect.value,
-  faqs: faqs,
-};
-
-console.log("Sending request with payload:", payload);
-
-fetch('/api/chatbots', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  },
-  body: JSON.stringify(payload),
-})
-.then(response => {
-  if (!response.ok) {
-    throw new Error('Network response was not ok: ' + response.statusText);
-  }
-  return response.json();
-})
-.then(data => {
-  alert('Chatbot saved successfully!');
-})
-.catch(error => {
-  console.error('Error saving chatbot:', error);
-  alert(`Failed to save chatbot: ${error.message}`);
-});
+  fetch('/api/chatbots', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+          name: chatbotNameInput.value,
+          type: chatbotTypeSelect.value,
+          faqs: faqs,
+      }),
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok: ' + response.statusText);
+      }
+      return response.json();
+  })
+  .then(data => {
+      alert('Chatbot saved successfully!');
+  })
+  .catch(error => {
+      console.error('Error saving chatbot:', error);
+      alert(`Failed to save chatbot: ${error.message}`);
+  });
 }
 
 
