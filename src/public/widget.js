@@ -74,6 +74,7 @@
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
 
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
@@ -83,6 +84,7 @@
         console.log('Sending message with the following details:');
         console.log(`chatbotId: ${chatbotId}`);
         console.log(`token: ${token}`);
+        console.log(`userId: ${userId}`);
         console.log(`userInput: ${userInput}`);
 
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
