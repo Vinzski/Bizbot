@@ -1,307 +1,87 @@
-(function () {
-    let token; // Store the widget token in memory
+const express = require('express');
+const axios = require('axios');
+const FAQ = require('../models/faqModel');
+const natural = require('natural');
+const tokenizer = new natural.WordTokenizer();
+const jwt = require('jsonwebtoken');
+const router = express.Router();
+const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
-    // Function to add Font Awesome
-    function addFontAwesome() {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-        link.integrity = 'sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==';
-        link.crossOrigin = 'anonymous';
-        link.referrerPolicy = 'no-referrer';
-        document.head.appendChild(link);
-    }
+// Route to send a simple message (unprotected)
+router.post('/send_message', (req, res) => {
+    console.log("Received message:", req.body.message); // Log the received message to ensure it's reaching here
+    const userMessage = req.body.message;
+    // Respond with a simple JSON object
+    res.json({ reply: "Response based on " + userMessage });
+});
 
-    addFontAwesome(); // Add Font Awesome on load
+router.post('/', authenticate, async (req, res) => {
+    const { question, chatbotId } = req.body;
+    const userId = req.user.id; // Get user ID from token
 
-    // Function to initialize the chatbot widget
-    function initializeChatbot() {
-        const widgetElement = document.getElementById('bizbot-widget');
-        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const userId = widgetElement.getAttribute('data-user-id');
-        const initialToken = widgetElement.getAttribute('data-token');
+    console.log('--- Incoming Chat Request ---');
+    console.log(User ID: ${userId});
+    console.log(Chatbot ID: ${chatbotId});
+    console.log(Question: "${question}");
 
-        console.log('Initializing Chatbot Widget:');
-        console.log(chatbotId: ${chatbotId});
-        console.log(userId: ${userId});
-        console.log(initialToken: ${initialToken});
+    try {
+        // Fetch FAQs specific to the chatbot and user
+        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+        console.log(Number of FAQs found: ${faqs.length});
 
-        if (!chatbotId || !userId || !initialToken) {
-            console.error('Chatbot ID, User ID, or initial token is missing.');
-            return;
+        if (faqs.length === 0) {
+            console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-        // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': Bearer ${initialToken}
-            },
-            body: JSON.stringify({ chatbotId, userId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(HTTP error! status: ${response.status});
+        // Normalize the user question
+        const normalizedUserQuestion = question.toLowerCase().trim();
+
+        // 1. Exact Match Check
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
+
+        if (exactMatch) {
+            console.log(Exact FAQ Match Found: "${exactMatch.question}");
+            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
+        }
+
+        // 2. Similarity-Based Matching
+        let bestMatch = { score: 0, faq: null };
+        faqs.forEach(faq => {
+            const faqText = faq.question.toLowerCase().trim();
+            const similarity = natural.JaroWinklerDistance(faqText, normalizedUserQuestion);
+            console.log(FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)});
+
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
             }
-            return response.json();
-        })
-        .then(data => {
-            if (data.token) {
-                token = data.token; // Store token in memory
-                console.log('Chatbot token fetched successfully:', token);
-                enableSendButton(); // Enable send button once token is ready
-            } else {
-                throw new Error('Failed to fetch token');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching chatbot token:', error);
         });
-    }
 
-    // Function to enable the send button after token is fetched
-    function enableSendButton() {
-        const sendButton = document.getElementById('send-message');
-        if (sendButton) {
-            sendButton.disabled = false;
-            sendButton.style.cursor = 'pointer';
-        }
-    }
+        // Define similarity threshold
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust as needed
 
-    // Function to send user messages to the server
-    function sendMessage(userInput) {
-        const widgetElement = document.getElementById('bizbot-widget');
-        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const userId = widgetElement.getAttribute('data-user-id');
-
-        if (!token) {
-            console.error('Token is not available. Ensure the widget is initialized correctly.');
-            return;
-        }
-
-        console.log('Sending message with the following details:');
-        console.log(chatbotId: ${chatbotId});
-        console.log(token: ${token});
-        console.log(userId: ${userId});
-        console.log(userInput: ${userInput});
-
-        fetch('https://bizbot-khpq.onrender.com/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': Bearer ${token}, // Use the updated token
-            },
-            body: JSON.stringify({ question: userInput, userId: userId }) // Send chatbotId instead of userId
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(Network response was not ok: ${response.statusText});
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received response from server:', data);
-                displayBotMessage(data.reply);
-                console.log(Response Source: ${data.source});
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-                displayBotMessage("Sorry, something went wrong. Please try again later.");
-            });
-    }
-
-    // Function to display bot messages
-    function displayBotMessage(message) {
-        const chatMessages = document.getElementById('chat-messages');
-        const botMessageElement = document.createElement('div');
-        botMessageElement.classList.add('message', 'bot-message');
-        botMessageElement.textContent = message;
-        chatMessages.appendChild(botMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
-    }
-
-    // Create elements for the chatbot widget
-    const chatbotWidget = document.createElement('div');
-    chatbotWidget.id = 'chatbot-widget';
-    chatbotWidget.innerHTML = 
-        <div id="chat-header">
-            <span id="chat-title">BizBot</span>
-            <button id="close-chat">X</button>
-        </div>
-        <div class="satisfactory">
-            <div class="message bot-message">
-                <div class="profile-image"></div>
-                <span class="message-content">For better experiences, we would like to hear your feedback about the performance.</span>
-            </div>
-            <div class="rating">
-                <p>How would you rate it?</p>
-                <div class="emojis">
-                    <div class="top-emojis">
-                        <button class="emoji">
-                            <i id="poor" class="fa-solid fa-face-sad-tear"></i>
-                            <p>Poor</p>
-                        </button>
-                        <button class="emoji">
-                            <i id="unsatisfied" class="fa-solid fa-face-frown"></i>
-                            <p>Unsatisfied</p>
-                        </button>
-                    </div>
-                    <div class="bot-emojis">
-                        <button class="emoji">
-                            <i id="neutral" class="fa-solid fa-face-meh"></i>
-                            <p>Neutral</p>
-                        </button>
-                        <button class="emoji">
-                            <i id="satisfied" class="fa-solid fa-face-smile"></i>
-                            <p>Satisfied</p>
-                        </button>
-                        <button class="emoji">
-                            <i id="excellent" class="fa-solid fa-face-laugh-beam"></i>
-                            <p>Excellent</p>
-                        </button>
-                    </div>
-                </div>
-                <textarea name="feedback" id="feedback" placeholder="Your feedback..."></textarea>
-                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
-            </div>
-        </div>
-        <div id="chat-messages">
-            <div class="message bot-message">
-                <div class="profile-image"></div>
-                <span class="message-content">Welcome! How can I assist you today?</span>
-            </div>
-        </div>
-        <div id="chat-input">
-            <input type="text" id="user-input" placeholder="Type your message...">
-            <button id="send-message" disabled>Send</button> <!-- Disabled until token is ready -->
-        </div>
-    ;
-
-    // Create the toggle button once
-    const chatToggle = document.createElement('button');
-    chatToggle.id = 'chat-toggle';
-    chatToggle.textContent = 'Chat';
-    chatToggle.style.display = 'block'; // Ensure it is visible initially
-
-    // Add styles directly or link to an external stylesheet
-    const styles = 
-		#STYLES
-    ;
-   const styleSheet = document.createElement('style');
-    styleSheet.type = 'text/css';
-    styleSheet.innerText = styles;
-    document.head.appendChild(styleSheet);
-
-    // Append elements to body
-    document.body.appendChild(chatbotWidget);
-    document.body.appendChild(chatToggle);
-
-    // Elements for chat widget
-    const chatToggleButton = document.getElementById('chat-toggle');
-    const chatbotWidgetElement = document.getElementById('chatbot-widget');
-    const closeChatButton = document.getElementById('close-chat');
-    const chatMsgs = document.getElementById('chat-messages');
-    const chatInp = document.getElementById('chat-input');
-    const satisfactory = document.querySelector('.satisfactory');
-    const emojiButtons = document.querySelectorAll('.emoji');
-    const feedbackTextarea = document.getElementById('feedback');
-    const feedbackBtn = document.getElementById('sendfeedback');
-    const sendMessageButton = document.getElementById('send-message');
-    let selectedRating = ''; // Variable to store the selected rating
-
-    // Disable send button until token is fetched
-    sendMessageButton.disabled = true;
-    sendMessageButton.style.cursor = 'not-allowed';
-
-    // Event listener to open chat
-    chatToggleButton.onclick = function () {
-        chatbotWidgetElement.style.display = 'flex';
-        chatToggleButton.style.display = 'none';
-        chatMsgs.style.display = 'flex';
-        chatInp.style.display = 'flex';
-    };
-
-    // Event listener to close chat
-    closeChatButton.onclick = function () {
-        chatbotWidgetElement.style.display = 'none';
-        chatToggleButton.style.display = 'block';
-        chatMsgs.style.display = 'none';
-        chatInp.style.display = 'none';
-        setTimeout(function () {
-            chatbotWidgetElement.style.display = 'flex';
-            chatToggleButton.style.display = 'none';
-            chatMsgs.style.display = 'none';
-            satisfactory.style.display = 'flex';
-        }, 1000);
-    };
-
-    // Event listeners for emoji buttons
-    emojiButtons.forEach((button) => {
-        button.addEventListener('click', function () {
-            emojiButtons.forEach(btn => {
-                btn.querySelector('i').classList.remove('active');
-            });
-            const icon = this.querySelector('i');
-            icon.classList.add('active');
-            selectedRating = this.querySelector('p').innerText; // Update the selected rating
-        });
-    });
-
-    // Event listener for sending feedback
-    feedbackBtn.onclick = function () {
-        if (selectedRating) {
-            const feedbackText = feedbackTextarea.value; 
-            if (feedbackText.trim() === '') {
-                alert('Please enter your feedback.');
-            } else {
-                console.log(Feedback submitted: ${feedbackText});
-                console.log(Feedback submitted with rating: ${selectedRating});
-                // TODO: Send feedback to the server or handle it as needed
-                // Reset feedback form
-                feedbackTextarea.value = '';
-                selectedRating = '';
-                emojiButtons.forEach(btn => {
-                    btn.querySelector('i').classList.remove('active');
-                });
-                satisfactory.style.display = 'none';
-                chatbotWidgetElement.style.display = 'flex';
-            }
+        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+            console.log(FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)});
+            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            alert('Please select a rating before submitting feedback.');
+            console.log('No adequate FAQ match found. Forwarding to Rasa.');
+            try {
+                const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
+                    message: question,
+                    sender: 'chatbot-widget',
+                });
+                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+                console.log(Rasa Response: "${botReply}");
+                res.json({ reply: botReply, source: 'Rasa' });
+            } catch (error) {
+                console.error('Error querying Rasa:', error);
+                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
+            }
         }
-    };
+    } catch (error) {
+        console.error('Error processing chat request:', error);
+        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+    }
+});
 
-    // Event listener for sending user message
-    sendMessageButton.onclick = function () {
-        const userInput = document.getElementById('user-input');
-        const chatMessages = document.getElementById('chat-messages');
 
-        if (userInput.value.trim() === '') {
-            alert('Please enter a message.');
-            return; // Prevent sending empty messages
-        }
-
-        // Append the user's message to the chat
-        const userMessageElement = document.createElement('div');
-        userMessageElement.classList.add('message', 'user-message');
-        const userProfileImage = document.createElement('div');
-        userProfileImage.classList.add('profile-image');
-        const userText = document.createElement('span');
-        userText.classList.add('message-content');
-        userText.textContent = userInput.value;
-        userMessageElement.appendChild(userProfileImage);
-        userMessageElement.appendChild(userText);
-        chatMessages.appendChild(userMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
-
-        // Send the message to the API
-        sendMessage(userInput.value);
-
-        // Clear the input field after sending
-        userInput.value = '';
-    };
-
-    // Initialize the chatbot widget on load
-    initializeChatbot();
-})();
+module.exports = router;
