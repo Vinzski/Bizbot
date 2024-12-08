@@ -1,14 +1,13 @@
 // models/chatLogModel.js
 const mongoose = require('mongoose');
 
-const chatLogSchema = new mongoose.Schema(
-    {
-        chatbotId: { type: String, required: true, index: true },
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-        question: { type: String, required: true },
-        answer: { type: String, required: true },
+const chatLogSchema = new mongoose.Schema({
+    chatbotId: { type: String, required: true, },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, },
+    question: { type: String, required: true, },
+    answer: { type: String, required: true, },
+    timestamp: { type: Date, default: Date.now,
     },
-    { timestamps: true, }
-);
+});
 
 module.exports = mongoose.model('ChatLog', chatLogSchema);
