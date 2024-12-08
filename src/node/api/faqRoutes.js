@@ -68,4 +68,29 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 
+router.put('/:id', authenticate, async (req, res) => {
+    const faqId = req.params.id;
+    const { question, answer } = req.body;
+
+    if (!question || !answer) {
+        return res.status(400).json({ message: 'Question and answer are required' });
+    }
+
+    try {
+        const faq = await FAQ.findOneAndUpdate(
+            { _id: faqId, userId: req.user.id },
+            { question, answer },
+            { new: true } // Return the updated document
+        );
+        if (!faq) {
+            return res.status(404).json({ message: 'FAQ not found or you do not have permission to update it' });
+        }
+        res.json(faq);
+    } catch (error) {
+        console.error('Error updating FAQ:', error);
+        res.status(500).json({ message: 'Failed to update FAQ', error: error.toString() });
+    }
+});
+
+
 module.exports = router;
