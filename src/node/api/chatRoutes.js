@@ -17,10 +17,14 @@ router.post('/send_message', (req, res) => {
     res.json({ reply: "Response based on " + userMessage });
 });
 
-// Protected route using middleware
 router.post('/', authenticate, async (req, res) => {
-    const { question, chatbotId, userId } = req.body;
-    
+    const { question, chatbotId } = req.body;
+    const userId = req.user.id; // Get user ID from token
+
+    if (!chatbotId || !userId) {
+        return res.status(400).json({ message: "Missing chatbotId or userId" });
+    }
+
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
     
@@ -29,15 +33,17 @@ router.post('/', authenticate, async (req, res) => {
         const tokens1 = question.toLowerCase().split(' ');
         const tokens2 = faq.question.toLowerCase().split(' ');
         let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / Math.max(tokens1.length, tokens2.length);
+        let score = intersection.length / tokens1.length;
         if (score > bestMatch.score) {
             bestMatch = { score, faq };
         }
     });
 
+    // If a good match is found in the database
     if (bestMatch.score >= 0.5) {
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
+        // If no good match, query Rasa
         try {
             const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
                 message: question,
@@ -51,5 +57,6 @@ router.post('/', authenticate, async (req, res) => {
         }
     }
 });
+
 
 module.exports = router;
