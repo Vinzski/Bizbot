@@ -53,37 +53,5 @@ router.post('/send_message', (req, res) => {
     res.json({ reply: "Response based on " + userMessage });
 });
 
-router.post('/', authenticate, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
-    // Fetch FAQs specific to the chatbot and user
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-    let bestMatch = { score: 0, faq: null };
-    faqs.forEach(faq => {
-        const tokens1 = question.toLowerCase().split(' ');
-        const tokens2 = faq.question.toLowerCase().split(' ');
-        let intersection = tokens1.filter(token => tokens2.includes(token));
-        let score = intersection.length / tokens1.length;
-        if (score > bestMatch.score) {
-            bestMatch = { score, faq };
-        }
-    });
-
-    if (bestMatch.score >= 0.5) {
-        return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-    } else {
-        try {
-            const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
-                message: question,
-                sender: 'chatbot-widget',
-            });
-            const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-            res.json({ reply: botReply, source: 'Rasa' });
-        } catch (error) {
-            console.error('Error querying Rasa:', error);
-            res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-        }
-    }
-});
 
 module.exports = router;
