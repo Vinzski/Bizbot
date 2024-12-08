@@ -255,6 +255,9 @@ const faqs = Array.from(document.querySelectorAll('#faq-table tbody tr'))
     })
     .filter(faq => faq.faqId && faq.question && faq.answer); // Filter out incomplete rows
 
+  console.log(faqs);  // Debugging step to see if the array is correct
+
+
   fetch('/api/chatbots', {
       method: 'POST',
       headers: {
