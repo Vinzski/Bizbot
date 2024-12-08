@@ -64,6 +64,7 @@ body {
     padding: 20px;
     heigth:100%;
     overflow-x:scroll;
+    overflow-y:hidden;
 }
 
 .dashboard-header {
