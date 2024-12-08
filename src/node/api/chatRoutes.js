@@ -1,11 +1,12 @@
 const express = require('express');
 const axios = require('axios');
-const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
-const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
+const authenticate = require('../signup/middleware/authMiddleware');
+const FAQ = require('../models/faqModel');
+const ChatLog = require('../models/chatLogModel');
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', (req, res) => {
