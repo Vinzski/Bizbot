@@ -18,16 +18,14 @@
     function initializeChatbot() {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
 
         console.log('Initializing Chatbot Widget:');
         console.log(`chatbotId: ${chatbotId}`);
-        console.log(`userId: ${userId}`);
         console.log(`initialToken: ${initialToken}`);
 
-        if (!chatbotId || !userId || !initialToken) {
-            console.error('Chatbot ID, User ID, or initial token is missing.');
+        if (!chatbotId || !initialToken) {
+            console.error('Chatbot ID or initial token is missing.');
             return;
         }
 
@@ -38,7 +36,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${initialToken}`
             },
-            body: JSON.stringify({ chatbotId, userId })
+            body: JSON.stringify({ chatbotId }) // Send only chatbotId
         })
         .then(response => {
             if (!response.ok) {
@@ -73,7 +71,7 @@
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
         const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        const userId = widgetElement.getAttribute('data-user-id');
+        // userId is not sent from frontend; it's obtained from the token on the backend
 
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
@@ -83,7 +81,6 @@
         console.log('Sending message with the following details:');
         console.log(`chatbotId: ${chatbotId}`);
         console.log(`token: ${token}`);
-        console.log(`userId: ${userId}`);
         console.log(`userInput: ${userInput}`);
 
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
@@ -92,7 +89,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, // Use the updated token
             },
-            body: JSON.stringify({ question: userInput, userId: userId }) // Send chatbotId instead of userId
+            body: JSON.stringify({ question: userInput, chatbotId: chatbotId }) // Send chatbotId
         })
             .then(response => {
                 if (!response.ok) {
@@ -464,7 +461,7 @@
         flex-direction: row;
     }
     `;
-   const styleSheet = document.createElement('style');
+ const styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
@@ -577,6 +574,10 @@
         // Clear the input field after sending
         userInput.value = '';
     };
+
+    // Initialize the chatbot widget on load
+    initializeChatbot();
+})();
 
     // Initialize the chatbot widget on load
     initializeChatbot();
