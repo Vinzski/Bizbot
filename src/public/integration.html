@@ -145,7 +145,7 @@
                 });
         }
 
-    async function generateCode() {
+       async function generateCode() {
         const chatbotId = document.getElementById('chatbot-select').value;
         if (!chatbotId) {
             alert('Please select a chatbot first.');
@@ -178,9 +178,15 @@
                 body: JSON.stringify({ chatbotId: chatbotId })
             });
     
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
             const data = await response.json();
     
-            if (response.ok && data.token) {
+            if (data.token) {
                 const newToken = data.token;
                 // Generate the widget code with chatbotId, userId, and the new token
                 const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
