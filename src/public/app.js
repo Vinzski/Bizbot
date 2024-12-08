@@ -320,34 +320,95 @@ function logout() {
   }
 
 function editFunc(id) {
-    const row = document.querySelector(`tr[data-faq-id="${id}"]`);
-    if (!row) {
-      console.error('Row not found!');
-      return;
-    }
-    const cells = row.querySelectorAll('td:not(:last-child)');
-    if (row.classList.contains('editing')) {
-      cells.forEach(cell => {
-        const input = cell.querySelector('input');
-        if (input) {
-          cell.textContent = input.value;
-        }
-      });
-      const editButton = row.querySelector('.btn-edit');
-      editButton.textContent = "EDIT";
-      row.classList.remove('editing');
-      console.log(`Saved changes for FAQ with ID: ${id}`);
-    } else {
-      cells.forEach(cell => {
-        const text = cell.textContent;
-        cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
-      });
-      const editButton = row.querySelector('.btn-edit');
-      editButton.textContent = "SAVE";
-      row.classList.add('editing');
-      console.log(`Editing FAQ with ID: ${id}`);
-    }
+  // Find the table row with the matching ID
+  const row = document.querySelector(`tr[data-faq-id="${id}"]`);
+  if (!row) {
+    console.error('Row not found!');
+    return;
   }
+
+  // Get all <td> elements in the row (excluding the Actions column)
+  const cells = row.querySelectorAll('td:not(:last-child)');
+
+  // Toggle between editable and non-editable states
+  if (row.classList.contains('editing')) {
+    // Save changes
+    const updatedData = {};
+    const questionInput = cells[0].querySelector('input'); // Assuming the first cell is the question
+    const answerInput = cells[1].querySelector('input'); // Assuming the second cell is the answer
+
+    if (questionInput && answerInput) {
+      updatedData.question = questionInput.value;
+      updatedData.answer = answerInput.value;
+
+      // Replace input values back into the cells
+      cells[0].textContent = updatedData.question;
+      cells[1].textContent = updatedData.answer;
+    }
+
+    // Change button text back to "EDIT"
+    const editButton = row.querySelector('.btn-edit');
+    editButton.textContent = "EDIT";
+
+    row.classList.remove('editing');
+
+    // Check if the ID exists in the database
+    const token = localStorage.getItem('token');
+    fetch(`/api/faqs/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`FAQ with ID ${id} not found.`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(`FAQ with ID ${id} exists. Proceeding to update.`);
+        // Proceed to update the question and answer
+        return fetch(`/api/faqs/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(updatedData)
+        });
+      })
+      .then(updateResponse => {
+        if (!updateResponse.ok) {
+          throw new Error('Failed to update FAQ.');
+        }
+        return updateResponse.json();
+      })
+      .then(updateData => {
+        console.log(`FAQ with ID ${id} updated successfully:`, updateData);
+        alert('FAQ updated successfully!');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert(`Error: ${error.message}`);
+      });
+
+    console.log(`Saved changes for FAQ with ID: ${id}`);
+  } else {
+    // Make cells editable
+    cells.forEach((cell, index) => {
+      const text = cell.textContent; // Get the current text content of the cell
+      cell.innerHTML = `<input type="text" value="${text}" style="width: 100%;" />`;
+    });
+
+    const editButton = row.querySelector('.btn-edit');
+    editButton.textContent = "SAVE";
+
+    row.classList.add('editing');
+    console.log(`Editing FAQ with ID: ${id}`);
+  }
+}
+
 
 function deleteFunc(id) {
     // Log the ID that will be deleted
