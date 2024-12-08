@@ -95,6 +95,10 @@ function loadFAQsForChatbot(faqIds) {
         row.innerHTML = `
           <td>${faq.question}</td>
           <td>${faq.answer}</td>
+          <td>
+              <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
+              <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
+          </td>
         `;
         tbody.appendChild(row);
       });
@@ -134,8 +138,8 @@ function addOrUpdateFAQ() {
       <td>${data.question}</td>
       <td>${data.answer}</td>
       <td>
-          <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
-          <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
+          <button class="btn-edit" onclick="editFunc('${data._id}')">EDIT</button>
+          <button class="btn-delete" onclick="deleteFunc('${data._id}')">DELETE</button>
       </td>
     `;
     tbody.appendChild(row);
