@@ -12,7 +12,7 @@
     }
     // Call the function to add Font Awesome
     addFontAwesome();
-    // Function to initialize the chatbot widget
+
 // Function to initialize the chatbot widget
 function initializeChatbot() {
     const widgetElement = document.getElementById('bizbot-widget');
@@ -25,7 +25,7 @@ function initializeChatbot() {
         return;
     }
 
-    // Fetch a new token from the server
+    // Fetch the token from the server
     fetch('https://bizbot-khpq.onrender.com/api/token', {
         method: 'POST',
         headers: {
@@ -42,15 +42,14 @@ function initializeChatbot() {
     })
     .then(data => {
         if (data.token) {
-            token = data.token; // Store new token in memory
+            token = data.token; // Store token in memory
             console.log('Chatbot token fetched successfully');
         } else {
-            throw new Error('Token not received in the response');
+            throw new Error('Failed to fetch token');
         }
     })
     .catch(error => {
         console.error('Error fetching chatbot token:', error);
-        displayErrorMessage('Failed to initialize chatbot. Please try again later.');
     });
 }
 
