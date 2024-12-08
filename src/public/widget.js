@@ -548,7 +548,7 @@
                 };
     
                 // Send feedback to the server
-                fetch('https://your-server-url.com/api/feedback', {
+                fetch('https://bizbot-khpq.onrender.com/api/feedback', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
