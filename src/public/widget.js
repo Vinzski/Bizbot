@@ -63,6 +63,7 @@
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
         const initialToken = widgetElement.getAttribute('data-token');
+        const userId = widgetElement.getAttribute('data-user-id');
         if (!token) {
             console.error('Token is not available. Ensure the widget is initialized correctly.');
             return;
@@ -80,7 +81,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${initialToken}`,
             },
-            body: JSON.stringify({ question: userInput, chatbotId: chatbotId })
+            body: JSON.stringify({ question: userInput, userId: userId })
         })
             .then(response => {
                 if (!response.ok) {
