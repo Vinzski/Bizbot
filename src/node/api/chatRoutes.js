@@ -8,7 +8,7 @@ const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
 // Middleware for token-based authentication in the /chat route
-router.post('/chat', async (req, res) => {
+router.post('/', async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
