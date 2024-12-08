@@ -351,72 +351,58 @@ function editFunc(id) {
 
 function deleteFunc(id) {
   const token = localStorage.getItem('token');
-    // Log the ID that will be deleted
-    console.log(`Attempting to delete FAQ with ID: ${id}`);
+  // Log the ID that will be deleted
+  console.log(`Attempting to delete FAQ with ID: ${id}`);
 
   if (confirm('Are you sure you want to delete this FAQ?')) {
+    // Check if the FAQ exists before deleting
     fetch(`/api/faqs/${id}`, {
-      method: 'DELETE',
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,  // Include the JWT token
-        }
+        'Authorization': `Bearer ${token}`  // Include the JWT token
+      }
     })
-    .then(response => {
+      .then(response => {
         if (!response.ok) {
-          throw new Error('Failed to delete FAQ');
-            throw new Error(`Failed to find FAQ: ${response.statusText}`);
+          throw new Error(`Failed to find FAQ: ${response.statusText}`);
         }
         return response.json();
       })
       .then(data => {
-        // Successfully deleted, now remove the row from the table
-        const row = document.querySelector(`tr[data-faq-id="${id}"]`);
-        if (row) {
-          row.remove();  // Remove the row from the table
+        console.log(`FAQ found: ${data.message}`);
+        // Proceed with deletion after confirming the FAQ exists
+        return fetch(`/api/faqs/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      })
+      .then(deleteResponse => {
+        if (!deleteResponse.ok) {
+          throw new Error('Failed to delete FAQ');
         }
-        alert('FAQ deleted successfully!');
+        return deleteResponse.json();
+      })
+      .then(deleteData => {
+        alert(deleteData.message); // Show success message
+        removeFaqRow(id); // Remove the FAQ row from the table
       })
       .catch(error => {
-        console.error('Error deleting FAQ:', error);
+        console.error('Error:', error);
         alert(`Failed to delete FAQ: ${error.message}`);
       });
   }
-    })
-    .then(data => {
-        console.log(`FAQ found: ${data.message}`);
-        // Proceed with deletion after confirming the FAQ exists
-        fetch(`/api/faqs/${id}`, {
-            method: 'GET',  // This GET method will handle both existence check and deletion on the server
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            }
-        })
-        .then(deleteResponse => deleteResponse.json())
-        .then(deleteData => {
-            alert(deleteData.message);  // Show success message
-            removeFaqRow(id);  // Remove the FAQ row from the table
-        })
-        .catch(error => {
-            console.error('Error deleting FAQ:', error);
-            alert(`Failed to delete FAQ: ${error.message}`);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching FAQ:', error);
-        alert('FAQ not found or you don\'t have permission to delete it.');
-    });
 }
+
 // Function to remove the deleted FAQ row from the table
 function removeFaqRow(id) {
-    const row = document.querySelector(`tr[data-faq-id="${id}"]`);
-    if (row) {
-        row.remove(); // Remove the row from the table
-    } else {
-        console.warn('Row not found to remove!');
-    }
+  const row = document.querySelector(`tr[data-faq-id="${id}"]`);
+  if (row) {
+    row.remove(); // Remove the row from the table
+  } else {
+    console.warn('Row not found to remove!');
+  }
 }
+
