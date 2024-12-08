@@ -20,14 +20,8 @@ router.post('/send_message', (req, res) => {
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
-
-    if (!chatbotId || !userId) {
-        return res.status(400).json({ message: "Missing chatbotId or userId" });
-    }
-
     // Fetch FAQs specific to the chatbot and user
     const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-    
     let bestMatch = { score: 0, faq: null };
     faqs.forEach(faq => {
         const tokens1 = question.toLowerCase().split(' ');
@@ -39,11 +33,9 @@ router.post('/', authenticate, async (req, res) => {
         }
     });
 
-    // If a good match is found in the database
     if (bestMatch.score >= 0.5) {
         return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
     } else {
-        // If no good match, query Rasa
         try {
             const rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
                 message: question,
@@ -57,6 +49,7 @@ router.post('/', authenticate, async (req, res) => {
         }
     }
 });
+
 
 
 module.exports = router;
