@@ -71,11 +71,10 @@
     }
 
     // Function to send user messages to the server
- // widget.js (Updated sendMessage function)
 function sendMessage(userInput) {
     const widgetElement = document.getElementById('bizbot-widget');
     const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    const userId = widgetElement.getAttribute('data-user-id');
+    const userId = widgetElement.getAttribute('data-user-id'); // Retain if needed elsewhere
 
     if (!token) {
         console.error('Token is not available. Ensure the widget is initialized correctly.');
@@ -85,7 +84,7 @@ function sendMessage(userInput) {
     console.log('Sending message with the following details:');
     console.log(`chatbotId: ${chatbotId}`);
     console.log(`token: ${token}`);
-    console.log(`userId: ${userId}`); // Optional: if you still need to send userId
+    console.log(`userId: ${userId}`);
     console.log(`userInput: ${userInput}`);
 
     fetch('https://bizbot-khpq.onrender.com/api/chat', {
@@ -94,7 +93,7 @@ function sendMessage(userInput) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`, // Use the updated token
         },
-        body: JSON.stringify({ question: userInput, chatbotId: chatbotId }) // Send chatbotId
+        body: JSON.stringify({ question: userInput, chatbotId: chatbotId, userId: userId }) // Add chatbotId
     })
         .then(response => {
             if (!response.ok) {
