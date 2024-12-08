@@ -650,22 +650,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Reset feedback form
-                        feedbackTextarea.value = '';
-                        selectedRating = '';
-                        emojiButtons.forEach(btn => {
-                            btn.querySelector('i').classList.remove('active');
-                        });
-                        satisfactory.style.display = 'none';
-    
-                        // Hide the chatbot widget and show the toggle button
-                        widgetElement.style.display = 'none'; // Hide the main widget
-                        const chatToggleButton = document.getElementById('chat-toggle');
-                        chatToggleButton.style.display = 'block'; // Show the toggle button
-                        const chatMsgs = document.getElementById('chat-messages');
-                        chatMsgs.style.display = 'none'; // Hide chat messages
-                        const chatInp = document.getElementById('chat-input');
-                        chatInp.style.display = 'none'; // Hide chat input
+                    chatbotWidgetElement.style.display = 'none';
+                    chatToggleButton.style.display = 'block';
+                    chatMsgs.style.display = 'none';
+                    chatInp.style.display = 'none';
                     } else {
                         alert('Error submitting feedback. Please try again.');
                     }
