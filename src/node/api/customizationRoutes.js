@@ -6,7 +6,7 @@ const authenticate = require('../signup/middleware/authMiddleware');
 const Chatbot = require('../models/chatbotModel');
 const User = require('../models/userModel'); // Assuming this is the User model
 const bcrypt = require('bcrypt');
-
+const authenticateToken = require('../signup/middleware/authMiddleware'); // For profile update (reuse if same)
 
 // File upload configuration
 const storage = multer.diskStorage({
