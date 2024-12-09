@@ -44,9 +44,16 @@
                 </div>
             </div>
             <div class="card">
-                <h2>Feedbacks</h2>
-                <div id="feedbacks-container" class="feedbacks-container">
-                    <!-- Feedbacks will be dynamically inserted here -->
+                <h2>Chatbot Feedbacks</h2>
+                <!-- Dropdown to select chatbot -->
+                <select id="chatbot-select" onchange="fetchFeedbacks()">
+                    <option value="">Select Chatbot</option>
+                </select>
+                <div class="feedbacks-container">
+                    <!-- Feedbacks will be loaded here -->
+                    <div id="feedbacks" class="feedbacks">
+                        <!-- Feedbacks will be displayed here -->
+                    </div>
                 </div>
             </div>
             <div class="card">
