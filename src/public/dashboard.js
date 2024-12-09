@@ -1,3 +1,4 @@
+
 window.onload = () => {
     const token = localStorage.getItem('token');  // Retrieve token from localStorage
 
