@@ -322,3 +322,32 @@ table button{
     width: 700px !important;  
     height: 700px !important;  
 }
+
+.feedbacks-container {
+    width: 100%;
+    height: 300px;  /* Adjust the height as needed */
+    overflow-y: scroll;  /* Enable scrolling */
+    background-color: #333;
+    color: #fff;
+    font-family: "Courier New", Courier, monospace;
+    padding: 10px;
+    border-radius: 5px;
+    white-space: pre-wrap;  /* Maintain formatting in the feedback */
+}
+
+.feedbacks-container .chatbot-name {
+    color: #ff6347;  /* Highlight chatbot name in tomato color */
+    font-weight: bold;
+}
+
+.feedbacks-container .feedback {
+    margin-top: 10px;
+    padding: 5px;
+    border-bottom: 1px solid #444;
+}
+
+.feedbacks-container .rating {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    font-style: italic;
+}
