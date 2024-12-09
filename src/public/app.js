@@ -42,6 +42,8 @@ function loadUserInfo() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   if (user.username) {
       console.log(`Currently logged in as: ${user.username}`);
+      document.getElementById('username').value = ${user.username};
+      document.getElementById('email').value = ${user.email};
   } else {
       console.log('No user is currently logged in.');
   }
