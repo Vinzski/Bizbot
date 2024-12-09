@@ -131,63 +131,58 @@
         
             document.querySelector('form').addEventListener('submit', async function (e) {
                 e.preventDefault(); // Prevent form submission
-        
-                const username = document.getElementById('username').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const oldPassword = document.getElementById('password').value.trim();
-                const newPassword = document.getElementById('new-password').value.trim();
-                const confirmPassword = document.getElementById('confirm-password').value.trim();
-        
-                // Input validation
-                if (!username || !email || !oldPassword) {
-                    alert("Username, email, and password are required!");
-                    return;
-                }
-        
-                if (newPassword && newPassword !== confirmPassword) {
-                    alert("New password and confirm password do not match!");
-                    return;
-                }
-        
-                try {
-                    // API call to update user profile
-                    const updateResponse = await fetch('/api/update-profile', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username,
-                            email,
-                            oldPassword,
-                            newPassword,
-                        }),
-                    });
-        
-                    const result = await updateResponse.json();
-        
-                    if (!updateResponse.ok) {
-                        throw new Error(result.message || 'Failed to update profile');
-                    }
-        
-                    alert("Profile updated successfully!");
-                    
-                    // Update local storage with new user info
-                    localStorage.setItem('user', JSON.stringify({
-                        username,
-                        email,
-                        // Avoid storing passwords in local storage
-                    }));
-        
-                    // Optionally, reload the page or redirect
-                    location.reload();
-                } catch (error) {
-                    console.error('Error updating profile:', error);
-                    alert(error.message || "An error occurred while updating the profile.");
-                }
-            });
+
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const oldPassword = document.getElementById('password').value.trim();
+        const newPassword = document.getElementById('new-password').value.trim();
+        const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+        // Input validation
+        if (!username || !email || !oldPassword) {
+            alert("Username, email, and password are required!");
+            return;
+        }
+
+        if (newPassword && newPassword !== confirmPassword) {
+            alert("New password and confirm password do not match!");
+            return;
+        }
+
+        // API call to update user profile
+        const response = await fetch('/api/update-profile', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                email,
+                oldPassword,
+                newPassword,
+            }),
         });
+
+        if (response.ok) {
+            alert("Profile updated successfully!");
+
+            // Update local storage with new user info
+            localStorage.setItem('user', JSON.stringify({
+                username,
+                email,
+                // Avoid storing passwords in local storage
+            }));
+
+            // Optionally, reload the page or redirect
+            location.reload();
+        } else {
+            const errorText = await response.text();
+            console.error('Error updating profile:', errorText);
+            alert('Failed to update profile. ' + errorText);
+        }
+    });
+});
 
         
         document.getElementById('customization-form').onsubmit = async function(e) {
