@@ -65,7 +65,7 @@ router.post('/', authenticate, async (req, res) => {
         } else {
             console.log('No adequate FAQ match found. Forwarding to Rasa.');
             try {
-                const rasaResponse = await axios.post('https://afraid-ants-swim.loca.lt/webhooks/rest/webhook', {
+                const rasaResponse = await axios.post('https://better-squids-go.loca.lt/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget',
                 });
