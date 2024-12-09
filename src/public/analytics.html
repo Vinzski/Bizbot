@@ -82,22 +82,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <option value="choose">Choose a chatbot</option>
+                        <!-- Table data here -->
                     </tbody>
                 </table>
             </div>
         </main>
     </div>
 
+    <!-- Chart.js Initialization Script -->
     <script>
         // Fetch chatbots for the logged-in user
         async function fetchChatbots() {
-        const token = localStorage.getItem('token');
             try {
                 const response = await fetch('/api/chatbots', {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
                     }
                 });
 
@@ -112,6 +112,14 @@
                     option.textContent = chatbot.name;
                     chatbotSelector.appendChild(option);
                 });
+
+                // Automatically fetch the first chatbot and update charts
+                if (chatbots.length > 0) {
+                    const firstChatbotId = chatbots[0]._id;
+                    chatbotSelector.value = firstChatbotId;
+                    updateCharts(firstChatbotId);
+                }
+
             } catch (error) {
                 console.error('Error fetching chatbots:', error);
             }
@@ -119,12 +127,11 @@
 
         // Fetch ratings for the selected chatbot
         async function fetchRatings(chatbotId) {
-        const token = localStorage.getItem('token');
             try {
                 const response = await fetch(`/api/chatbots/ratings/${chatbotId}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
                     }
                 });
 
@@ -237,7 +244,7 @@
             }
         });
 
-        // Initialize the page
+        // Initialize the page and automatically fetch data
         fetchChatbots();
 
     </script>
