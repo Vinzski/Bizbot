@@ -6,46 +6,6 @@
     <title>BizBot Admin Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
-    <style>
-        /* Style the feedback container */
-        .feedbacks-container {
-            background-color: #1e1e1e;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            border-radius: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-
-        .chatbot-name {
-            color: #00ff00;  /* Green color for the chatbot name */
-            font-weight: bold;
-        }
-
-        .rating {
-            color: #ffcc00;  /* Yellow color for rating */
-        }
-
-        .feedback-text {
-            color: #ffffff;
-        }
-
-        /* Scrollbar styling */
-        .feedbacks-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .feedbacks-container::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 10px;
-        }
-
-        .feedbacks-container::-webkit-scrollbar-thumb:hover {
-            background-color: #555;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -60,14 +20,14 @@
                     <li><a href="settings.html">Settings</a></li>
                     <li><a href="analytics.html">Analytics</a></li>
                     <li><a href="support.html">Support</a></li>
-                    <li><button class="btn-logout" onclick="logout()" >Logout</button></li>
+                    <li><button class="btn-logout" onclick="logout()">Logout</button></li>
                 </ul>
             </nav>
         </aside>
         <main class="main-content">
             <header class="dashboard-header">
                 <h1>Dashboard Overview</h1>
-                <button>Refresh Data</button>
+                <button onclick="fetchChatbotFeedback()">Refresh Data</button>
             </header>
             <div class="grid">
                 <div class="card">
@@ -83,60 +43,112 @@
                     <p class="large-number">1,234</p>
                 </div>
             </div>
+
+            <!-- Feedback Section -->
             <div class="card">
-                <h2>Feedbacks</h2>
-                <div class="feedbacks-container" id="feedbacksContainer">
-                    <!-- Feedbacks will be displayed here -->
-                </div>
+                <h2>Chatbot Feedback</h2>
+                <select id="chatbotSelector" onchange="fetchChatbotFeedback()">
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <div class="scrollable-feedback" id="feedbacks"></div>
             </div>
-            <div class="card">
-                <h2>User Engagement Trends</h2>
-                <div class="chart-container">
-                    <p>Chart showing user engagement trends goes here</p>
-                </div>
-            </div>
+
         </main>
     </div>
-    <script src="dashboard.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            const feedbacksContainer = document.getElementById('feedbacksContainer');
+        async function fetchChatbotFeedback() {
+            const chatbotId = document.getElementById('chatbotSelector').value;
+            if (!chatbotId) return;
 
-            // Fetch feedback data from your API
-            const response = await fetch('/api/feedback'); // Adjust the API endpoint as necessary
-            const feedbacks = await response.json();
+            try {
+                const response = await fetch(`/api/chatbots/feedbacks/${chatbotId}`);
+                const feedbacks = await response.json();
 
-            // Loop through the feedbacks and display them
-            feedbacks.forEach(feedback => {
-                // Fetch chatbot name from chatbotId (assuming you have this in your system)
-                const chatbotName = await getChatbotNameById(feedback.chatbotId); // You may need an API for this
-                
-                // Create a feedback string in terminal style
-                const feedbackContent = `
-                    ${chatbotName} (${feedback.rating})
-                    > ${feedback.feedback}
-                `;
-                
-                // Create a div element to display the feedback in the container
-                const feedbackDiv = document.createElement('div');
-                feedbackDiv.innerHTML = `
-                    <span class="chatbot-name">${chatbotName}</span>
-                    <span class="rating">(${feedback.rating})</span>
-                    <span class="feedback-text"> > ${feedback.feedback}</span>
-                `;
-                
-                // Append the feedback div to the container
-                feedbacksContainer.appendChild(feedbackDiv);
-            });
-        });
+                const feedbackContainer = document.getElementById('feedbacks');
+                feedbackContainer.innerHTML = ''; // Clear previous feedback
 
-        // Simulating fetching chatbot name (you need to implement this based on your data)
-        async function getChatbotNameById(chatbotId) {
-            // Simulate an API call to get the chatbot name based on its ID
-            // Replace this with your actual logic
-            return 'Chatbot ' + chatbotId.substring(0, 5); // Just an example
+                feedbacks.forEach(feedback => {
+                    const feedbackDiv = document.createElement('div');
+                    feedbackDiv.classList.add('feedback-entry');
+
+                    // Highlight the chatbot name
+                    const chatbotName = document.createElement('strong');
+                    chatbotName.textContent = feedback.chatbotName;
+                    chatbotName.style.color = '#4CAF50';  // Highlight color
+                    feedbackDiv.appendChild(chatbotName);
+
+                    // Display the rating and feedback
+                    const rating = document.createElement('p');
+                    rating.textContent = `Rating: ${feedback.rating}`;
+                    feedbackDiv.appendChild(rating);
+
+                    const feedbackText = document.createElement('p');
+                    feedbackText.textContent = `Feedback: ${feedback.feedback}`;
+                    feedbackDiv.appendChild(feedbackText);
+
+                    feedbackContainer.appendChild(feedbackDiv);
+                });
+            } catch (error) {
+                console.error('Error fetching chatbot feedback:', error);
+            }
         }
+
+        // Load chatbots dynamically into the dropdown
+        async function loadChatbots() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/chatbots', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const chatbots = await response.json();
+
+                const chatbotSelector = document.getElementById('chatbotSelector');
+                chatbotSelector.innerHTML = '';  // Clear previous options
+                chatbots.forEach(chatbot => {
+                    const option = document.createElement('option');
+                    option.value = chatbot._id;
+                    option.textContent = chatbot.name;
+                    chatbotSelector.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading chatbots:', error);
+            }
+        }
+
+        // Load chatbots on page load
+        window.onload = loadChatbots;
     </script>
+
+    <style>
+        .scrollable-feedback {
+            height: 300px;
+            overflow-y: scroll;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .feedback-entry {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .feedback-entry strong {
+            font-size: 1.1em;
+            color: #2e7d32;
+        }
+
+        .feedback-entry p {
+            margin: 5px 0;
+        }
+    </style>
+
 </body>
 </html>
