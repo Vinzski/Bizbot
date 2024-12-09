@@ -302,6 +302,7 @@ table button{
     width: 100%;
     text-align: left;
     font-size: 1rem;
+    margin-top: 350px;
 }
 
 .btn-logout:hover{
