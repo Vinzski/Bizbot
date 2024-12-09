@@ -129,9 +129,9 @@ router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
-router.get('/chatbots', async (req, res) => {
+router.get('/chatbots', authenticate, async (req, res) => {
     try {
-        const chatbots = await Chatbot.find({}, 'name');
+        const chatbots = await Chatbot.find({ userId: req.user.id }, 'name');
         res.json(chatbots);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching chatbots', error: error.message });
@@ -139,7 +139,7 @@ router.get('/chatbots', async (req, res) => {
 });
 
 // Get feedbacks for a specific chatbot
-router.get('/feedbacks/:chatbotId', async (req, res) => {
+router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
     try {
         const feedbacks = await Feedback.find({ chatbotId: req.params.chatbotId });
         res.json(feedbacks);
@@ -147,7 +147,6 @@ router.get('/feedbacks/:chatbotId', async (req, res) => {
         res.status(500).json({ message: 'Error fetching feedbacks', error: error.message });
     }
 });
-
 
 
 module.exports = router;
