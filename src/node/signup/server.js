@@ -15,14 +15,12 @@ connectDB();
 
 app.use(async (req, res, next) => {
     try {
-        // Step 2: Fetch all domains that belong to the logged-in user
         const domains = await Domain.find({ userId: req.user.id }).select('domain -_id'); // Only fetch domains for this user
         let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
 
         // Add the static domain to the allowed origins
         allowedOrigins.push('https://bizbot-khpq.onrender.com');
 
-        // Step 3: CORS check
         cors({
             origin: function (origin, callback) {
                 if (!origin || allowedOrigins.indexOf(origin) !== -1) {
