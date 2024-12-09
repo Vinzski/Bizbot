@@ -292,7 +292,7 @@ table button{
 }
 
 .btn-logout{
-    background-color: red;
+    background-color: transparent;
     color: #fff;
     border: none;
     padding: 10px 15px;
@@ -300,6 +300,10 @@ table button{
     cursor: pointer;
     transition: background-color 0.3s;
     width: 100%;
+}
+
+.btn-logout:hover{
+    background-color:red;
 }
 
 .chart-container {
