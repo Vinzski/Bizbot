@@ -20,14 +20,14 @@
                     <li><a href="settings.html">Settings</a></li>
                     <li><a href="analytics.html">Analytics</a></li>
                     <li><a href="support.html">Support</a></li>
-                    <li><button class="btn-logout" onclick="logout()">Logout</button></li>
+                    <li><button class="btn-logout" onclick="logout()" >Logout</button></li>
                 </ul>
             </nav>
         </aside>
         <main class="main-content">
             <header class="dashboard-header">
                 <h1>Dashboard Overview</h1>
-                <button onclick="fetchChatbotFeedback()">Refresh Data</button>
+                <button>Refresh Data</button>
             </header>
             <div class="grid">
                 <div class="card">
@@ -43,112 +43,21 @@
                     <p class="large-number">1,234</p>
                 </div>
             </div>
-
-            <!-- Feedback Section -->
             <div class="card">
-                <h2>Chatbot Feedback</h2>
-                <select id="chatbotSelector" onchange="fetchChatbotFeedback()">
-                    <!-- Options will be populated dynamically -->
-                </select>
-
-                <div class="scrollable-feedback" id="feedbacks"></div>
+                <h2>Feedbacks</h2>
+                <div class="chart-container">
+                    <p>Chart showing recent chatbot activities goes here</p>
+                </div>
             </div>
-
+            <div class="card">
+                <h2>User Engagement Trends</h2>
+                <div class="chart-container">
+                    <p>Chart showing user engagement trends goes here</p>
+                </div>
+            </div>
         </main>
     </div>
-
-    <script>
-        async function fetchChatbotFeedback() {
-            const chatbotId = document.getElementById('chatbotSelector').value;
-            if (!chatbotId) return;
-
-            try {
-                const response = await fetch(`/api/chatbots/feedbacks/${chatbotId}`);
-                const feedbacks = await response.json();
-
-                const feedbackContainer = document.getElementById('feedbacks');
-                feedbackContainer.innerHTML = ''; // Clear previous feedback
-
-                feedbacks.forEach(feedback => {
-                    const feedbackDiv = document.createElement('div');
-                    feedbackDiv.classList.add('feedback-entry');
-
-                    // Highlight the chatbot name
-                    const chatbotName = document.createElement('strong');
-                    chatbotName.textContent = feedback.chatbotName;
-                    chatbotName.style.color = '#4CAF50';  // Highlight color
-                    feedbackDiv.appendChild(chatbotName);
-
-                    // Display the rating and feedback
-                    const rating = document.createElement('p');
-                    rating.textContent = `Rating: ${feedback.rating}`;
-                    feedbackDiv.appendChild(rating);
-
-                    const feedbackText = document.createElement('p');
-                    feedbackText.textContent = `Feedback: ${feedback.feedback}`;
-                    feedbackDiv.appendChild(feedbackText);
-
-                    feedbackContainer.appendChild(feedbackDiv);
-                });
-            } catch (error) {
-                console.error('Error fetching chatbot feedback:', error);
-            }
-        }
-
-        // Load chatbots dynamically into the dropdown
-        async function loadChatbots() {
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch('/api/chatbots', {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const chatbots = await response.json();
-
-                const chatbotSelector = document.getElementById('chatbotSelector');
-                chatbotSelector.innerHTML = '';  // Clear previous options
-                chatbots.forEach(chatbot => {
-                    const option = document.createElement('option');
-                    option.value = chatbot._id;
-                    option.textContent = chatbot.name;
-                    chatbotSelector.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading chatbots:', error);
-            }
-        }
-
-        // Load chatbots on page load
-        window.onload = loadChatbots;
     </script>
-
-    <style>
-        .scrollable-feedback {
-            height: 300px;
-            overflow-y: scroll;
-            background-color: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-        .feedback-entry {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .feedback-entry strong {
-            font-size: 1.1em;
-            color: #2e7d32;
-        }
-
-        .feedback-entry p {
-            margin: 5px 0;
-        }
-    </style>
-
+    <script src="dashboard.js"></script>
 </body>
 </html>
