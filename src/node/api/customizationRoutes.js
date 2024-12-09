@@ -50,25 +50,27 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
 });
 
 router.post('/update-profile', authenticateToken, async (req, res) => {
+    const { id } = req.user; // Extract the user ID from the token
     const { username, email, oldPassword, newPassword } = req.body;
-    console.log('Update-profile route hit');
 
     if (!username || !email || !oldPassword) {
         return res.status(400).json({ message: 'Username, email, and old password are required.' });
     }
 
     try {
-        const user = await User.findOne({ username: req.user.username });
-
+        // Find user by ID
+        const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
+        // Verify old password
         const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: 'Incorrect old password.' });
         }
 
+        // Update user details
         user.username = username;
         user.email = email;
 
@@ -85,5 +87,6 @@ router.post('/update-profile', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'An error occurred while updating the profile.' });
     }
 });
+
 
 module.exports = router;
