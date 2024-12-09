@@ -54,7 +54,7 @@
             <!-- Pie Chart Section -->
             <div class="card" id="pieChartContainer" style="display: none;">
                 <h2>Chatbot Usage Distribution (Pie Chart)</h2>
-                <canvas id="pieChart" width="400" height="400"></canvas>
+                <canvas id="pieChart" width="300" height="300"></canvas>
             </div>
 
             <div class="card">
@@ -172,6 +172,7 @@
             },
             options: {
                 responsive: true
+                maintainAspectRatio: false
             }
         });
 
