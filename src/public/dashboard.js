@@ -76,22 +76,42 @@ async function fetchChatbots() {
     }
 }
 
-async function fetchFeedbacks() {
-    const chatbotId = document.getElementById('chatbot-select').value;
+async function fetchChatbots() {
+    const token = localStorage.getItem('token');  // Assuming the token is stored in localStorage
 
-    if (!chatbotId) {
-        return; // No chatbot selected, don't fetch
+    if (!token) {
+        console.error('No token found in localStorage');
+        return;  // If no token, abort the request
     }
 
     try {
-        const response = await fetch(`/api/feedbacks/${chatbotId}`);
-        const feedbacks = await response.json();
+        const response = await fetch('/api/chatbots', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // Add the token to the request headers
+            }
+        });
 
-        displayFeedbacks(feedbacks);
+        if (!response.ok) {
+            throw new Error('Failed to fetch chatbots');
+        }
+
+        const chatbots = await response.json();
+
+        const chatbotSelect = document.getElementById('chatbot-select');
+
+        chatbots.forEach(chatbot => {
+            const option = document.createElement('option');
+            option.value = chatbot._id;  // Assuming the chatbot has an _id
+            option.textContent = chatbot.name;  // Assuming name is the field for chatbot name
+            chatbotSelect.appendChild(option);
+        });
     } catch (error) {
-        console.error('Error fetching feedbacks:', error);
+        console.error('Error fetching chatbots:', error);
     }
 }
+
 
 function displayFeedbacks(feedbacks) {
     const feedbacksContainer = document.getElementById('feedbacks');
