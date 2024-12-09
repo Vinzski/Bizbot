@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
-const Rating = require('../models/ratingModel');
+const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
 
