@@ -52,7 +52,7 @@
                         <label for="confirm-password">Confirm New Password:</label>
                         <input type="password" id="confirm-password" name="confirm-password">
                     </div>
-                    <button type="submit">Update Profile</button>
+                    <button onclick="update()">Update Profile</button>
                 </form>
             </div>
             <div class="card">
@@ -87,6 +87,21 @@
     <script src="app.js"></script>
 
     <script>
+
+        function update() {
+            const username = getElementById('username');
+            const email = getElementById('email');
+            const password = getElementById('password');
+            const npass = getElementById('new-password');
+            const cpass = getElementById('confirm-password');
+
+            console.log(username);
+            console.log(email);
+            console.log(password);
+            console.log(npass);
+            console.log(cpass);
+        }
+        
 
         document.addEventListener('DOMContentLoaded', async function() {
             const token = localStorage.getItem('token');
