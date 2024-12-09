@@ -94,14 +94,13 @@
         
             if (user.username) {
                 console.log(`Currently logged in as: ${user.username}`);
-        
+                
                 // Assigning values to the input fields
                 document.getElementById('username').value = user.username;
                 document.getElementById('email').value = user.email;
-        
-                // If you want the password input field to hide the password (which is the usual case):
-                document.getElementById('password').value = user.password;
-        
+                
+                // Do not display the password for security reasons
+                // document.getElementById('password').value = user.password; // Don't do this
             } else {
                 console.log('No user is currently logged in.');
             }
