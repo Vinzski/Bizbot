@@ -193,10 +193,10 @@ async function generateCode() {
             const newToken = data.token;
             // Generate the widget code with chatbotId, userId, and the new token
             const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" 
-                                    id="bizbot-widget" 
-                                    data-chatbot-id="${chatbotId}" 
-                                    data-user-id="${userId}" 
-                                    data-token="${newToken}"><\/script>`;
+                    id="bizbot-widget" 
+                    data-chatbot-id="${chatbotId}" 
+                    data-user-id="${userId}" 
+                    data-token="${newToken}"><\/script>`;
 
             // Display the code in a SweetAlert
             Swal.fire({
