@@ -455,7 +455,7 @@ function deleteFunc(id) {
 
             // Fetch the FAQ data to check if it exists
             const token = localStorage.getItem('token'); // Get token from local storage
-            fetch(`/api/faqs/${id}`, {
+            fetch(`/api/faqs/delete/${id}`, {
                 method: 'DELETE',  // Using DELETE method to remove the FAQ
                 headers: {
                     'Authorization': `Bearer ${token}`,
