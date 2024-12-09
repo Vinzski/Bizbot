@@ -88,19 +88,7 @@
 
     <script>
 
-        function update() {
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const npass = document.getElementById('new-password').value;
-            const cpass = document.getElementById('confirm-password').value;
-
-            console.log(username);
-            console.log(email);
-            console.log(password);
-            console.log(npass);
-            console.log(cpass);
-        }
+        
         
 
         document.addEventListener('DOMContentLoaded', async function() {
@@ -145,6 +133,20 @@
             } catch (error) {
                 console.error('Error fetching chatbots:', error);
             }
+
+            function update() {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const npass = document.getElementById('new-password').value;
+            const cpass = document.getElementById('confirm-password').value;
+
+            console.log(username);
+            console.log(email);
+            console.log(password);
+            console.log(npass);
+            console.log(cpass);
+        }
         });
         
         document.getElementById('customization-form').onsubmit = async function(e) {
