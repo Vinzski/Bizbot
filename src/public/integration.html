@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - BizBot Admin</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
 </head>
 
 <body>
@@ -22,7 +22,7 @@
                     <li><a href="settings.html">Settings</a></li>
                     <li><a href="analytics.html">Analytics</a></li>
                     <li><a href="support.html">Support</a></li>
-                    <li><button class="btn-logout" onclick="logout()">Logout</button></li>
+                    <li><button class="btn-logout" onclick="logout()" >Logout</button></li>
                 </ul>
             </nav>
         </aside>
@@ -78,53 +78,9 @@
     </div>
     <script src="app.js"></script>
     <script>
-        // Function to generate widget code (for example purposes)
-        function generateCode() {
-            const chatbotId = document.getElementById('chatbot-select').value;
-            
-            if (!chatbotId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Please select a chatbot.',
-                    text: 'You must select a chatbot to generate the widget code.',
-                });
-                return;
-            }
-
-            // Generate a sample widget code (you can modify this logic as per your actual code generation)
-            const widgetCode = `<script src="https://bizbot.com/widget.js" data-chatbot-id="${chatbotId}"></script>`;
-
-            // Show SweetAlert with the code
-            Swal.fire({
-                title: 'Generated Widget Code',
-                html: `
-                    <p>Here is your widget code. Copy it to embed on your website:</p>
-                    <textarea id="widget-code" style="width: 100%; height: 200px; font-size: 14px;" readonly>${widgetCode}</textarea>
-                `,
-                showCancelButton: true,
-                cancelButtonText: 'Close',
-                confirmButtonText: 'Copy Code',
-                confirmButtonColor: '#10B981', // You can style the button color here
-                focusConfirm: false,
-                preConfirm: () => {
-                    // Copy the code to clipboard
-                    const codeTextarea = document.getElementById('widget-code');
-                    codeTextarea.select();
-                    document.execCommand('copy');
-
-                    // Optionally, show confirmation that the code was copied
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Code Copied!',
-                        text: 'You can now paste the widget code into your website.',
-                    });
-                }
-            });
-        }
-
         // Function to fetch and display the logged-in user's domains
         function fetchUserDomains() {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
             if (!token) {
                 alert('You must be logged in to see your domains.');
                 return;
@@ -139,7 +95,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Fetched domains:', data);
+                console.log('Fetched domains:', data); // Log the fetched data for debugging
 
                 if (data.domains && data.domains.length > 0) {
                     const domainsList = document.getElementById('domains-list');
@@ -158,33 +114,150 @@
             });
         }
 
-        // Function to load chatbots dynamically into the select dropdown
+        // Call to fetch user domains when the page is loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchUserDomains(); // Fetch user domains on page load
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadChatbots();  // Call this function to populate the dropdown when the page loads.
+        });
+
         function loadChatbots() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
             fetch("https://bizbot-khpq.onrender.com/api/chatbots", {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                const selectElement = document.getElementById('chatbot-select');
-                data.chatbots.forEach(chatbot => {
-                    const option = document.createElement('option');
-                    option.value = chatbot.id;
-                    option.textContent = chatbot.name;
-                    selectElement.appendChild(option);
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch chatbots');
+                    }
+                    return response.json();
+                })
+                .then(chatbots => {
+                    const select = document.getElementById("chatbot-select");
+                    chatbots.forEach(chatbot => {
+                        let option = new Option(chatbot.name, chatbot._id);
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading chatbots:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Error loading chatbots:', error);
-            });
         }
 
-        // Call to load chatbots when the page is loaded
-        document.addEventListener('DOMContentLoaded', function () {
-            loadChatbots();  // Call this function to populate the dropdown when the page loads.
-        });
+        // Utility function to convert ArrayBuffer to Hex String
+        function bufferToHex(buffer) {
+            const byteArray = new Uint8Array(buffer);
+            const hexCodes = [...byteArray].map(value => {
+                const hexCode = value.toString(16);
+                return hexCode.padStart(2, '0');
+            });
+            return hexCodes.join('');
+        }
+
+        // Function to hash a string using SHA-256
+        async function hashString(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashHex = bufferToHex(hashBuffer);
+            return hashHex;
+        }
+       async function generateCode() {
+        const chatbotId = document.getElementById('chatbot-select').value;
+        if (!chatbotId) {
+            alert('Please select a chatbot first.');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('You must be logged in to generate widget code.');
+            return;
+        }
+
+        try {
+            // Decode the token to extract userId
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const userId = payload.id || payload.userId;
+
+            if (!userId) {
+                alert('Unable to retrieve User ID from token.');
+                return;
+            }
+
+            // Request a new token from the backend that includes chatbotId and userId
+            const response = await fetch('https://bizbot-khpq.onrender.com/api/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ chatbotId: chatbotId })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.token) {
+                const newToken = data.token;
+                // Generate the widget code with chatbotId, userId, and the new token
+                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
+                document.getElementById('code-snippet').textContent = codeSnippet;
+            } else {
+                throw new Error(data.message || 'Failed to generate new token');
+            }
+        } catch (error) {
+            console.error('Error generating widget code:', error);
+            alert('Failed to generate widget code: ' + error.message);
+        }
+    }
+
+        function copyCode() {
+            const codeSnippetElement = document.getElementById('code-snippet');
+            navigator.clipboard.writeText(codeSnippetElement.textContent)
+                .then(() => alert('Code copied to clipboard!'))
+                .catch(err => console.error('Error copying text: ', err));
+        }
+
+        function saveDomain() {
+            const domainInput = document.getElementById('domain-input').value;
+            if (!domainInput) {
+                alert('Please enter a domain URL.');
+                return;
+            }
+            const token = localStorage.getItem("token"); // Retrieve the auth token
+            fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ domain: domainInput })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to save the domain');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Domain saved successfully!');
+                    fetchUserDomains(); // Refresh the domain list
+                })
+                .catch(error => {
+                    console.error('Error saving domain:', error);
+                    alert('Failed to save the domain: ' + error.message);
+                });
+        }
     </script>
 </body>
 
