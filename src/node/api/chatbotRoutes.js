@@ -111,18 +111,24 @@ router.delete('/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
-// Get ratings for a specific chatbot
 router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
-    const { chatbotId } = req.params;
-
     try {
-        const ratings = await Rating.find({ chatbotId }).lean();
+        const chatbotId = req.params.chatbotId;
+
+        // Fetch ratings based on chatbot ID, assuming you have a Ratings model.
+        const ratings = await Feedback.find({ chatbotId });
+
+        if (!ratings || ratings.length === 0) {
+            return res.status(404).json({ message: 'No ratings found for this chatbot' });
+        }
+
         res.json(ratings);
     } catch (error) {
         console.error('Error fetching ratings:', error);
         res.status(500).json({ message: 'Failed to fetch ratings', error: error.toString() });
     }
 });
+
 
 
 module.exports = router;
