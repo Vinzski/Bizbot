@@ -421,3 +421,30 @@ table button{
     color: var(--primary-dark);
     font-weight: bold;
 }
+
+/* Custom style for sweet alert */
+
+.swal-container {
+    /* Add any container styles if needed */
+}
+
+.swal-popup {
+    /* Add any popup styles if needed */
+}
+
+.swal-title {
+    /* Add any title styles if needed */
+}
+
+.swal-content {
+    text-align: left;
+}
+
+.swal-confirm {
+    background-color: #10B981 !important;
+    color: white !important;
+}
+
+.swal-confirm:focus {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5) !important;
+}
