@@ -129,23 +129,22 @@ router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
-// Fetch feedbacks for a specific chatbot
-router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
-    const { chatbotId } = req.params;
-
+router.get('/chatbots', async (req, res) => {
     try {
-        // Fetch feedbacks for the given chatbotId
-        const feedbacks = await Feedback.find({ chatbotId: chatbotId });
+        const chatbots = await Chatbot.find({}, 'name');
+        res.json(chatbots);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching chatbots', error: error.message });
+    }
+});
 
-        if (feedbacks.length === 0) {
-            return res.status(404).json({ message: 'No feedbacks found for this chatbot' });
-        }
-
-        // Send the feedbacks as JSON
+// Get feedbacks for a specific chatbot
+router.get('/feedbacks/:chatbotId', async (req, res) => {
+    try {
+        const feedbacks = await Feedback.find({ chatbotId: req.params.chatbotId });
         res.json(feedbacks);
     } catch (error) {
-        console.error('Error fetching feedbacks:', error);
-        res.status(500).json({ message: 'Internal server error', error: error.message });
+        res.status(500).json({ message: 'Error fetching feedbacks', error: error.message });
     }
 });
 
