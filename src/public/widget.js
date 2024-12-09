@@ -18,7 +18,8 @@
     document.head.appendChild(script);
 
  // Event listener for sending feedback
-feedbackBtn.onclick = function () {
+     script.onload = function () {
+    feedbackBtn.onclick = function () {
     if (selectedRating) {
         const feedbackText = feedbackTextarea.value; 
         if (feedbackText.trim() === '') {
