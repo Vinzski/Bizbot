@@ -92,6 +92,7 @@
 
 // Fetch chatbots for the logged-in user
 async function fetchChatbots() {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch('/api/chatbots', {
             method: 'GET',
@@ -118,11 +119,12 @@ async function fetchChatbots() {
 
 // Fetch ratings for the selected chatbot
 async function fetchRatings(chatbotId) {
+    const token = localStorage.getItem('token');
     try {
         const response = await fetch(`/api/chatbots/ratings/${chatbotId}`, {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                'Authorization': 'Bearer ' 
             }
         });
 
