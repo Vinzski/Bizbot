@@ -350,3 +350,74 @@ table button{
     margin-bottom: 20px;
 }
 
+.terminal {
+    background-color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.terminal-header, .terminal-footer {
+    margin-bottom: 20px;
+}
+
+.prompt {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.cursor {
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.chatbot-select {
+    margin-bottom: 20px;
+}
+
+#chatbot-select {
+    width: 100%;
+    padding: 5px;
+    border: 2px solid var(--primary-color);
+    border-radius: 3px;
+    background-color: white;
+    color: var(--text-color);
+}
+
+.feedback-container {
+    height: 60vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.feedback {
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.feedback:last-child {
+    border-bottom: none;
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.feedback-content {
+    margin-left: 20px;
+}
+
+.chatbot-name {
+    color: var(--primary-dark);
+    font-weight: bold;
+}
