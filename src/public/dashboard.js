@@ -58,9 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch feedbacks from the backend
     fetch(`/feedbacks/${chatbotId}`, {
+        const token = localStorage.getItem('token'); 
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`  // Assuming you're using token authentication
+            'Authorization': `Bearer ${token}`
         }
     })
     .then(response => response.json())
