@@ -43,17 +43,21 @@
                     <p class="large-number">1,234</p>
                 </div>
             </div>
-            <div class="card">
-                <h2>Chatbot Feedbacks</h2>
-                <!-- Dropdown to select chatbot -->
-                <select id="chatbot-select" onchange="fetchFeedbacks()">
-                    <option value="">Select Chatbot</option>
-                </select>
-                <div class="feedbacks-container">
-                    <!-- Feedbacks will be loaded here -->
-                    <div id="feedbacks" class="feedbacks">
-                        <!-- Feedbacks will be displayed here -->
-                    </div>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span class="prompt">admin@feedback-terminal:~$</span> ./display_feedbacks.sh
+                </div>
+                <div class="chatbot-select">
+                    <label for="chatbot-select">Select Chatbot:</label>
+                    <select id="chatbot-select">
+                        <option value="">Select a chatbot</option>
+                    </select>
+                </div>
+                <div class="feedback-container">
+                    <!-- Feedbacks will be dynamically inserted here -->
+                </div>
+                <div class="terminal-footer">
+                    <span class="prompt">admin@feedback-terminal:~$</span> <span class="cursor">█</span>
                 </div>
             </div>
             <div class="card">
