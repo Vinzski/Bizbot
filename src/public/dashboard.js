@@ -91,7 +91,3 @@ async function fetchFeedback(chatbotId) {
         document.getElementById('feedbacks-container').innerHTML = 'Failed to load feedbacks.';
     });
 }
-
-    });
-});
-
