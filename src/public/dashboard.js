@@ -53,7 +53,7 @@ window.onload = () => {
     });
 };
 
-async function fetchRatings(chatbotId) {
+async function fetchFeedback(chatbotId) {
     // Fetch feedbacks from the backend
     fetch(`/feedbacks/${chatbotId}`, {
         const token = localStorage.getItem('token'); 
