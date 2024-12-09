@@ -131,7 +131,14 @@ function addOrUpdateFAQ() {
   })
   .then(response => response.json())
   .then(data => {
-    alert(`FAQ saved successfully!`);
+    // Success Alert using SweetAlert2
+    Swal.fire({
+      title: "Good job!",
+      text: "FAQ saved successfully!",
+      icon: "success",
+      confirmButtonText: "OK"
+    });
+
     const tbody = document.querySelector('#faq-table tbody');
     const row = document.createElement('tr');
     row.setAttribute('data-faq-id', data._id);
@@ -149,7 +156,13 @@ function addOrUpdateFAQ() {
   })
   .catch(error => {
     console.error('Error saving FAQ:', error);
-    alert(`Failed to save FAQ: ${error.message}`);
+    // Error Alert using SweetAlert2
+    Swal.fire({
+      title: "Error",
+      text: `Failed to save FAQ: ${error.message}`,
+      icon: "error",
+      confirmButtonText: "Try Again"
+    });
   });
 }
 
