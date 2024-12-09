@@ -4,6 +4,9 @@ const multer = require('multer');
 const ChatbotCustomization = require('../models/chatbotCustomizationModel');
 const authenticate = require('../signup/middleware/authMiddleware');
 const Chatbot = require('../models/chatbotModel');
+const User = require('../models/userModel'); // Assuming this is the User model
+const bcrypt = require('bcrypt');
+
 
 // File upload configuration
 const storage = multer.diskStorage({
@@ -43,6 +46,42 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
     } catch (error) {
         console.error('Error saving customization:', error);
         res.status(500).json({ message: 'Error saving customization', error: error.message });
+    }
+});
+
+router.post('/update-profile', authenticateToken, async (req, res) => {
+    const { username, email, oldPassword, newPassword } = req.body;
+
+    if (!username || !email || !oldPassword) {
+        return res.status(400).json({ message: 'Username, email, and old password are required.' });
+    }
+
+    try {
+        const user = await User.findOne({ username: req.user.username });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Incorrect old password.' });
+        }
+
+        user.username = username;
+        user.email = email;
+
+        if (newPassword) {
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            user.password = hashedPassword;
+        }
+
+        await user.save();
+
+        res.json({ success: true, message: 'Profile updated successfully.' });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ message: 'An error occurred while updating the profile.' });
     }
 });
 
