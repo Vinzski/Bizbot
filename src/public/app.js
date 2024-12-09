@@ -323,7 +323,6 @@ function authenticateUser() {
     .then((data) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify({
-        username: data.user.username,
         email: email,  // Save the email
         password: password,  // Save the password (Note: Not recommended)
       }));
