@@ -92,7 +92,7 @@
 
 // Fetch chatbots for the logged-in user
 async function fetchChatbots() {
-    const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
     try {
         const response = await fetch('/api/chatbots', {
             method: 'GET',
@@ -101,22 +101,26 @@ async function fetchChatbots() {
             }
         });
 
-        const chatbots = await response.json();
+        if (response.ok) {
+            const chatbots = await response.json();
+            const chatbotSelector = document.getElementById('chatbotSelector');
+            chatbotSelector.innerHTML = '';  // Clear previous options
 
-        const chatbotSelector = document.getElementById('chatbotSelector');
-        chatbotSelector.innerHTML = '';  // Clear previous options
-
-        chatbots.forEach(chatbot => {
-            const option = document.createElement('option');
-            option.value = chatbot._id;
-            option.textContent = chatbot.name;
-            chatbotSelector.appendChild(option);
-        });
+            chatbots.forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot._id; // Ensure this is the correct field for chatbot ID
+                option.textContent = chatbot.name;
+                chatbotSelector.appendChild(option);
+            });
+        } else {
+            console.error('Failed to fetch chatbots', await response.text());
+        }
     } catch (error) {
         console.error('Error fetching chatbots:', error);
     }
 }
 
+    
 // Fetch ratings for the selected chatbot
 async function fetchRatings(chatbotId) {
     const token = localStorage.getItem('token');
@@ -128,12 +132,18 @@ async function fetchRatings(chatbotId) {
             }
         });
 
+        if (!response.ok) {
+            throw new Error('Failed to fetch ratings');
+        }
+
         const ratings = await response.json();
-        return ratings;
+        return ratings || [];  // Ensure the response is an empty array if no ratings
     } catch (error) {
         console.error('Error fetching ratings:', error);
+        return [];
     }
 }
+
 
 // Initialize Chart.js
 const barChartCtx = document.getElementById('barChart').getContext('2d');
@@ -189,8 +199,16 @@ async function updateCharts(chatbotId) {
         Excellent: 0
     };
 
+    if (ratings.length === 0) {
+        alert('No ratings found for the selected chatbot');
+        return;
+    }
+
+    // Count the ratings
     ratings.forEach(rating => {
-        ratingCounts[rating.rating]++;
+        if (ratingCounts[rating.rating]) {
+            ratingCounts[rating.rating]++;
+        }
     });
 
     const labels = Object.keys(ratingCounts);
@@ -208,6 +226,7 @@ async function updateCharts(chatbotId) {
     pieChart.data.datasets[0].data = data;
     pieChart.update();
 }
+
 
 // Event listener for chatbot selection
 document.getElementById('chatbotSelector').addEventListener('change', function() {
