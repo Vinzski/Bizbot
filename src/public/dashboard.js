@@ -52,3 +52,45 @@ window.onload = () => {
         document.querySelector('.faq-number').textContent = 'Error';  // Display error in the UI
     });
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    const chatbotId = 'your-chatbot-id'; // Set this to the actual chatbot ID you want to fetch feedback for
+
+    // Fetch feedbacks from the backend
+    fetch(`/feedbacks/${chatbotId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`  // Assuming you're using token authentication
+        }
+    })
+    .then(response => response.json())
+    .then(feedbacks => {
+        if (feedbacks.length === 0) {
+            document.getElementById('feedbacks-container').innerHTML = 'No feedbacks available for this chatbot.';
+        } else {
+            const feedbacksContainer = document.getElementById('feedbacks-container');
+            feedbacks.forEach(feedback => {
+                const chatbotName = feedback.chatbotId; // Assuming you fetch chatbot data elsewhere if needed
+                const rating = feedback.rating;
+                const feedbackText = feedback.feedback;
+
+                // Create feedback block
+                const feedbackBlock = document.createElement('div');
+                feedbackBlock.classList.add('feedback');
+                
+                feedbackBlock.innerHTML = `
+                    <span class="chatbot-name">${chatbotName}</span>
+                    <div class="rating">Rating: ${rating}</div>
+                    <div class="feedback-text">${feedbackText}</div>
+                `;
+
+                feedbacksContainer.appendChild(feedbackBlock);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching feedbacks:', error);
+        document.getElementById('feedbacks-container').innerHTML = 'Failed to load feedbacks.';
+    });
+});
+
