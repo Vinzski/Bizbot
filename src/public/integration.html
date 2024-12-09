@@ -148,6 +148,24 @@
                 });
         }
 
+        // Utility function to convert ArrayBuffer to Hex String
+        function bufferToHex(buffer) {
+            const byteArray = new Uint8Array(buffer);
+            const hexCodes = [...byteArray].map(value => {
+                const hexCode = value.toString(16);
+                return hexCode.padStart(2, '0');
+            });
+            return hexCodes.join('');
+        }
+        
+        // Function to hash a string using SHA-256
+        async function hashString(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashHex = bufferToHex(hashBuffer);
+            return hashHex;
+        }
        async function generateCode() {
         const chatbotId = document.getElementById('chatbot-select').value;
         if (!chatbotId) {
