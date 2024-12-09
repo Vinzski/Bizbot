@@ -82,30 +82,54 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Table data here -->
+                        <option value="choose">Choose a chatbot</option>
                     </tbody>
                 </table>
             </div>
         </main>
     </div>
 
-    <!-- Chart.js Initialization Script -->
     <script>
+        // Initialize Chart.js context
+        let barChart, lineChart, pieChart;
+        const barChartCtx = document.getElementById('barChart').getContext('2d');
+        const lineChartCtx = document.getElementById('lineChart').getContext('2d');
+        const pieChartCtx = document.getElementById('pieChart').getContext('2d');
+
+        // Function to create and return a new chart instance
+        function createChart(ctx, type) {
+            return new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'],
+                    datasets: [{
+                        label: 'Ratings',
+                        data: [0, 0, 0, 0, 0],  // Initial data (to be updated)
+                        backgroundColor: ['#ff0000', '#ff9900', '#ffff00', '#33cc33', '#3399ff'],
+                        borderColor: '#333',
+                        borderWidth: 1
+                    }]
+                }
+            });
+        }
+
+        // Create chart instances on page load
+        barChart = createChart(barChartCtx, 'bar');
+        lineChart = createChart(lineChartCtx, 'line');
+        pieChart = createChart(pieChartCtx, 'pie');
+
         // Fetch chatbots for the logged-in user
         async function fetchChatbots() {
+            const token = localStorage.getItem('token');
             try {
                 const response = await fetch('/api/chatbots', {
                     method: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 const chatbots = await response.json();
                 const chatbotSelector = document.getElementById('chatbotSelector');
                 chatbotSelector.innerHTML = '';  // Clear previous options
 
-                // Populate the dropdown with chatbots
                 chatbots.forEach(chatbot => {
                     const option = document.createElement('option');
                     option.value = chatbot._id;
@@ -113,13 +137,10 @@
                     chatbotSelector.appendChild(option);
                 });
 
-                // Automatically fetch the first chatbot and update charts
+                // Trigger update charts when the first chatbot is loaded
                 if (chatbots.length > 0) {
-                    const firstChatbotId = chatbots[0]._id;
-                    chatbotSelector.value = firstChatbotId;
-                    updateCharts(firstChatbotId);
+                    updateCharts(chatbots[0]._id);
                 }
-
             } catch (error) {
                 console.error('Error fetching chatbots:', error);
             }
@@ -127,80 +148,27 @@
 
         // Fetch ratings for the selected chatbot
         async function fetchRatings(chatbotId) {
+            const token = localStorage.getItem('token');
             try {
                 const response = await fetch(`/api/chatbots/ratings/${chatbotId}`, {
                     method: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                const ratings = await response.json();
-                return ratings;
+                return await response.json();
             } catch (error) {
                 console.error('Error fetching ratings:', error);
             }
         }
 
-        // Initialize Chart.js
-        const barChartCtx = document.getElementById('barChart').getContext('2d');
-        const lineChartCtx = document.getElementById('lineChart').getContext('2d');
-        const pieChartCtx = document.getElementById('pieChart').getContext('2d');
-
-        const barChart = new Chart(barChartCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'],
-                datasets: [{
-                    label: 'Ratings',
-                    data: [0, 0, 0, 0, 0],  // Initial data (to be updated)
-                    backgroundColor: ['#ff0000', '#ff9900', '#ffff00', '#33cc33', '#3399ff']
-                }]
-            }
-        });
-
-        const lineChart = new Chart(lineChartCtx, {
-            type: 'line',
-            data: {
-                labels: ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'],
-                datasets: [{
-                    label: 'Ratings',
-                    data: [0, 0, 0, 0, 0],  // Initial data
-                    borderColor: '#33cc33',
-                    fill: false
-                }]
-            }
-        });
-
-        const pieChart = new Chart(pieChartCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'],
-                datasets: [{
-                    label: 'Ratings',
-                    data: [0, 0, 0, 0, 0],  // Initial data
-                    backgroundColor: ['#ff0000', '#ff9900', '#ffff00', '#33cc33', '#3399ff']
-                }]
-            }
-        });
-
-        // Update the charts based on the selected chatbot
+        // Update the charts with new ratings data
         async function updateCharts(chatbotId) {
             const ratings = await fetchRatings(chatbotId);
-
-            const ratingCounts = {
-                Poor: 0,
-                Unsatisfied: 0,
-                Neutral: 0,
-                Satisfied: 0,
-                Excellent: 0
-            };
+            const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
 
             ratings.forEach(rating => {
                 ratingCounts[rating.rating]++;
             });
 
-            const labels = Object.keys(ratingCounts);
             const data = Object.values(ratingCounts);
 
             // Update bar chart
@@ -228,25 +196,23 @@
         document.getElementById('chartSelector').addEventListener('change', function () {
             const selectedChartType = this.value;
 
-            // Show and hide chart sections based on selected chart type
+            // Hide all chart containers
+            document.getElementById('barChartContainer').style.display = 'none';
+            document.getElementById('lineChartContainer').style.display = 'none';
+            document.getElementById('pieChartContainer').style.display = 'none';
+
+            // Show the selected chart container
             if (selectedChartType === 'bar') {
                 document.getElementById('barChartContainer').style.display = 'block';
-                document.getElementById('lineChartContainer').style.display = 'none';
-                document.getElementById('pieChartContainer').style.display = 'none';
             } else if (selectedChartType === 'line') {
-                document.getElementById('barChartContainer').style.display = 'none';
                 document.getElementById('lineChartContainer').style.display = 'block';
-                document.getElementById('pieChartContainer').style.display = 'none';
             } else if (selectedChartType === 'pie') {
-                document.getElementById('barChartContainer').style.display = 'none';
-                document.getElementById('lineChartContainer').style.display = 'none';
                 document.getElementById('pieChartContainer').style.display = 'block';
             }
         });
 
-        // Initialize the page and automatically fetch data
+        // Initialize the page by fetching chatbots
         fetchChatbots();
-
     </script>
 </body>
 
