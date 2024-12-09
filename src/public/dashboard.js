@@ -54,10 +54,6 @@ window.onload = () => {
     });
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    fetchChatbots();  // Fetch chatbots when the page loads
-});
-
 document.addEventListener('DOMContentLoaded', () => {
     const chatbotSelect = document.getElementById('chatbot-select');
     const feedbackContainer = document.querySelector('.feedback-container');
