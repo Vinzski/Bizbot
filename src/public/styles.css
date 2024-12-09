@@ -291,19 +291,22 @@ table button{
     color: black;
 }
 
-.btn-logout{
+.btn-logout {
     background-color: transparent;
     color: black;
     border: none;
-    padding: 10px 15px;
+    padding: 10px 10px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
     width: 100%;
+    text-align: left;
+    font-size: 1rem;
 }
 
 .btn-logout:hover{
     background-color:red;
+    color:white;
 }
 
 .chart-container {
