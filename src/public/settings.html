@@ -91,9 +91,9 @@
             const user = JSON.parse(localStorage.getItem('user') || '{}');
               if (user.username) {
                   console.log(`Currently logged in as: ${user.username}`);
-                  document.getElementById('username').value = ${user.username};
-                  document.getElementById('email').value = ${user.email};
-                  document.getElementById('password').value = ${user.password};
+                  document.getElementById('username').value = user.username;
+                document.getElementById('email').value = user.email;
+                document.getElementById('password').value = user.password;
               } else {
                   console.log('No user is currently logged in.');
               }
