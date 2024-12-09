@@ -308,36 +308,41 @@ function authenticateUser() {
   const isLogin = document
     .getElementById("formTitle")
     .textContent.includes("Login");
+
   const username = isLogin ? null : document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const body = isLogin ? { email, password } : { email, password };
+
+  // Log body data to check structure
+  const body = isLogin ? { email, password } : { username, email, password };
+  console.log('Request Body:', body);  // Add this line for debugging
+
   const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
 
   fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    "Authorization": `Bearer ${token}`
-    body: JSON.stringify(body),
+    body: JSON.stringify(body)
   })
-    .then((response) => response.json())
-    .then((data) => {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify({
-        email: email,  // Save the email
-        password: password,  // Save the password (Note: Not recommended)
-      }));
-      document.getElementById("message").textContent = data.message;
-      if (data.message === "Login successful") {
-        window.location.href = "dashboard.html"; // Redirect after successful login
-      }
-    })
-    .catch((error) => {
-      console.error("Fetch error:", error);
-      document.getElementById("message").textContent =
-        "Failed to execute: " + error.message;
-    });
+  .then((response) => response.json())
+  .then((data) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify({
+      email: email,  // Save the email
+      password: password,  // Save the password (Note: Not recommended)
+    }));
+    document.getElementById("message").textContent = data.message;
+    if (data.message === "Login successful") {
+      window.location.href = "dashboard.html"; // Redirect after successful login
+    }
+  })
+  .catch((error) => {
+    console.error("Fetch error:", error);
+    document.getElementById("message").textContent =
+      "Failed to execute: " + error.message;
+  });
 }
+
 
 function logout() {
     // Clear user data and token from localStorage
