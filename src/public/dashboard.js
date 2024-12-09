@@ -58,120 +58,51 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchChatbots();  // Fetch chatbots when the page loads
 });
 
-async function fetchChatbots() {
-    const token = localStorage.getItem('token');  // Assuming the token is stored in localStorage
+document.addEventListener('DOMContentLoaded', () => {
+    const chatbotSelect = document.getElementById('chatbot-select');
+    const feedbackContainer = document.querySelector('.feedback-container');
 
-    if (!token) {
-        console.error('No token found in localStorage');
-        return;  // If no token, abort the request
-    }
+    // Fetch chatbots and populate the dropdown
+    fetch('/api/chatbots')
+        .then(response => response.json())
+        .then(chatbots => {
+            chatbots.forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot._id;
+                option.textContent = chatbot.name;
+                chatbotSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error fetching chatbots:', error));
 
-    try {
-        const response = await fetch('/api/chatbots', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`  // Add the token to the request headers
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch chatbots');
+    // Fetch feedbacks when a chatbot is selected
+    chatbotSelect.addEventListener('change', (event) => {
+        const chatbotId = event.target.value;
+        if (chatbotId) {
+            fetch(`/api/feedbacks/${chatbotId}`)
+                .then(response => response.json())
+                .then(feedbacks => {
+                    feedbackContainer.innerHTML = ''; // Clear previous feedbacks
+                    feedbacks.forEach(feedback => {
+                        const feedbackElement = document.createElement('div');
+                        feedbackElement.className = 'feedback';
+                        feedbackElement.innerHTML = `
+                            <div class="feedback-header">
+                                <span class="prompt">user@feedback:~$</span>
+                                <span>${new Date(feedback.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div class="feedback-content">
+                                <div><span class="prompt">&gt;</span> <strong>Chatbot:</strong> <span class="chatbot-name">${chatbotSelect.options[chatbotSelect.selectedIndex].text}</span></div>
+                                <div><span class="prompt">&gt;</span> <strong>Rating:</strong> ${feedback.rating}</div>
+                                <div><span class="prompt">&gt;</span> <strong>Feedback:</strong> ${feedback.feedback}</div>
+                            </div>
+                        `;
+                        feedbackContainer.appendChild(feedbackElement);
+                    });
+                })
+                .catch(error => console.error('Error fetching feedbacks:', error));
+        } else {
+            feedbackContainer.innerHTML = ''; // Clear feedbacks if no chatbot is selected
         }
-
-        const chatbots = await response.json();
-
-        const chatbotSelect = document.getElementById('chatbot-select');
-
-        chatbots.forEach(chatbot => {
-            const option = document.createElement('option');
-            option.value = chatbot._id;  // Assuming the chatbot has an _id
-            option.textContent = chatbot.name;  // Assuming name is the field for chatbot name
-            chatbotSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error fetching chatbots:', error);
-    }
-}
-
-
-function displayFeedbacks(feedbacks) {
-    const feedbacksContainer = document.getElementById('feedbacks');
-    feedbacksContainer.innerHTML = '';  // Clear any previous feedbacks
-
-    if (feedbacks.length === 0) {
-        feedbacksContainer.innerHTML = '<p>No feedbacks available for this chatbot.</p>';
-        return;
-    }
-
-    feedbacks.forEach(feedback => {
-        const feedbackElement = document.createElement('div');
-        feedbackElement.classList.add('feedback');
-
-        feedbackElement.innerHTML = `
-            <p><strong style="color: #007bff;">${feedback.chatbotId}</strong></p>
-            <p><strong>Rating:</strong> ${feedback.rating}</p>
-            <p><strong>Feedback:</strong> ${feedback.feedback}</p>
-        `;
-
-        feedbacksContainer.appendChild(feedbackElement);
     });
-
-    // Make the feedbacks scrollable
-    feedbacksContainer.style.maxHeight = '300px';
-    feedbacksContainer.style.overflowY = 'scroll';
-}
-
-async function fetchFeedbacks() {
-    const chatbotId = document.getElementById('chatbot-select').value;  // Get selected chatbot ID
-
-    if (!chatbotId) {
-        return;  // If no chatbot is selected, do nothing
-    }
-
-    const token = localStorage.getItem('token');  // Get the token from localStorage
-
-    if (!token) {
-        console.error('No token found in localStorage');
-        return;  // Abort if token is not found
-    }
-
-    try {
-        const response = await fetch(`/api/feedbacks/${chatbotId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`  // Send the token with the request
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch feedbacks');
-        }
-
-        const feedbacks = await response.json();
-
-        const feedbacksContainer = document.getElementById('feedbacks');
-        feedbacksContainer.innerHTML = '';  // Clear any previous feedbacks
-
-        if (feedbacks.length === 0) {
-            feedbacksContainer.innerHTML = '<p>No feedbacks available for this chatbot.</p>';
-            return;
-        }
-
-        // Loop through the feedbacks and display them
-        feedbacks.forEach(feedback => {
-            const feedbackElement = document.createElement('div');
-            feedbackElement.classList.add('feedback');
-            feedbackElement.innerHTML = `
-                <strong class="chatbot-name">${feedback.chatbotName}</strong>
-                <p><strong>Rating:</strong> ${feedback.rating}</p>
-                <p><strong>Feedback:</strong> ${feedback.feedback}</p>
-            `;
-            feedbacksContainer.appendChild(feedbackElement);
-        });
-    } catch (error) {
-        console.error('Error fetching feedbacks:', error);
-    }
-}
-
+});
