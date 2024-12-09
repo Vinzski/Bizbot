@@ -241,15 +241,18 @@ function testChatbot() {
     });
 }
 
-
-
 function saveChatbot() {
   const chatbotTypeSelect = document.getElementById('chatbot-select');
   const chatbotNameInput = document.getElementById('chatbot-name');
   const token = localStorage.getItem('token');
 
   if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
-      alert('Please fill out all chatbot fields before saving.');
+      Swal.fire({
+          title: "Error",
+          text: "Please fill out all chatbot fields before saving.",
+          icon: "error",
+          confirmButtonText: "OK"
+      });
       return;
   }
 
@@ -274,13 +277,24 @@ function saveChatbot() {
       return response.json();
   })
   .then(data => {
-      alert('Chatbot saved successfully!');
+      Swal.fire({
+          title: "Good job!",
+          text: "Chatbot saved successfully!",
+          icon: "success",
+          confirmButtonText: "OK"
+      });
   })
   .catch(error => {
       console.error('Error saving chatbot:', error);
-      alert(`Failed to save chatbot: ${error.message}`);
+      Swal.fire({
+          title: "Error",
+          text: `Failed to save chatbot: ${error.message}`,
+          icon: "error",
+          confirmButtonText: "Try Again"
+      });
   });
 }
+
 
 // Handling authentication and form submissions
 document
@@ -388,11 +402,21 @@ function editFunc(id) {
       })
       .then(updateData => {
         console.log(`FAQ with ID ${id} updated successfully:`, updateData);
-        alert('FAQ updated successfully!');
+        Swal.fire({
+          title: "Good job!",
+          text: "FAQ updated successfully!",
+          icon: "success",
+          confirmButtonText: "OK"
+        });
       })
       .catch(error => {
         console.error('Error updating FAQ:', error);
-        alert(`Error updating FAQ: ${error.message}`);
+        Swal.fire({
+          title: "Error",
+          text: `Error updating FAQ: ${error.message}`,
+          icon: "error",
+          confirmButtonText: "Try Again"
+        });
       });
 
     console.log(`Saved changes for FAQ with ID: ${id}`);
@@ -415,33 +439,56 @@ function editFunc(id) {
 
 
 function deleteFunc(id) {
-    // Show a confirmation dialog
-    const isConfirmed = confirm("Are you sure you want to delete this FAQ? This action cannot be undone.");
-    if (!isConfirmed) {
-        console.log("Deletion canceled by the user.");
-        return; // Exit the function if the user cancels
-    }
+    // Show a confirmation dialog with SweetAlert2
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this action!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Log the ID that will be deleted
+            console.log(`Attempting to delete FAQ with ID: ${id}`);
 
-    // Log the ID that will be deleted
-    console.log(`Attempting to delete FAQ with ID: ${id}`);
-    
-    // Fetch the FAQ data to check if it exists
-    const token = localStorage.getItem('token'); // Get token from local storage
-    fetch(`/api/faqs/${id}`, {
-            method: 'GET',  // This GET method will handle both existence check and deletion on the server
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            }
-        })
-        .then(deleteResponse => deleteResponse.json())
-        .then(deleteData => {
-            alert(deleteData.message);  // Show success message
-            removeFaqRow(id);  // Remove the FAQ row from the table
-        })
-        .catch(error => {
-            console.error('Error deleting FAQ:', error);
-            alert(`Failed to delete FAQ: ${error.message}`);
-        });
+            // Fetch the FAQ data to check if it exists
+            const token = localStorage.getItem('token'); // Get token from local storage
+            fetch(`/api/faqs/${id}`, {
+                method: 'DELETE',  // Using DELETE method to remove the FAQ
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            })
+            .then(deleteResponse => {
+                if (!deleteResponse.ok) {
+                    throw new Error('Failed to delete FAQ');
+                }
+                return deleteResponse.json();
+            })
+            .then(deleteData => {
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: deleteData.message || 'FAQ deleted successfully.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+                removeFaqRow(id);  // Remove the FAQ row from the table
+            })
+            .catch(error => {
+                console.error('Error deleting FAQ:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: `Failed to delete FAQ: ${error.message}`,
+                    icon: 'error',
+                    confirmButtonText: 'Try Again'
+                });
+            });
+        } else {
+            console.log("Deletion canceled by the user.");
+        }
+    });
 }
 
 // Function to remove the deleted FAQ row from the table
@@ -453,5 +500,3 @@ function removeFaqRow(id) {
     console.warn('Row not found to remove!');
   }
 }
-
-
