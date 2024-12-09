@@ -22,9 +22,10 @@ app.use(async (req, res, next) => {
         // Check each domain and ensure it belongs to the logged-in user
         const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
         if (!token) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            return res.status(401).json({ message: 'Unauthorized: No token provided' });
         }
 
+        // Decode the JWT token to get user info
         const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode the token to get the userId
         req.user = decoded;  // Store user info from the decoded token
 
