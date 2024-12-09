@@ -17,7 +17,7 @@ app.use(async (req, res, next) => {
     try {
         // Fetch all domains from the database
         const domains = await Domain.find().select('domain userId -_id');  // Including userId in the selection
-        let allowedOrigins = [];
+        let allowedOrigins = ['https://bizbot-khpq.onrender.com']; // Prioritize static domain first
 
         // Check each domain and ensure it belongs to the logged-in user
         const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
@@ -34,9 +34,6 @@ app.use(async (req, res, next) => {
                 allowedOrigins.push(domain.domain); // Add allowed domain if the user owns it
             }
         });
-
-        // Add the static domain to the allowed origins
-        allowedOrigins.push('https://bizbot-khpq.onrender.com');
 
         // CORS check
         cors({
@@ -56,6 +53,7 @@ app.use(async (req, res, next) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 // Import route modules
 const authRoutes = require('./routes/authRoutes');
