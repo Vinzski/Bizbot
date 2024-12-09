@@ -317,6 +317,7 @@ function authenticateUser() {
   fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    "Authorization": `Bearer ${token}`
     body: JSON.stringify(body),
   })
     .then((response) => response.json())
