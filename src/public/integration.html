@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - BizBot Admin</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -22,7 +22,7 @@
                     <li><a href="settings.html">Settings</a></li>
                     <li><a href="analytics.html">Analytics</a></li>
                     <li><a href="support.html">Support</a></li>
-                    <li><button class="btn-logout" onclick="logout()" >Logout</button></li>
+                    <li><button class="btn-logout" onclick="logout()">Logout</button></li>
                 </ul>
             </nav>
         </aside>
@@ -78,6 +78,50 @@
     </div>
     <script src="app.js"></script>
     <script>
+        // Function to generate widget code (for example purposes)
+        function generateCode() {
+            const chatbotId = document.getElementById('chatbot-select').value;
+            
+            if (!chatbotId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Please select a chatbot.',
+                    text: 'You must select a chatbot to generate the widget code.',
+                });
+                return;
+            }
+
+            // Generate a sample widget code (you can modify this logic as per your actual code generation)
+            const widgetCode = `<script src="https://bizbot.com/widget.js" data-chatbot-id="${chatbotId}"></script>`;
+
+            // Show SweetAlert with the code
+            Swal.fire({
+                title: 'Generated Widget Code',
+                html: `
+                    <p>Here is your widget code. Copy it to embed on your website:</p>
+                    <textarea id="widget-code" style="width: 100%; height: 200px; font-size: 14px;" readonly>${widgetCode}</textarea>
+                `,
+                showCancelButton: true,
+                cancelButtonText: 'Close',
+                confirmButtonText: 'Copy Code',
+                confirmButtonColor: '#10B981', // You can style the button color here
+                focusConfirm: false,
+                preConfirm: () => {
+                    // Copy the code to clipboard
+                    const codeTextarea = document.getElementById('widget-code');
+                    codeTextarea.select();
+                    document.execCommand('copy');
+
+                    // Optionally, show confirmation that the code was copied
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Code Copied!',
+                        text: 'You can now paste the widget code into your website.',
+                    });
+                }
+            });
+        }
+
         // Function to fetch and display the logged-in user's domains
         function fetchUserDomains() {
             const token = localStorage.getItem('token');
@@ -132,67 +176,13 @@
                     selectElement.appendChild(option);
                 });
             })
-            .catch(error => console.error('Error loading chatbots:', error));
-        }
-
-        // Function to generate the widget code and display it in SweetAlert
-        function generateCode() {
-            const chatbotId = document.getElementById("chatbot-select").value;
-            if (!chatbotId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Please select a chatbot first.',
-                    confirmButtonColor: '#10B981'
-                });
-                return;
-            }
-
-            // Sample widget code - replace with actual code generation logic
-            const widgetCode = `<script src="https://bizbot-khpq.onrender.com/widget.js"></script>
-                                <div id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="user123"></div>
-                                <script>
-                                    (function() {
-                                        // Widget initialization code
-                                    })();
-                                </script>`;
-
-            // Display the widget code in SweetAlert with copy button
-            Swal.fire({
-                title: 'Your Widget Code',
-                html: `<textarea id="widget-code-textarea" style="width: 100%; height: 300px; font-family: monospace; font-size: 14px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">${widgetCode}</textarea>`,
-                showCancelButton: false,
-                confirmButtonText: 'Copy Code',
-                confirmButtonColor: '#10B981',
-                focusConfirm: false,
-                preConfirm: () => {
-                    // Copy the widget code to the clipboard
-                    const widgetTextArea = document.getElementById('widget-code-textarea');
-                    widgetTextArea.select();
-                    document.execCommand('copy'); // This copies the content to clipboard
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Code Copied!',
-                        text: 'The widget code has been copied to your clipboard.',
-                        confirmButtonColor: '#10B981'
-                    });
-                }
+            .catch(error => {
+                console.error('Error loading chatbots:', error);
             });
         }
 
-        // Function to save the domain (Optional)
-        function saveDomain() {
-            const domain = document.getElementById("domain-input").value;
-            console.log('Saving domain:', domain);
-            // You can implement the saving functionality here
-        }
-
-        // Call to fetch user domains when the page is loaded
-        document.addEventListener("DOMContentLoaded", function () {
-            fetchUserDomains(); // Fetch user domains on page load
-        });
-
-        // Call to load the chatbots when the page is loaded
-        document.addEventListener("DOMContentLoaded", function () {
+        // Call to load chatbots when the page is loaded
+        document.addEventListener('DOMContentLoaded', function () {
             loadChatbots();  // Call this function to populate the dropdown when the page loads.
         });
     </script>
