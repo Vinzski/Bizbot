@@ -117,13 +117,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             Swal.fire({
                                 title: 'Feedback Details',
                                 html: `
-                                    <p><strong>Chatbot:</strong> ${chatbotSelect.options[chatbotSelect.selectedIndex].text}</p>
-                                    <p><strong>Rating:</strong> ${feedback.rating}</p>
-                                    <p><strong>Feedback:</strong> ${feedback.feedback}</p>
-                                    <p><strong>Date:</strong> ${new Date(feedback.createdAt).toLocaleString()}</p>
+                                    <div style="text-align: left;">
+                                        <p><strong>Chatbot:</strong> ${chatbotSelect.options[chatbotSelect.selectedIndex].text}</p>
+                                        <p><strong>Rating:</strong> ${feedback.rating}</p>
+                                        <p><strong>Feedback:</strong> ${feedback.feedback}</p>
+                                        <p><strong>Date:</strong> ${new Date(feedback.createdAt).toLocaleString()}</p>
+                                    </div>
                                 `,
                                 icon: 'info',
-                                confirmButtonText: 'Close'
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#10B981', 
+                                customClass: {
+                                    container: 'swal-container',
+                                    popup: 'swal-popup',
+                                    header: 'swal-header',
+                                    title: 'swal-title',
+                                    closeButton: 'swal-close',
+                                    icon: 'swal-icon',
+                                    image: 'swal-image',
+                                    content: 'swal-content',
+                                    input: 'swal-input',
+                                    actions: 'swal-actions',
+                                    confirmButton: 'swal-confirm',
+                                    cancelButton: 'swal-cancel',
+                                    footer: 'swal-footer'
+                                }
                             });
                         });
                         feedbackContainer.appendChild(feedbackElement);
