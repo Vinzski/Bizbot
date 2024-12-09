@@ -12,14 +12,26 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../public')));  // Adjust as necessary
 
 connectDB();
+
 app.use(async (req, res, next) => {
     try {
-        const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
+        // Step 1: Authentication (Verify the token)
+        const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode token and verify it
+        req.user = decoded;  // Store decoded token in the request object (user info)
+
+        // Step 2: Fetch all domains that belong to the logged-in user
+        const domains = await Domain.find({ userId: req.user.id }).select('domain -_id'); // Only fetch domains for this user
         let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
 
         // Add the static domain to the allowed origins
         allowedOrigins.push('https://bizbot-khpq.onrender.com');
 
+        // Step 3: CORS check
         cors({
             origin: function (origin, callback) {
                 if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -29,8 +41,9 @@ app.use(async (req, res, next) => {
                 }
             },
             methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-            credentials: true, // Set this based on whether you need to handle authenticated requests from the client.
+            credentials: true, // Allow credentials if needed
         })(req, res, next);
+
     } catch (error) {
         console.error('Error fetching domains for CORS:', error);
         res.status(500).json({ message: 'Internal server error' });
