@@ -51,6 +51,7 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
 
 router.post('/update-profile', authenticateToken, async (req, res) => {
     const { username, email, oldPassword, newPassword } = req.body;
+    console.log('Update-profile route hit');
 
     if (!username || !email || !oldPassword) {
         return res.status(400).json({ message: 'Username, email, and old password are required.' });
