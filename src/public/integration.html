@@ -148,16 +148,16 @@
                 });
         }
 
-   async function generateCode() {
+async function generateCode() {
     const chatbotId = document.getElementById('chatbot-select').value;
     if (!chatbotId) {
-        alert('Please select a chatbot first.');
+        Swal.fire('Error', 'Please select a chatbot first.', 'error');
         return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
-        alert('You must be logged in to generate widget code.');
+        Swal.fire('Error', 'You must be logged in to generate widget code.', 'error');
         return;
     }
 
@@ -167,7 +167,7 @@
         const userId = payload.id || payload.userId;
 
         if (!userId) {
-            alert('Unable to retrieve User ID from token.');
+            Swal.fire('Error', 'Unable to retrieve User ID from token.', 'error');
             return;
         }
 
@@ -193,7 +193,7 @@
             const newToken = data.token;
             // Generate the widget code with chatbotId, userId, and the new token
             const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
-            
+
             // Display the code in a SweetAlert
             Swal.fire({
                 title: 'Generated Widget Code',
@@ -229,6 +229,7 @@
         Swal.fire('Error', 'Failed to generate widget code: ' + error.message, 'error');
     }
 }
+
 
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
