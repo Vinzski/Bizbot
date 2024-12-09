@@ -319,18 +319,26 @@ function authenticateUser() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   })
-    .then((response) => response.json())
+    .then((response) => response.json())  // Convert the response to JSON
     .then((data) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify({
         email: email,  // Save the email
-        password: password,  // Save the password (Not recommended)
+        password: password,  // Save the password (Note: Not recommended)
       }));
 
       // Show SweetAlert for login
       if (data.message === "Login successful") {
         localStorage.setItem("loginSuccess", "true");  // Set a flag in localStorage
-        .then(() => {
+
+        // Redirect to the dashboard after successful login
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged in Successfully!',
+          text: 'Redirecting to dashboard...',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
           window.location.href = "dashboard.html"; // Redirect after successful login
         });
       } else {
@@ -350,7 +358,6 @@ function authenticateUser() {
       });
     });
 }
-
 
 
 function logout() {
