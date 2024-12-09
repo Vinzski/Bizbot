@@ -301,3 +301,16 @@ table button{
     transition: background-color 0.3s;
     width: 100%;
 }
+
+.chart-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    height: 90vh;           
+}
+
+
+#pieChart {
+    width: 700px !important;  
+    height: 700px !important;  
+}
