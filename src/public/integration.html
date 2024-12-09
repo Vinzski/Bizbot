@@ -166,60 +166,67 @@
             const hashHex = bufferToHex(hashBuffer);
             return hashHex;
         }
-       async function generateCode() {
-        const chatbotId = document.getElementById('chatbot-select').value;
-        if (!chatbotId) {
-            alert('Please select a chatbot first.');
-            return;
-        }
-    
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('You must be logged in to generate widget code.');
-            return;
-        }
-    
-        try {
-            // Decode the token to extract userId
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const userId = payload.id || payload.userId;
-    
-            if (!userId) {
-                alert('Unable to retrieve User ID from token.');
-                return;
-            }
-    
-            // Request a new token from the backend that includes chatbotId and userId
-            const response = await fetch('https://bizbot-khpq.onrender.com/api/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ chatbotId: chatbotId })
-            });
-    
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-    
-            const data = await response.json();
-    
-            if (data.token) {
-                const newToken = data.token;
-                // Generate the widget code with chatbotId, userId, and the new token
-                const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
-                document.getElementById('code-snippet').textContent = codeSnippet;
-            } else {
-                throw new Error(data.message || 'Failed to generate new token');
-            }
-        } catch (error) {
-            console.error('Error generating widget code:', error);
-            alert('Failed to generate widget code: ' + error.message);
-        }
+       // Modified generateCode function with hashing
+async function generateCode() {
+    const chatbotId = document.getElementById('chatbot-select').value;
+    if (!chatbotId) {
+        alert('Please select a chatbot first.');
+        return;
     }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You must be logged in to generate widget code.');
+        return;
+    }
+
+    try {
+        // Decode the token to extract userId
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userId = payload.id || payload.userId;
+
+        if (!userId) {
+            alert('Unable to retrieve User ID from token.');
+            return;
+        }
+
+        // Request a new token from the backend that includes chatbotId and userId
+        const response = await fetch('https://bizbot-khpq.onrender.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ chatbotId: chatbotId })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.token) {
+            const newToken = data.token;
+
+            // Hash the token (or any other data you wish to hash)
+            const hashedToken = await hashString(newToken);
+            const hashedUserId = await hashString(userId);
+            const hashedChatbotId = await hashString(chatbotId);
+
+            // Generate the widget code with hashed data
+            const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${hashedChatbotId}" data-user-id="${hashedUserId}" data-token="${hashedToken}"><\/script>`;
+            document.getElementById('code-snippet').textContent = codeSnippet;
+        } else {
+            throw new Error(data.message || 'Failed to generate new token');
+        }
+    } catch (error) {
+        console.error('Error generating widget code:', error);
+        alert('Failed to generate widget code: ' + error.message);
+    }
+}
 
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
