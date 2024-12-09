@@ -53,3 +53,70 @@ window.onload = () => {
         document.querySelector('.faq-number').textContent = 'Error';  // Display error in the UI
     });
 };
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchChatbots();  // Fetch chatbots when the page loads
+});
+
+async function fetchChatbots() {
+    try {
+        const response = await fetch('/api/chatbots'); // Adjust the API path accordingly
+        const chatbots = await response.json();
+
+        const chatbotSelect = document.getElementById('chatbot-select');
+
+        chatbots.forEach(chatbot => {
+            const option = document.createElement('option');
+            option.value = chatbot._id;  // Assuming the chatbot has an _id
+            option.textContent = chatbot.name;  // Assuming name is the field for chatbot name
+            chatbotSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error fetching chatbots:', error);
+    }
+}
+
+async function fetchFeedbacks() {
+    const chatbotId = document.getElementById('chatbot-select').value;
+
+    if (!chatbotId) {
+        return; // No chatbot selected, don't fetch
+    }
+
+    try {
+        const response = await fetch(`/api/feedbacks/${chatbotId}`);
+        const feedbacks = await response.json();
+
+        displayFeedbacks(feedbacks);
+    } catch (error) {
+        console.error('Error fetching feedbacks:', error);
+    }
+}
+
+function displayFeedbacks(feedbacks) {
+    const feedbacksContainer = document.getElementById('feedbacks');
+    feedbacksContainer.innerHTML = '';  // Clear any previous feedbacks
+
+    if (feedbacks.length === 0) {
+        feedbacksContainer.innerHTML = '<p>No feedbacks available for this chatbot.</p>';
+        return;
+    }
+
+    feedbacks.forEach(feedback => {
+        const feedbackElement = document.createElement('div');
+        feedbackElement.classList.add('feedback');
+
+        feedbackElement.innerHTML = `
+            <p><strong style="color: #007bff;">${feedback.chatbotId}</strong></p>
+            <p><strong>Rating:</strong> ${feedback.rating}</p>
+            <p><strong>Feedback:</strong> ${feedback.feedback}</p>
+        `;
+
+        feedbacksContainer.appendChild(feedbackElement);
+    });
+
+    // Make the feedbacks scrollable
+    feedbacksContainer.style.maxHeight = '300px';
+    feedbacksContainer.style.overflowY = 'scroll';
+}
+
