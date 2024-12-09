@@ -129,6 +129,23 @@ router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
+router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
+    const { chatbotId } = req.params;  // Get the chatbotId from the URL params
 
+    try {
+        // Find the feedbacks related to the chatbotId
+        const feedbacks = await Feedback.find({ chatbotId: chatbotId });
+
+        if (feedbacks.length === 0) {
+            return res.status(404).json({ message: 'No feedbacks found for this chatbot' });
+        }
+
+        // Send the feedbacks as JSON
+        res.json(feedbacks);
+    } catch (error) {
+        console.error('Error fetching feedbacks:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+});
 
 module.exports = router;
