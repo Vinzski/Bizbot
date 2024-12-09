@@ -95,8 +95,7 @@ feedbackBtn.onclick = function () {
         });
     }
 };
-
-
+}
 
     addFontAwesome(); // Add Font Awesome on load
 
