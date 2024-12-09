@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics and Reports - BizBot Admin</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
 </head>
 <body>
     <div class="container">
@@ -19,7 +20,7 @@
                     <li><a href="settings.html">Settings</a></li>
                     <li><a href="analytics.html" class="active">Analytics</a></li>
                     <li><a href="support.html">Support</a></li>
-                    <li><button class="btn-logout" onclick="logout()" >Logout</button></li>
+                    <li><button class="btn-logout" onclick="logout()">Logout</button></li>
                 </ul>
             </nav>
         </aside>
@@ -27,6 +28,35 @@
             <header class="dashboard-header">
                 <h1>Analytics and Reports</h1>
             </header>
+
+            <!-- Dropdown to choose chart type -->
+            <div class="card">
+                <h2>Choose a Chart</h2>
+                <select id="chartSelector">
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </div>
+
+            <!-- Bar Chart Section -->
+            <div class="card" id="barChartContainer" style="display: block;">
+                <h2>Chatbot Interactions (Bar Chart)</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <!-- Line Chart Section -->
+            <div class="card" id="lineChartContainer" style="display: none;">
+                <h2>Performance Over Time (Line Chart)</h2>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <!-- Pie Chart Section -->
+            <div class="card" id="pieChartContainer" style="display: none;">
+                <h2>Chatbot Usage Distribution (Pie Chart)</h2>
+                <canvas id="pieChart"></canvas>
+            </div>
+
             <div class="card">
                 <h2>Interaction Logs</h2>
                 <table>
@@ -78,17 +108,22 @@
             </div>
         </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chart.js Initialization Script -->
     <script>
-        // Bar Chart
+        // Get the canvas contexts
         const ctxBar = document.getElementById('barChart').getContext('2d');
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+
+        // Bar Chart
         const barChart = new Chart(ctxBar, {
             type: 'bar',
             data: {
-                labels: ['January', 'February', 'March', 'April', 'May'], // Example data
+                labels: ['January', 'February', 'March', 'April', 'May'],
                 datasets: [{
                     label: 'Chatbot Interactions',
-                    data: [12, 19, 3, 5, 2], // Example data
+                    data: [12, 19, 3, 5, 2],
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
@@ -105,14 +140,13 @@
         });
 
         // Line Chart
-        const ctxLine = document.getElementById('lineChart').getContext('2d');
         const lineChart = new Chart(ctxLine, {
             type: 'line',
             data: {
-                labels: ['January', 'February', 'March', 'April', 'May'], // Example data
+                labels: ['January', 'February', 'March', 'April', 'May'],
                 datasets: [{
                     label: 'Performance Over Time',
-                    data: [5, 15, 10, 20, 25], // Example data
+                    data: [5, 15, 10, 20, 25],
                     fill: false,
                     borderColor: 'rgba(54, 162, 235, 1)',
                     tension: 0.1
@@ -124,14 +158,13 @@
         });
 
         // Pie Chart
-        const ctxPie = document.getElementById('pieChart').getContext('2d');
         const pieChart = new Chart(ctxPie, {
             type: 'pie',
             data: {
-                labels: ['Sales Assistant', 'Customer Support', 'Product Info'], // Example data
+                labels: ['Sales Assistant', 'Customer Support', 'Product Info'],
                 datasets: [{
                     label: 'Chatbot Usage Distribution',
-                    data: [60, 25, 15], // Example data
+                    data: [60, 25, 15],
                     backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
                     borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
                     borderWidth: 1
@@ -139,6 +172,30 @@
             },
             options: {
                 responsive: true
+            }
+        });
+
+        // Dropdown selection logic
+        const chartSelector = document.getElementById('chartSelector');
+        const barChartContainer = document.getElementById('barChartContainer');
+        const lineChartContainer = document.getElementById('lineChartContainer');
+        const pieChartContainer = document.getElementById('pieChartContainer');
+
+        chartSelector.addEventListener('change', function() {
+            const selectedChart = chartSelector.value;
+
+            // Hide all charts
+            barChartContainer.style.display = 'none';
+            lineChartContainer.style.display = 'none';
+            pieChartContainer.style.display = 'none';
+
+            // Show the selected chart
+            if (selectedChart === 'bar') {
+                barChartContainer.style.display = 'block';
+            } else if (selectedChart === 'line') {
+                lineChartContainer.style.display = 'block';
+            } else if (selectedChart === 'pie') {
+                pieChartContainer.style.display = 'block';
             }
         });
     </script>
