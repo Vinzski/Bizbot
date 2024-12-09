@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
+const Rating = require('../models/ratingModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
 
@@ -104,6 +105,19 @@ router.delete('/:chatbotId', authenticate, async (req, res) => {
     } catch (error) {
         console.error("Error during deletion:", error);
         res.status(500).json({ message: 'Failed to delete chatbot', error: error.toString() });
+    }
+});
+
+// Get ratings for a specific chatbot
+router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
+    const { chatbotId } = req.params;
+
+    try {
+        const ratings = await Rating.find({ chatbotId }).lean();
+        res.json(ratings);
+    } catch (error) {
+        console.error('Error fetching ratings:', error);
+        res.status(500).json({ message: 'Failed to fetch ratings', error: error.toString() });
     }
 });
 
