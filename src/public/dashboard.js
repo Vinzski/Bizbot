@@ -87,10 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch feedbacks when a chatbot is selected
     chatbotSelect.addEventListener('change', (event) => {
         const chatbotId = event.target.value;
+        const token = localStorage.getItem('token');
         if (chatbotId) {
             fetch(`/api/chatbots/feedbacks/${chatbotId}`, {
                 headers: {
-                    'Authorization': `Bearer ${getAuthToken()}`
+                    'Authorization': `Bearer ${token}`
                 }
             })
                 .then(response => {
