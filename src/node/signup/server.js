@@ -15,12 +15,30 @@ connectDB();
 
 app.use(async (req, res, next) => {
     try {
-        const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
-        let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
+        // Fetch all domains from the database
+        const domains = await Domain.find().select('domain userId -_id');  // Including userId in the selection
+        let allowedOrigins = [];
+
+        // Check each domain and ensure it belongs to the logged-in user
+        const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode the token to get the userId
+        req.user = decoded;  // Store user info from the decoded token
+
+        // Iterate over each domain and check if the userId matches the logged-in user's id
+        domains.forEach(domain => {
+            if (domain.userId.toString() === req.user.id.toString()) {
+                allowedOrigins.push(domain.domain); // Add allowed domain if the user owns it
+            }
+        });
 
         // Add the static domain to the allowed origins
         allowedOrigins.push('https://bizbot-khpq.onrender.com');
 
+        // CORS check
         cors({
             origin: function (origin, callback) {
                 if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -30,8 +48,9 @@ app.use(async (req, res, next) => {
                 }
             },
             methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-            credentials: true, // Set this based on whether you need to handle authenticated requests from the client.
+            credentials: true, // Allow credentials if needed
         })(req, res, next);
+
     } catch (error) {
         console.error('Error fetching domains for CORS:', error);
         res.status(500).json({ message: 'Internal server error' });
