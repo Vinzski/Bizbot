@@ -94,7 +94,7 @@ body {
 
 button, .btn {
     background-color: var(--primary-color);
-    color: #fff;
+    color: white !important;
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
