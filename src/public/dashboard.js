@@ -61,12 +61,11 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', () => {
     const chatbotSelect = document.getElementById('chatbot-select');
     const feedbackContainer = document.querySelector('.feedback-container');
-
+    const token = localStorage.getItem('token');
     // Fetch chatbots and populate the dropdown
     fetch('/api/chatbots', {
-        const token = localStorage.getItem('token');
         headers: {
-            'Authorization': `Bearer ${token()}`
+            'Authorization': `Bearer ${token}`
         }
     })
         .then(response => {
