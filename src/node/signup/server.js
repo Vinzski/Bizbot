@@ -15,12 +15,6 @@ connectDB();
 
 app.use(async (req, res, next) => {
     try {
-        // Step 1: Authentication (Verify the token)
-        const token = req.headers['authorization']?.split(' ')[1]; // Get token from Authorization header
-        if (!token) {
-            return res.status(401).json({ message: 'Unauthorized' });
-        }
-
         const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode token and verify it
         req.user = decoded;  // Store decoded token in the request object (user info)
 
