@@ -29,6 +29,14 @@
                 <h1>Analytics and Reports</h1>
             </header>
 
+            <!-- Dropdown to choose a chatbot -->
+            <div class="card">
+                <h2>Choose a Chatbot</h2>
+                <select id="chatbotSelector">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+
             <!-- Dropdown to choose chart type -->
             <div class="card">
                 <h2>Choose a Chart</h2>
@@ -71,135 +79,127 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>2023-05-20 15:30</td>
-                            <td>Sales Assistant</td>
-                            <td>What are your pricing plans?</td>
-                            <td>We offer three pricing plans: Basic, Pro, and Enterprise. The Basic plan starts at $29/month...</td>
-                        </tr>
-                        <tr>
-                            <td>2023-05-20 15:35</td>
-                            <td>Customer Support</td>
-                            <td>How do I reset my password?</td>
-                            <td>To reset your password, please follow these steps: 1. Click on the "Forgot Password" link...</td>
-                        </tr>
+                        <!-- Table data here -->
                     </tbody>
                 </table>
-            </div>
-            <div class="card">
-                <h2>Download Reports</h2>
-                <form>
-                    <div class="form-group">
-                        <label for="report-type">Report Type:</label>
-                        <select id="report-type" name="report-type">
-                            <option value="interactions">Chatbot Interactions</option>
-                            <option value="performance">Performance Metrics</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="date-range">Date Range:</label>
-                        <select id="date-range" name="date-range">
-                            <option value="last-7-days">Last 7 Days</option>
-                            <option value="last-30-days">Last 30 Days</option>
-                            <option value="custom">Custom Range</option>
-                        </select>
-                    </div>
-                    <button type="submit">Download CSV</button>
-                    <button type="submit">Download PDF</button>
-                </form>
             </div>
         </main>
     </div>
 
     <!-- Chart.js Initialization Script -->
     <script>
-        // Get the canvas contexts
         const ctxBar = document.getElementById('barChart').getContext('2d');
         const ctxLine = document.getElementById('lineChart').getContext('2d');
         const ctxPie = document.getElementById('pieChart').getContext('2d');
 
-        // Bar Chart
-        const barChart = new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May'],
-                datasets: [{
-                    label: 'Chatbot Interactions',
-                    data: [12, 19, 3, 5, 2],
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        let barChart, lineChart, pieChart;
+        
+        // Fetch chatbot ratings data
+        async function fetchChatbotRatings(chatbotId) {
+            const response = await fetch(`/api/chatbot/ratings/${chatbotId}`);  // Replace with actual API endpoint
+            const data = await response.json();
+            return data.ratings;
+        }
+
+        // Populate the chatbot dropdown dynamically
+        async function loadChatbotSelector() {
+            const response = await fetch('/api/chatbots');  // Replace with actual API endpoint
+            const chatbots = await response.json();
+
+            const chatbotSelector = document.getElementById('chatbotSelector');
+            chatbots.forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot.id;
+                option.textContent = chatbot.name;
+                chatbotSelector.appendChild(option);
+            });
+
+            // Default selection
+            const selectedChatbotId = chatbots[0].id;
+            loadCharts(selectedChatbotId);
+        }
+
+        // Update charts with new data
+        async function loadCharts(chatbotId) {
+            const ratings = await fetchChatbotRatings(chatbotId);
+
+            // Bar Chart
+            if (barChart) barChart.destroy();
+            barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['January', 'February', 'March', 'April', 'May'],
+                    datasets: [{
+                        label: 'Chatbot Ratings',
+                        data: ratings.bar,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
                     }
                 }
-            }
-        });
+            });
 
-        // Line Chart
-        const lineChart = new Chart(ctxLine, {
-            type: 'line',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May'],
-                datasets: [{
-                    label: 'Performance Over Time',
-                    data: [5, 15, 10, 20, 25],
-                    fill: false,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true
-            }
-        });
+            // Line Chart
+            if (lineChart) lineChart.destroy();
+            lineChart = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['January', 'February', 'March', 'April', 'May'],
+                    datasets: [{
+                        label: 'Chatbot Rating Over Time',
+                        data: ratings.line,
+                        fill: false,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
 
-        // Pie Chart
-        const pieChart = new Chart(ctxPie, {
-            type: 'pie',
-            data: {
-                labels: ['Sales Assistant', 'Customer Support', 'Product Info'],
-                datasets: [{
-                    label: 'Chatbot Usage Distribution',
-                    data: [60, 25, 15],
-                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
-                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true
-            }
-        });
+            // Pie Chart
+            if (pieChart) pieChart.destroy();
+            pieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Positive', 'Neutral', 'Negative'],
+                    datasets: [{
+                        label: 'Chatbot Rating Distribution',
+                        data: ratings.pie,
+                        backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 206, 86, 0.2)'],
+                        borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
 
         // Dropdown selection logic
-        const chartSelector = document.getElementById('chartSelector');
-        const barChartContainer = document.getElementById('barChartContainer');
-        const lineChartContainer = document.getElementById('lineChartContainer');
-        const pieChartContainer = document.getElementById('pieChartContainer');
-
-        chartSelector.addEventListener('change', function() {
-            const selectedChart = chartSelector.value;
-
-            // Hide all charts
-            barChartContainer.style.display = 'none';
-            lineChartContainer.style.display = 'none';
-            pieChartContainer.style.display = 'none';
-
-            // Show the selected chart
-            if (selectedChart === 'bar') {
-                barChartContainer.style.display = 'block';
-            } else if (selectedChart === 'line') {
-                lineChartContainer.style.display = 'block';
-            } else if (selectedChart === 'pie') {
-                pieChartContainer.style.display = 'block';
-            }
+        document.getElementById('chartSelector').addEventListener('change', function() {
+            const selectedChart = this.value;
+            document.getElementById('barChartContainer').style.display = selectedChart === 'bar' ? 'block' : 'none';
+            document.getElementById('lineChartContainer').style.display = selectedChart === 'line' ? 'block' : 'none';
+            document.getElementById('pieChartContainer').style.display = selectedChart === 'pie' ? 'block' : 'none';
         });
+
+        // On chatbot selection change
+        document.getElementById('chatbotSelector').addEventListener('change', function() {
+            const selectedChatbotId = this.value;
+            loadCharts(selectedChatbotId);
+        });
+
+        // Initialize the page by loading chatbot selector and charts
+        loadChatbotSelector();
     </script>
 </body>
 </html>
