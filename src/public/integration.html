@@ -192,16 +192,21 @@ async function generateCode() {
         if (data.token) {
             const newToken = data.token;
             // Generate the widget code with chatbotId, userId, and the new token
-            const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" 
+            const codeSnippet = `<script 
+                    src="https://bizbot-khpq.onrender.com/widget.js" 
                     id="bizbot-widget" 
                     data-chatbot-id="${chatbotId}" 
                     data-user-id="${userId}" 
                     data-token="${newToken}"><\/script>`;
 
-            // Display the code in a SweetAlert
+            // Display the code in a SweetAlert with border and scrollable area
             Swal.fire({
                 title: 'Generated Widget Code',
-                html: `<pre style="text-align: left; max-height: 300px; overflow-y: auto;"><code>${codeSnippet}</code></pre>`,
+                html: `<div style="border: 1px solid #ccc; padding: 10px; max-height: 300px; overflow-y: auto;">
+                        <pre style="text-align: left; white-space: pre-wrap; word-wrap: break-word;">
+                            <code>${codeSnippet}</code>
+                        </pre>
+                    </div>`,
                 icon: 'success',
                 showCancelButton: true,
                 confirmButtonText: 'Copy Code',
@@ -233,7 +238,6 @@ async function generateCode() {
         Swal.fire('Error', 'Failed to generate widget code: ' + error.message, 'error');
     }
 }
-
 
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
