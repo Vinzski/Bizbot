@@ -1,5 +1,6 @@
 (function () {
     let token; // Store the widget token in memory
+    let isFeedbackSubmitted = false; // Flag to track feedback submission status
 
     // Function to add Font Awesome
     function addFontAwesome() {
@@ -16,10 +17,11 @@
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
     document.head.appendChild(script);
-
- // Event listener for sending feedback
-     script.onload = function () {
-    feedbackBtn.onclick = function () {
+    
+    // After the script is loaded, handle the feedback button click event
+    script.onload = function () {
+        // Event listener for sending feedback
+feedbackBtn.onclick = function () {
     if (selectedRating) {
         const feedbackText = feedbackTextarea.value; 
         if (feedbackText.trim() === '') {
