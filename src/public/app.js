@@ -324,19 +324,40 @@ function authenticateUser() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify({
         email: email,  // Save the email
-        password: password,  // Save the password (Note: Not recommended)
+        password: password,  // Save the password (Not recommended)
       }));
-      document.getElementById("message").textContent = data.message;
+
+      // Show SweetAlert for login
       if (data.message === "Login successful") {
-        window.location.href = "dashboard.html"; // Redirect after successful login
+        localStorage.setItem("loginSuccess", "true");  // Set a flag in localStorage
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged in Successfully!',
+          text: 'Redirecting to dashboard...',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = "dashboard.html"; // Redirect after successful login
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Credentials',
+          text: 'Please check your username or password.',
+        });
       }
     })
     .catch((error) => {
       console.error("Fetch error:", error);
-      document.getElementById("message").textContent =
-        "Failed to execute: " + error.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Failed to execute: ' + error.message,
+      });
     });
 }
+
 
 
 function logout() {
