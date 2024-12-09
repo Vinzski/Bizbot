@@ -311,7 +311,7 @@ function authenticateUser() {
   const username = isLogin ? null : document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  const body = isLogin ? { email, password } : { username, email, password };
+  const body = isLogin ? { email, password } : { email, password };
   const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
 
   fetch(url, {
