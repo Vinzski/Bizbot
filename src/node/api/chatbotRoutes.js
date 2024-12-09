@@ -8,13 +8,16 @@ const authenticate = require('../signup/middleware/authMiddleware'); // Path to 
 
 router.get('/', authenticate, async (req, res) => {
     try {
+        console.log('Fetching chatbots for user:', req.user.id); // Log the user ID to confirm it's being passed
         const chatbots = await Chatbot.find({ userId: req.user.id });
+        console.log('Chatbots found:', chatbots); // Log the fetched chatbots
         res.json(chatbots);
     } catch (error) {
         console.error('Failed to fetch chatbots', error);
         res.status(500).json({ message: "Failed to fetch chatbots", error: error.toString() });
     }
 });
+
 
 router.post('/', authenticate, async (req, res) => {
     const { name, type, faqs } = req.body;  // Data from the client
