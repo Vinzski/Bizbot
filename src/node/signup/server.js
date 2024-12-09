@@ -15,7 +15,7 @@ connectDB();
 
 app.use(async (req, res, next) => {
     try {
-        const domains = await Domain.find({ userId: req.user.id }).select('domain -_id'); // Only fetch domains for this user
+        const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
         let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
 
         // Add the static domain to the allowed origins
@@ -30,9 +30,8 @@ app.use(async (req, res, next) => {
                 }
             },
             methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
-            credentials: true, // Allow credentials if needed
+            credentials: true, // Set this based on whether you need to handle authenticated requests from the client.
         })(req, res, next);
-
     } catch (error) {
         console.error('Error fetching domains for CORS:', error);
         res.status(500).json({ message: 'Internal server error' });
