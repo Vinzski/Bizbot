@@ -318,7 +318,7 @@ function authenticateUser() {
   console.log('Request Body:', body);  // Add this line for debugging
 
   const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
-
+  const token = localStorage.getItem('token');
   fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
