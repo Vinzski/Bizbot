@@ -68,7 +68,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 
-router.put('/:id', authenticate, async (req, res) => {
+router.put('delete/:id', authenticate, async (req, res) => {
     const faqId = req.params.id;
     const { question, answer } = req.body;
 
