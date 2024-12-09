@@ -15,9 +15,6 @@ connectDB();
 
 app.use(async (req, res, next) => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Decode token and verify it
-        req.user = decoded;  // Store decoded token in the request object (user info)
-
         // Step 2: Fetch all domains that belong to the logged-in user
         const domains = await Domain.find({ userId: req.user.id }).select('domain -_id'); // Only fetch domains for this user
         let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
