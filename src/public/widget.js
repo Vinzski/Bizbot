@@ -18,84 +18,90 @@
     script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
     document.head.appendChild(script);
     
-    // After the script is loaded, handle the feedback button click event
-    script.onload = function () {
-        // Event listener for sending feedback
-feedbackBtn.onclick = function () {
-    if (selectedRating) {
-        const feedbackText = feedbackTextarea.value; 
-        if (feedbackText.trim() === '') {
-            // Show SweetAlert if feedback text is empty
-            Swal.fire({
-                icon: 'warning',
-                title: 'Oops...',
-                text: 'Please enter your feedback.'
-            });
-        } else {
-            console.log(`Feedback submitted: ${feedbackText}`);
-            console.log(`Feedback submitted with rating: ${selectedRating}`);
-            
-            // Get the user ID and chatbot ID from the widget
-            const widgetElement = document.getElementById('bizbot-widget');
-            const userId = widgetElement.getAttribute('data-user-id');
-            const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-    
-            // Prepare the feedback data
-            const feedbackData = {
-                userId: userId,
-                chatbotId: chatbotId,
-                rating: selectedRating,
-                feedback: feedbackText,
-            };
-    
-            // Send feedback to the server
-            fetch('https://bizbot-khpq.onrender.com/api/feedback', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(feedbackData),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show SweetAlert for success and reload the page
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thank you!',
-                        text: 'Your feedback has been submitted successfully.'
-                    }).then(() => {
-                        // Reload the page after the user clicks "OK"
-                        window.location.reload();
-                    });
-                } else {
+// After the script is loaded, handle the feedback button click event
+script.onload = function () {
+    // Event listener for sending feedback
+    feedbackBtn.onclick = function () {
+        if (selectedRating) {
+            const feedbackText = feedbackTextarea.value;
+            if (feedbackText.trim() === '') {
+                // Show SweetAlert if feedback text is empty
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Oops...',
+                    text: 'Please enter your feedback.',
+                    confirmButtonColor: '#10B981' // Set button color
+                });
+            } else {
+                console.log(`Feedback submitted: ${feedbackText}`);
+                console.log(`Feedback submitted with rating: ${selectedRating}`);
+                
+                // Get the user ID and chatbot ID from the widget
+                const widgetElement = document.getElementById('bizbot-widget');
+                const userId = widgetElement.getAttribute('data-user-id');
+                const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        
+                // Prepare the feedback data
+                const feedbackData = {
+                    userId: userId,
+                    chatbotId: chatbotId,
+                    rating: selectedRating,
+                    feedback: feedbackText,
+                };
+        
+                // Send feedback to the server
+                fetch('https://bizbot-khpq.onrender.com/api/feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(feedbackData),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show SweetAlert for success and reload the page
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thank you!',
+                            text: 'Your feedback has been submitted successfully.',
+                            confirmButtonColor: '#10B981' // Set button color
+                        }).then(() => {
+                            // Reload the page after the user clicks "OK"
+                            window.location.reload();
+                        });
+                    } else {
+                        // Show SweetAlert for error
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'There was an issue submitting your feedback. Please try again.',
+                            confirmButtonColor: '#10B981' // Set button color
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting feedback:', error);
                     // Show SweetAlert for error
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'There was an issue submitting your feedback. Please try again.'
+                        text: 'There was an issue submitting your feedback. Please try again.',
+                        confirmButtonColor: '#10B981' // Set button color
                     });
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting feedback:', error);
-                // Show SweetAlert for error
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'There was an issue submitting your feedback. Please try again.'
                 });
+            }
+        } else {
+            // Show SweetAlert when rating is not selected
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please select a rating before submitting feedback.',
+                confirmButtonColor: '#10B981' // Set button color
             });
         }
-    } else {
-        // Show SweetAlert when rating is not selected
-        Swal.fire({
-            icon: 'warning',
-            title: 'Please select a rating before submitting feedback.'
-        });
-    }
-};
+    };
 }
+
 
     addFontAwesome(); // Add Font Awesome on load
 
