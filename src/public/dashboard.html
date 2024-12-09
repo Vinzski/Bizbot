@@ -71,5 +71,32 @@
     </script>
     <script src="dashboard.js"></script>
     <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+  // Check if the login was successful
+  if (localStorage.getItem("loginSuccess") === "true") {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      }
+    });
+
+    Toast.fire({
+      icon: "success",
+      title: "Signed in successfully"
+    });
+
+    // Clear the loginSuccess flag after showing the message
+    localStorage.removeItem("loginSuccess");
+  }
+});
+
+    </script>
 </body>
 </html>
