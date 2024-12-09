@@ -129,11 +129,12 @@ router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
+// Fetch feedbacks for a specific chatbot
 router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
-    const { chatbotId } = req.params;  // Get the chatbotId from the URL params
+    const { chatbotId } = req.params;
 
     try {
-        // Find the feedbacks related to the chatbotId
+        // Fetch feedbacks for the given chatbotId
         const feedbacks = await Feedback.find({ chatbotId: chatbotId });
 
         if (feedbacks.length === 0) {
@@ -147,6 +148,7 @@ router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
+
 
 
 module.exports = router;
