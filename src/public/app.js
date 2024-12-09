@@ -330,14 +330,7 @@ function authenticateUser() {
       // Show SweetAlert for login
       if (data.message === "Login successful") {
         localStorage.setItem("loginSuccess", "true");  // Set a flag in localStorage
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Logged in Successfully!',
-          text: 'Redirecting to dashboard...',
-          timer: 1500,
-          showConfirmButton: false
-        }).then(() => {
+        .then(() => {
           window.location.href = "dashboard.html"; // Redirect after successful login
         });
       } else {
