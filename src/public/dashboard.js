@@ -53,9 +53,7 @@ window.onload = () => {
     });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    const chatbotId = 'your-chatbot-id'; // Set this to the actual chatbot ID you want to fetch feedback for
-
+async function fetchRatings(chatbotId) {
     // Fetch feedbacks from the backend
     fetch(`/feedbacks/${chatbotId}`, {
         const token = localStorage.getItem('token'); 
@@ -63,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {
             'Authorization': `Bearer ${token}`
         }
-    })
+        }
     .then(response => response.json())
     .then(feedbacks => {
         if (feedbacks.length === 0) {
