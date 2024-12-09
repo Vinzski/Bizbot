@@ -56,12 +56,11 @@ window.onload = () => {
 async function fetchFeedback(chatbotId) {
     // Fetch feedbacks from the backend
     fetch(`/feedbacks/${chatbotId}`, {
-        const token = localStorage.getItem('token'); 
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${localStorage.getItem('token')}`  // Retrieve token from localStorage
         }
-        }
+    })
     .then(response => response.json())
     .then(feedbacks => {
         if (feedbacks.length === 0) {
@@ -69,7 +68,7 @@ async function fetchFeedback(chatbotId) {
         } else {
             const feedbacksContainer = document.getElementById('feedbacks-container');
             feedbacks.forEach(feedback => {
-                const chatbotName = feedback.chatbotId; // Assuming you fetch chatbot data elsewhere if needed
+                const chatbotName = feedback.chatbotId;  // Assuming you fetch chatbot data elsewhere if needed
                 const rating = feedback.rating;
                 const feedbackText = feedback.feedback;
 
@@ -90,6 +89,9 @@ async function fetchFeedback(chatbotId) {
     .catch(error => {
         console.error('Error fetching feedbacks:', error);
         document.getElementById('feedbacks-container').innerHTML = 'Failed to load feedbacks.';
+    });
+}
+
     });
 });
 
