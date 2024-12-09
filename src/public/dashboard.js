@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatbotSelect = document.getElementById('chatbot-select');
     const feedbackContainer = document.querySelector('.feedback-container');
     const token = localStorage.getItem('token');
+
     // Fetch chatbots and populate the dropdown
     fetch('/api/chatbots', {
         headers: {
@@ -109,9 +110,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="feedback-content">
                                 <div><span class="prompt">&gt;</span> <strong>Chatbot:</strong> <span class="chatbot-name">${chatbotSelect.options[chatbotSelect.selectedIndex].text}</span></div>
                                 <div><span class="prompt">&gt;</span> <strong>Rating:</strong> ${feedback.rating}</div>
-                                <div><span class="prompt">&gt;</span> <strong>Feedback:</strong> ${feedback.feedback}</div>
+                                <div><span class="prompt">&gt;</span> <strong>Feedback:</strong> ${feedback.feedback.substring(0, 100)}${feedback.feedback.length > 100 ? '...' : ''}</div>
                             </div>
                         `;
+                        feedbackElement.addEventListener('click', () => {
+                            Swal.fire({
+                                title: 'Feedback Details',
+                                html: `
+                                    <p><strong>Chatbot:</strong> ${chatbotSelect.options[chatbotSelect.selectedIndex].text}</p>
+                                    <p><strong>Rating:</strong> ${feedback.rating}</p>
+                                    <p><strong>Feedback:</strong> ${feedback.feedback}</p>
+                                    <p><strong>Date:</strong> ${new Date(feedback.createdAt).toLocaleString()}</p>
+                                `,
+                                icon: 'info',
+                                confirmButtonText: 'Close'
+                            });
+                        });
                         feedbackContainer.appendChild(feedbackElement);
                     });
                 })
