@@ -41,20 +41,22 @@
 
             <!-- Bar Chart Section -->
             <div class="card" id="barChartContainer" style="display: block;">
-                <h2>Chatbot Interactions (Bar Chart)</h2>
+                <h2>Chatbot Rating (Bar Chart)</h2>
                 <canvas id="barChart"></canvas>
             </div>
 
             <!-- Line Chart Section -->
             <div class="card" id="lineChartContainer" style="display: none;">
-                <h2>Performance Over Time (Line Chart)</h2>
+                <h2>Chatbot Rating (Line Chart)</h2>
                 <canvas id="lineChart"></canvas>
             </div>
 
             <!-- Pie Chart Section -->
             <div class="card" id="pieChartContainer" style="display: none;">
-                <h2>Chatbot Usage Distribution (Pie Chart)</h2>
-                <canvas id="pieChart" width="300" height="300"></canvas>
+                <h2>Chatbot Rating (Pie Chart)</h2>
+                <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+                </div>
             </div>
 
             <div class="card">
@@ -157,6 +159,10 @@
             }
         });
 
+        const canvas = document.getElementById('pieChart');
+
+        canvas.width = 300;  // Set the width to 300px
+        canvas.height = 300; // Set the height to 300px
         // Pie Chart
         const pieChart = new Chart(ctxPie, {
             type: 'pie',
@@ -172,7 +178,6 @@
             },
             options: {
                 responsive: true
-                maintainAspectRatio: false
             }
         });
 
