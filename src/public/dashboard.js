@@ -63,8 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedbackContainer = document.querySelector('.feedback-container');
 
     // Fetch chatbots and populate the dropdown
-    fetch('/api/chatbots')
-        .then(response => response.json())
+    fetch('/api/chatbots', {
+        const token = localStorage.getItem('token');
+        headers: {
+            'Authorization': `Bearer ${token()}`
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(chatbots => {
             chatbots.forEach(chatbot => {
                 const option = document.createElement('option');
@@ -79,8 +89,17 @@ document.addEventListener('DOMContentLoaded', () => {
     chatbotSelect.addEventListener('change', (event) => {
         const chatbotId = event.target.value;
         if (chatbotId) {
-            fetch(`/api/feedbacks/${chatbotId}`)
-                .then(response => response.json())
+            fetch(`/api/chatbots/feedbacks/${chatbotId}`, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(feedbacks => {
                     feedbackContainer.innerHTML = ''; // Clear previous feedbacks
                     feedbacks.forEach(feedback => {
