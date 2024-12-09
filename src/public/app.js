@@ -326,7 +326,6 @@ function authenticateUser() {
         email: email,  // Save the email
         password: password,  // Save the password (Note: Not recommended)
       }));
-      console.log(`Logged in as: ${data.user.username}`); // Log to console
       document.getElementById("message").textContent = data.message;
       if (data.message === "Login successful") {
         window.location.href = "dashboard.html"; // Redirect after successful login
