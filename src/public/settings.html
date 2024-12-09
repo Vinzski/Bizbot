@@ -150,36 +150,35 @@
         }
 
         // API call to update user profile
-        const response = await fetch('/api/update-profile', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username,
-                email,
-                oldPassword,
-                newPassword,
-            }),
-        });
-
-        if (response.ok) {
+        try {
+            const response = await fetch('/api/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    oldPassword,
+                    newPassword,
+                }),
+            });
+        
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error updating profile:', errorText);
+                alert('Failed to update profile. ' + errorText);
+                return;
+            }
+        
+            // Profile update success logic
             alert("Profile updated successfully!");
-
-            // Update local storage with new user info
-            localStorage.setItem('user', JSON.stringify({
-                username,
-                email,
-                // Avoid storing passwords in local storage
-            }));
-
-            // Optionally, reload the page or redirect
             location.reload();
-        } else {
-            const errorText = await response.text();
-            console.error('Error updating profile:', errorText);
-            alert('Failed to update profile. ' + errorText);
+        
+        } catch (error) {
+            console.error('Error during fetch:', error);
+            alert('An unexpected error occurred: ' + error.message);
         }
     });
 });
