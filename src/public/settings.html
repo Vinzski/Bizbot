@@ -232,7 +232,7 @@ document.getElementById('chatbot-select').addEventListener('change', async funct
 
     try {
         const token = localStorage.getItem('token'); // Ensure the token is properly managed and sent
-        const response = await fetch(`/api/get-customization/${chatbotId}`, {
+        const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
