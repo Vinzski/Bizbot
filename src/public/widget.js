@@ -158,27 +158,34 @@
     }
 
     // Function to fetch chatbot name
-    function fetchChatbotName(chatbotId) {
-        // Adjust this endpoint to match your actual API
-        return fetch(`https://bizbot-khpq.onrender.com/api/chatbot?chatbotId=${chatbotId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.chatbot && data.chatbot.name) {
-                    chatbotName = data.chatbot.name;
-                    console.log(`Chatbot name fetched: ${chatbotName}`);
-                } else {
-                    console.warn('No chatbot name found, using default.');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching chatbot name:', error);
-            });
-    }
+function fetchChatbotName(chatbotId) {
+    return fetch(`https://your-domain.com/api/chatbot/name/${chatbotId}`, {
+        headers: {
+            'Authorization': `Bearer ${userToken}`,  // Replace `userToken` with your method of handling tokens
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.name) {
+            chatbotName = data.name;
+            console.log(`Chatbot name fetched: ${chatbotName}`);
+            applyCustomization(); // Update the chatbot name in the widget
+        } else {
+            console.warn('No chatbot name found, using default.');
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching chatbot name:', error);
+        chatbotName = 'Default Chatbot Name'; // Fallback chatbot name
+        applyCustomization();
+    });
+}
+
 
     // Function to fetch customization
     function fetchCustomization(chatbotId) {
