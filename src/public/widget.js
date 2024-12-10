@@ -159,7 +159,7 @@
 
     // Function to fetch the chatbot's name
     function fetchChatbotName(chatbotId) {
-        return fetch(`https://bizbot-khpq.onrender.com/api/chatbot/name/${chatbotId}`, {
+        return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
 
             headers: { 'Authorization': `Bearer ${token}` },
         })
