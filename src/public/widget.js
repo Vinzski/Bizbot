@@ -3,7 +3,6 @@
     let isFeedbackSubmitted = false; // Flag to track feedback submission status
     let themeColor = '#10B981'; // Default theme color
     let welcomeMessage = 'Welcome! How can I assist you today?'; // Default welcome message
-    let chatbotName = 'BizBot'; // Default name, will be replaced by fetched name
 
     // Function to add Font Awesome
     function addFontAwesome() {
@@ -32,7 +31,7 @@
                         icon: 'warning',
                         title: 'Oops...',
                         text: 'Please enter your feedback.',
-                        confirmButtonColor: themeColor
+                        confirmButtonColor: themeColor // Use theme color
                     });
                 } else {
                     console.log(`Feedback submitted: ${feedbackText}`);
@@ -123,72 +122,35 @@
             return;
         }
 
-        // First fetch chatbot name
-        fetchChatbotName(chatbotId)
-            .then(() => {
-                // Once chatbot name is fetched, proceed to fetch token
-                return fetch('https://bizbot-khpq.onrender.com/api/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${initialToken}`
-                    },
-                    body: JSON.stringify({ chatbotId, userId })
-                });
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.token) {
-                    token = data.token; // Store token in memory
-                    console.log('Chatbot token fetched successfully:', token);
-                    // Once we have the token, fetch the customization
-                    fetchCustomization(chatbotId);
-                } else {
-                    throw new Error('Failed to fetch token');
-                }
-            })
-            .catch(error => {
-                console.error('Error initializing chatbot:', error);
-            });
+        // Fetch the token from the server
+        fetch('https://bizbot-khpq.onrender.com/api/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${initialToken}`
+            },
+            body: JSON.stringify({ chatbotId, userId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.token) {
+                token = data.token; // Store token in memory
+                console.log('Chatbot token fetched successfully:', token);
+                // Once we have the token, fetch the customization
+                fetchCustomization(chatbotId);
+            } else {
+                throw new Error('Failed to fetch token');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching chatbot token:', error);
+        });
     }
-
-    // Function to fetch chatbot name
-function fetchChatbotName(chatbotId) {
-        const widgetElement = document.getElementById('bizbot-widget');
-        const initialToken = widgetElement.getAttribute('data-token');
-    
-    return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,  // Replace `userToken` with your method of handling tokens
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.name) {
-            chatbotName = data.name;
-            console.log(`Chatbot name fetched: ${chatbotName}`);
-            applyCustomization(); // Update the chatbot name in the widget
-        } else {
-            console.warn('No chatbot name found, using default.');
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching chatbot name:', error);
-        chatbotName = 'Default Chatbot Name'; // Fallback chatbot name
-        applyCustomization();
-    });
-}
-
 
     // Function to fetch customization
     function fetchCustomization(chatbotId) {
@@ -219,7 +181,7 @@ function fetchChatbotName(chatbotId) {
             });
     }
 
-    // Function to apply the customization (theme color, welcome message, and chatbot name)
+    // Function to apply the customization (theme color & welcome message)
     function applyCustomization() {
         const chatHeader = document.getElementById('chat-header');
         const sendfeedbackBtn = document.getElementById('sendfeedback');
@@ -227,11 +189,6 @@ function fetchChatbotName(chatbotId) {
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
-
-        // Apply chatbot name
-        if (chatTitle) {
-            chatTitle.textContent = chatbotName;
-        }
 
         // Apply theme color
         if (chatHeader) {
@@ -658,7 +615,7 @@ Thank you!</span>
         flex-direction: row;
     }
     `;
-  const styleSheet = document.createElement('style');
+    const styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
