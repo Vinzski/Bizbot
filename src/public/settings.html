@@ -90,16 +90,15 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const user = JSON.parse(localStorage.getItem('email') || '{}');
 
-            console.log(user);
+            console.log(email);
 
             if (user.username) {
-                console.log(`Currently logged in as: ${user.username}`);
+                console.log(`Currently logged in as: ${email.email}`);
 
                 // Assigning values to the input fields
-                document.getElementById('username').value = user.username;
-                document.getElementById('email').value = user.email;
+                document.getElementById('username').value = user.email;
 
                 // For security reasons, avoid displaying the password
             } else {
