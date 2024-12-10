@@ -220,6 +220,44 @@
             }
         };
 
+        document.addEventListener('DOMContentLoaded', async function() {
+    // existing initialization code
+
+    const chatbotSelect = document.getElementById('chatbot-select');
+    chatbotSelect.addEventListener('change', async function() {
+        const chatbotId = chatbotSelect.value;
+        if (!chatbotId) return;
+
+        try {
+            const response = await fetch(`/api/get-customization?chatbotId=${chatbotId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch customization details');
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                const { logo, themeColor, welcomeMessage } = result.customization;
+                document.getElementById('theme-color').value = themeColor;
+                document.getElementById('welcome-message').value = welcomeMessage;
+                // Assuming there's an element to display the logo
+                const logoDisplay = document.getElementById('logoDisplay');
+                if (logoDisplay) {
+                    logoDisplay.src = logo;
+                }
+            } else {
+                console.error(result.message);
+            }
+        } catch (error) {
+            console.error('Error loading customization:', error);
+        }
+    });
+});
     </script>
 
 </body>
