@@ -6,7 +6,6 @@ const authenticate = require('../signup/middleware/authMiddleware');
 const Chatbot = require('../models/chatbotModel');
 const User = require('../models/userModel'); // Assuming this is the User model
 const bcrypt = require('bcrypt');
-const authenticateToken = require('../signup/middleware/authMiddleware'); // For profile update (reuse if same)
 
 // File upload configuration
 const storage = multer.diskStorage({
@@ -49,7 +48,7 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
     }
 });
 
-router.post('/update-profile', authenticateToken, async (req, res) => {
+router.post('/update-profile', authenticate, async (req, res) => {
     const { id } = req.user; // Extract the user ID from the token
     const { username, email, oldPassword, newPassword } = req.body;
 
