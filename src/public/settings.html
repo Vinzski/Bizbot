@@ -229,7 +229,7 @@
         if (!chatbotId) return;
 
         try {
-            const response = await fetch(`/api/get-customization?chatbotId=${chatbotId}`, {
+            const response = await fetch(`/api/customization/get-customization?chatbotId=${chatbotId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
