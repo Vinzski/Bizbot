@@ -223,29 +223,36 @@
         document.addEventListener('DOMContentLoaded', async function() {
     // existing initialization code
 
-         document.getElementById('chatbot-select').addEventListener('change', async (e) => {
-                const chatbotId = e.target.value;
-                if (!chatbotId) return;
+document.getElementById('chatbot-select').addEventListener('change', async function() {
+    const chatbotId = this.value;
+    if (!chatbotId) {
+        console.log('No chatbot selected');
+        return;
+    }
 
-                try {
-                    const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
+    try {
+        const token = localStorage.getItem('token'); // Ensure the token is properly managed and sent
+        const response = await fetch(`/api/get-customization/${chatbotId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-                    if (!response.ok) throw new Error('Failed to fetch customization');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
-                    const customization = await response.json();
-
-                    if (customization) {
-                        document.getElementById('theme-color').value = customization.themeColor;
-                        document.getElementById('welcome-message').value = customization.welcomeMessage;
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch customization:', error);
-                }
-            });
+        const result = await response.json();
+        if (result) {
+            document.getElementById('theme-color').value = result.themeColor || '#FFFFFF'; // Default color
+            document.getElementById('welcome-message').value = result.welcomeMessage || 'Hello! How can I assist you today?'; // Default message
+        }
+    } catch (error) {
+        console.error('Failed to fetch customization:', error);
+        alert('Failed to fetch customization details. Check console for more info.');
+    }
+});
 
             document.getElementById('customization-form').onsubmit = async function(e) {
                 e.preventDefault();
