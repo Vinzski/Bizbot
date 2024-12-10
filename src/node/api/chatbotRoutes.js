@@ -5,17 +5,27 @@ const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
 router.get('/name/:chatbotId', authenticate, async (req, res) => {
+    const { chatbotId } = req.params;
+
     try {
-        const chatbot = await Chatbot.findById(req.params.chatbotId, 'name');
+        // Find the chatbot by its ID, only return the 'name' field
+        const chatbot = await Chatbot.findById(chatbotId, 'name');
+
         if (!chatbot) {
             return res.status(404).json({ message: 'Chatbot not found' });
         }
+
+        // Return the chatbot name as JSON
         res.json({ name: chatbot.name });
     } catch (error) {
-        console.error('Failed to fetch chatbot name', error);
-        res.status(500).json({ message: "Failed to fetch chatbot name", error: error.toString() });
+        console.error('Failed to fetch chatbot name:', error);
+        res.status(500).json({ 
+            message: 'Failed to fetch chatbot name', 
+            error: error.toString() 
+        });
     }
 });
+
 
 router.get('/', authenticate, async (req, res) => {
     try {
