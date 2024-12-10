@@ -4,7 +4,33 @@ const FAQ = require('../models/faqModel');
 const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
+router.get('/', async (req, res) => {
+    const { chatbotId } = req.query;
 
+    if (!chatbotId) {
+        return res.status(400).json({ success: false, message: 'chatbotId is required' });
+    }
+
+    try {
+        const chatbot = await Chatbot.findById(chatbotId).exec();
+        if (!chatbot) {
+            return res.status(404).json({ success: false, message: 'Chatbot not found' });
+        }
+
+        res.json({ 
+            success: true,
+            chatbot: {
+                _id: chatbot._id,
+                name: chatbot.name,
+                type: chatbot.type,
+                userId: chatbot.userId
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching chatbot:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+    }
+});
 
 router.get('/', authenticate, async (req, res) => {
     try {
