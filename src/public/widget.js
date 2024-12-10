@@ -161,7 +161,10 @@
     function fetchChatbotName(chatbotId) {
         return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
 
-            headers: { 'Authorization': `Bearer ${token}` },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
         })
         .then(response => {
             if (!response.ok) {
