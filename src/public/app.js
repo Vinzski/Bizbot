@@ -324,22 +324,19 @@ function authenticateUser() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   })
-    .then((response) => response.json()) // Convert the response to JSON
+    .then((response) => response.json())
     .then((data) => {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          username: username,
-          email: email, // Save the email
-          password: password, // Save the password (Note: Not recommended)
-        })
-      );
-
-      // Show SweetAlert for login
-      if (data.message === "Login successful") {
-        localStorage.setItem("loginSuccess", "true"); // Set a flag in localStorage
-        // Redirect after successful login
+      if (data.message === "User created successfully") {
+        // Show SweetAlert for successful signup
+        Swal.fire({
+          icon: "success",
+          title: "Successfully Created an Account!",
+          text: "You can now log in using your credentials.",
+        });
+      } else if (data.message === "Login successful") {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify({ username: data.user.username, email: email }));
+        localStorage.setItem("loginSuccess", "true");
         window.location.href = "dashboard.html";
       } else {
         Swal.fire({
@@ -358,6 +355,7 @@ function authenticateUser() {
       });
     });
 }
+
 
 function logout() {
   // Clear user data and token from localStorage
