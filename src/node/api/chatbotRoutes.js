@@ -26,6 +26,35 @@ router.get('/name/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
+router.get('/get-customization', authenticate, async (req, res) => {
+    const { chatbotId } = req.query;
+
+    if (!chatbotId) {
+        return res.status(400).json({ success: false, message: 'chatbotId is required' });
+    }
+
+    try {
+        const customization = await ChatbotCustomization.findOne({ chatbotId: chatbotId });
+        if (!customization) {
+            // Return default values if no customization exists
+            return res.json({
+                success: true,
+                customization: {
+                    logo: '/path/to/default/logo.png',
+                    themeColor: '#FFFFFF',
+                    welcomeMessage: 'Welcome to our chatbot!'
+                }
+            });
+        }
+
+        res.json({ success: true, customization });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
+
+
 
 router.get('/', authenticate, async (req, res) => {
     try {
