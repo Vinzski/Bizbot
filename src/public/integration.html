@@ -192,22 +192,36 @@ async function generateCode() {
         if (data.token) {
             const newToken = data.token;
             // Generate the widget code with chatbotId, userId, and the new token
-            const codeSnippet = `
-            <script 
-            src="https://bizbot-khpq.onrender.com/widget.js" 
-            id="bizbot-widget" 
-            data-chatbot-id="${chatbotId}" 
-            data-user-id="${userId}" 
-            data-token="${newToken}"><\/script>`;
+            const codeSnippet = `<script 
+    src="https://bizbot-khpq.onrender.com/widget.js" 
+    id="bizbot-widget" 
+    data-chatbot-id="${chatbotId}" 
+    data-user-id="${userId}" 
+    data-token="${newToken}"><\/script>`;
 
-            // Display the code in a SweetAlert with border and scrollable area
+            // Display the code in a SweetAlert with improved styling
             Swal.fire({
                 title: 'Generated Widget Code',
-                html: `<div style="border: 1px solid #ccc; padding: 10px; max-height: 300px; overflow-y: auto;">
-                        <pre style="text-align: left; white-space: pre-wrap; word-wrap: break-word;">
-                            <code>${codeSnippet}</code>
-                        </pre>
-                    </div>`,
+                html: `
+                    <div style="
+                        border: 1px solid #e0e0e0;
+                        border-radius: 4px;
+                        background-color: #f8f8f8;
+                        padding: 15px;
+                        max-height: 300px;
+                        overflow-y: auto;
+                        text-align: left;
+                    ">
+                        <pre style="
+                            margin: 0;
+                            white-space: pre-wrap;
+                            word-wrap: break-word;
+                            font-family: monospace;
+                            font-size: 14px;
+                            line-height: 1.4;
+                        "><code>${codeSnippet}</code></pre>
+                    </div>
+                `,
                 icon: 'success',
                 showCancelButton: true,
                 confirmButtonText: 'Copy Code',
@@ -239,7 +253,7 @@ async function generateCode() {
         Swal.fire('Error', 'Failed to generate widget code: ' + error.message, 'error');
     }
 }
-
+        
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
             navigator.clipboard.writeText(codeSnippetElement.textContent)
