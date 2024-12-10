@@ -159,9 +159,14 @@
 
     // Function to fetch chatbot name
 function fetchChatbotName(chatbotId) {
-    return fetch(`https://your-domain.com/api/chatbot/name/${chatbotId}`, {
+        const widgetElement = document.getElementById('bizbot-widget');
+        const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+        const userId = widgetElement.getAttribute('data-user-id');
+        const initialToken = widgetElement.getAttribute('data-token');
+    
+    return fetch(`https://bizbot-khpq.onrender.com/api/chatbot/name/${chatbotId}`, {
         headers: {
-            'Authorization': `Bearer ${userToken}`,  // Replace `userToken` with your method of handling tokens
+            'Authorization': `Bearer ${token}`,  // Replace `userToken` with your method of handling tokens
         }
     })
     .then(response => {
