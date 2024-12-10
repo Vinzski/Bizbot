@@ -194,7 +194,7 @@ async function fetchCustomization(chatbotId) {
     if (!chatbotId) return;  // Guard clause to ensure chatbotId is present
 
     try {
-        const response = await fetch(`/api/get-customization/${chatbotId}`, {
+        const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`, // Assuming you use Bearer token for authentication
                 'Content-Type': 'application/json'
