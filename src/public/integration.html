@@ -269,36 +269,49 @@
                 .catch(err => console.error('Error copying text: ', err));
         }
 
-        function saveDomain() {
-            const domainInput = document.getElementById('domain-input').value;
-            if (!domainInput) {
-                alert('Please enter a domain URL.');
-                return;
+    function saveDomain() {
+    const domainInput = document.getElementById('domain-input').value;
+    if (!domainInput) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please enter a domain URL.'
+        });
+        return;
+    }
+    const token = localStorage.getItem("token"); // Retrieve the auth token
+    fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ domain: domainInput })
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to save the domain');
             }
-            const token = localStorage.getItem("token"); // Retrieve the auth token
-            fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ domain: domainInput })
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to save the domain');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    alert('Domain saved successfully!');
-                    fetchUserDomains(); // Refresh the domain list
-                })
-                .catch(error => {
-                    console.error('Error saving domain:', error);
-                    alert('Failed to save the domain: ' + error.message);
-                });
-        }
+            return response.json();
+        })
+        .then(data => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Domain saved successfully!'
+            });
+            fetchUserDomains(); // Refresh the domain list
+        })
+        .catch(error => {
+            console.error('Error saving domain:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to save domain',
+                text: error.message
+            });
+        });
+}
+
     </script>
 </body>
 
