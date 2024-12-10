@@ -265,10 +265,10 @@ document.getElementById('chatbot-select').addEventListener('change', async funct
                 if (fileInput.files.length > 0) {
                     formData.append('logo', fileInput.files[0]);
                 }
-
+                    
                 try {
+                    const token = localStorage.getItem('token');
                     const response = await fetch('/api/customization/save', {
-                        const token = localStorage.getItem('token');
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`
