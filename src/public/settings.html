@@ -223,41 +223,64 @@
         document.addEventListener('DOMContentLoaded', async function() {
     // existing initialization code
 
-    const chatbotSelect = document.getElementById('chatbot-select');
-    chatbotSelect.addEventListener('change', async function() {
-        const chatbotId = chatbotSelect.value;
-        if (!chatbotId) return;
+         document.getElementById('chatbot-select').addEventListener('change', async (e) => {
+                const chatbotId = e.target.value;
+                if (!chatbotId) return;
 
-        try {
-            const response = await fetch(`/api/customization/get-customization?chatbotId=${chatbotId}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
+                try {
+                    const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to fetch customization');
+
+                    const customization = await response.json();
+
+                    if (customization) {
+                        document.getElementById('theme-color').value = customization.themeColor;
+                        document.getElementById('welcome-message').value = customization.welcomeMessage;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch customization:', error);
                 }
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch customization details');
-            }
+            document.getElementById('customization-form').onsubmit = async function(e) {
+                e.preventDefault();
 
-            const result = await response.json();
-            if (result.success) {
-                const { logo, themeColor, welcomeMessage } = result.customization;
-                document.getElementById('theme-color').value = themeColor;
-                document.getElementById('welcome-message').value = welcomeMessage;
-                // Assuming there's an element to display the logo
-                const logoDisplay = document.getElementById('logoDisplay');
-                if (logoDisplay) {
-                    logoDisplay.src = logo;
+                const formData = new FormData();
+                formData.append('chatbotId', document.getElementById('chatbot-select').value);
+                formData.append('themeColor', document.getElementById('theme-color').value);
+                formData.append('welcomeMessage', document.getElementById('welcome-message').value);
+
+                const fileInput = document.getElementById('dataset');
+                if (fileInput.files.length > 0) {
+                    formData.append('logo', fileInput.files[0]);
                 }
-            } else {
-                console.error(result.message);
-            }
-        } catch (error) {
-            console.error('Error loading customization:', error);
-        }
-    });
-});
+
+                try {
+                    const response = await fetch('/api/customization/save', {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        alert('Customization saved successfully!');
+                    } else {
+                        const error = await response.json();
+                        alert(`Error: ${error.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error saving customization:', error);
+                    alert('An error occurred while saving the customization.');
+                }
+            };
+        });
     </script>
 
 </body>
