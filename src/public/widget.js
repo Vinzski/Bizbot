@@ -159,7 +159,11 @@
 
     // Function to fetch the chatbot's name
     function fetchChatbotName(chatbotId) {
+        console.log(`initialToken: ${initialToken}`);
         return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
+            headers: {
+                'Authorization': `Bearer ${initialToken}` // Replace with your actual token variable
+            }
         })
         .then(response => {
             if (!response.ok) {
@@ -179,6 +183,7 @@
             console.error('Error fetching chatbot name:', error);
         });
     }
+
 
     // Function to fetch customization
     function fetchCustomization(chatbotId) {
