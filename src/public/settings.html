@@ -264,7 +264,7 @@
                     const response = await fetch('/api/customization/save', {
                         method: 'POST',
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                            'Authorization': `Bearer ${token}`
                         },
                         body: formData
                     });
