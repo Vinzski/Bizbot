@@ -6,23 +6,28 @@ const authenticate = require('../signup/middleware/authMiddleware');
 const Chatbot = require('../models/chatbotModel');
 const User = require('../models/userModel'); // Assuming this is the User model
 const bcrypt = require('bcrypt');
+const fs = require('fs');
 
 // File upload configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        // Ensure the directory exists or create it
         const dir = './shared/';
-        fs.exists(dir, exist => {
-            if (!exist) {
-                return fs.mkdir(dir, error => cb(error, dir));
+        // Check if directory exists using fs.access
+        fs.access(dir, fs.constants.F_OK, (err) => {
+            if (err) {
+                // Directory does not exist, create it
+                fs.mkdir(dir, { recursive: true }, error => cb(error, dir));
+            } else {
+                // Directory exists, pass null as the error and dir as the path
+                cb(null, dir);
             }
-            return cb(null, dir);
         });
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}_${file.originalname}`)
+        cb(null, `${Date.now()}_${file.originalname}`);
     }
 });
+
 const upload = multer({ storage: storage });
 
 
