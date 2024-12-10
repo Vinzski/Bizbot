@@ -157,9 +157,9 @@
             });
     }
 
+    const initialToken = widgetElement.getAttribute('data-token');
     // Function to fetch the chatbot's name
     function fetchChatbotName(chatbotId) {
-        const initialToken = widgetElement.getAttribute('data-token');
         return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
             headers: {
                 'Authorization': `Bearer ${initialToken}` // Replace with your actual token variable
