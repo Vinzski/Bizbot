@@ -192,7 +192,7 @@
 
             async function fetchCustomization(chatbotId) {
         try {
-            const response = await fetch(`/customization/get-customization/${chatbotId}`);
+            const response = await fetch(`/api/customization/get-customization/${chatbotId}`);
             const data = await response.json();
 
             // Populate form fields with the current customization or defaults
