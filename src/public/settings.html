@@ -230,7 +230,7 @@
                 try {
                     const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
                         headers: {
-                            'Authorization': `Bearer ${token}`
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
                         }
                     });
 
