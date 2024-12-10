@@ -9,52 +9,10 @@ const bcrypt = require('bcrypt');
 
 // File upload configuration
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        // Specify the absolute path to the shared folder
-        const uploadPath = path.resolve(__dirname, '../shared');
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}_${file.originalname}`);
-    }
+    destination: (req, file, cb) => cb(null, '../../../uploads/'),
+    filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`)
 });
 const upload = multer({ storage });
-
-
-router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
-    try {
-        const { chatbotId } = req.params;
-
-        // Verify that the chatbot belongs to the authenticated user
-        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId: req.user.id });
-        if (!chatbot) {
-            return res.status(404).json({ message: 'Chatbot not found or does not belong to the user.' });
-        }
-
-        // Fetch customization if it exists
-        const customization = await ChatbotCustomization.findOne({ chatbotId });
-
-        if (customization) {
-            // Return existing customization if found
-            return res.status(200).json({
-                logo: customization.logo || '/default/logo.png',  // Use default logo if none exists
-                themeColor: customization.themeColor || '#FFFFFF',  // Default theme color
-                welcomeMessage: customization.welcomeMessage || 'Welcome to our chatbot!',  // Default welcome message
-            });
-        } else {
-            // Return default values if no customization exists
-            return res.status(200).json({
-                logo: '/default/logo.png',
-                themeColor: '#FFFFFF',
-                welcomeMessage: 'Welcome to our chatbot!',
-            });
-        }
-    } catch (error) {
-        console.error('Error fetching customization:', error);
-        res.status(500).json({ message: 'Error fetching customization', error: error.message });
-    }
-});
-
 
 // Save customization
 router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
@@ -74,13 +32,12 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
         };
 
         if (req.file) {
-            customizationData.logo = `/shared/${req.file.filename}`; // Adjust the path for your frontend
+            customizationData.logo = `/uploads/${req.file.filename}`;
         }
 
-        // Update existing customization or create a new one if it doesn't exist
         const customization = await ChatbotCustomization.findOneAndUpdate(
             { chatbotId },
-            { $set: customizationData },
+            customizationData,
             { upsert: true, new: true }
         );
 
@@ -90,7 +47,6 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
         res.status(500).json({ message: 'Error saving customization', error: error.message });
     }
 });
-
 
 router.post('/update-profile', authenticate, async (req, res) => {
     const { id } = req.user; // Extract the user ID from the token
