@@ -164,7 +164,7 @@ function fetchChatbotName(chatbotId) {
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
     
-    return fetch(`https://bizbot-khpq.onrender.com/api/chatbot/name/${chatbotId}`, {
+    return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,  // Replace `userToken` with your method of handling tokens
         }
