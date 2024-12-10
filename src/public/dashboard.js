@@ -1,3 +1,4 @@
+
 window.onload = () => {
     const token = localStorage.getItem('token');  // Retrieve token from localStorage
 
@@ -7,7 +8,7 @@ window.onload = () => {
     }
 
     // Fetch the chatbot count from the server
-    fetch('http://localhost:3000/api/chatbots/count', {
+    fetch('https://bizbot-khpq.onrender.com/api/chatbots/count', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ window.onload = () => {
     });
 
     // Fetch the FAQ count from the server
-    fetch('http://localhost:3000/api/faqs/count', {
+    fetch('https://bizbot-khpq.onrender.com/api/faqs/count', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -52,3 +53,103 @@ window.onload = () => {
         document.querySelector('.faq-number').textContent = 'Error';  // Display error in the UI
     });
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    const chatbotSelect = document.getElementById('chatbot-select');
+    const feedbackContainer = document.querySelector('.feedback-container');
+    const token = localStorage.getItem('token');
+
+    // Fetch chatbots and populate the dropdown
+    fetch('/api/chatbots', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(chatbots => {
+            chatbots.forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot._id;
+                option.textContent = chatbot.name;
+                chatbotSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error fetching chatbots:', error));
+
+    // Fetch feedbacks when a chatbot is selected
+    chatbotSelect.addEventListener('change', (event) => {
+        const chatbotId = event.target.value;
+        const token = localStorage.getItem('token');
+        if (chatbotId) {
+            fetch(`/api/chatbots/feedbacks/${chatbotId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(feedbacks => {
+                    feedbackContainer.innerHTML = ''; // Clear previous feedbacks
+                    feedbacks.forEach(feedback => {
+                        const feedbackElement = document.createElement('div');
+                        feedbackElement.className = 'feedback';
+                        feedbackElement.innerHTML = `
+                            <div class="feedback-header">
+                                <span class="prompt">user@feedback:~$</span>
+                                <span>${new Date(feedback.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div class="feedback-content">
+                                <div><span class="prompt">&gt;</span> <strong>Chatbot:</strong> <span class="chatbot-name">${chatbotSelect.options[chatbotSelect.selectedIndex].text}</span></div>
+                                <div><span class="prompt">&gt;</span> <strong>Rating:</strong> ${feedback.rating}</div>
+                                <div><span class="prompt">&gt;</span> <strong>Feedback:</strong> ${feedback.feedback.substring(0, 100)}${feedback.feedback.length > 100 ? '...' : ''}</div>
+                            </div>
+                        `;
+                        feedbackElement.addEventListener('click', () => {
+                            Swal.fire({
+                                title: 'Feedback Details',
+                                html: `
+                                    <div style="text-align: left;">
+                                        <p><strong>Chatbot:</strong> ${chatbotSelect.options[chatbotSelect.selectedIndex].text}</p>
+                                        <p><strong>Rating:</strong> ${feedback.rating}</p>
+                                        <p><strong>Feedback:</strong> ${feedback.feedback}</p>
+                                        <p><strong>Date:</strong> ${new Date(feedback.createdAt).toLocaleString()}</p>
+                                    </div>
+                                `,
+                                icon: 'info',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#10B981', 
+                                customClass: {
+                                    container: 'swal-container',
+                                    popup: 'swal-popup',
+                                    header: 'swal-header',
+                                    title: 'swal-title',
+                                    closeButton: 'swal-close',
+                                    icon: 'swal-icon',
+                                    image: 'swal-image',
+                                    content: 'swal-content',
+                                    input: 'swal-input',
+                                    actions: 'swal-actions',
+                                    confirmButton: 'swal-confirm',
+                                    cancelButton: 'swal-cancel',
+                                    footer: 'swal-footer'
+                                }
+                            });
+                        });
+                        feedbackContainer.appendChild(feedbackElement);
+                    });
+                })
+                .catch(error => console.error('Error fetching feedbacks:', error));
+        } else {
+            feedbackContainer.innerHTML = ''; // Clear feedbacks if no chatbot is selected
+        }
+    });
+});

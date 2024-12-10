@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
 
 exports.signup = async (req, res) => {
@@ -29,8 +30,6 @@ exports.signup = async (req, res) => {
     }
 };
 
-const jwt = require('jsonwebtoken');
-
 // Login function
 exports.login = async (req, res) => {
     const { email, password } = req.body;
@@ -46,8 +45,8 @@ exports.login = async (req, res) => {
         }
 
         // Directly specifying the secret key
-        const jwtSecret = 'mysecretkey_12345';  // Replace this with your actual secret key
-        const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '1h' });
+        const jwtSecret = process.env.JWT_SECRET || 'mysecretkey_12345';
+        const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: '24h' });
 
         res.json({
             message: 'Login successful',
@@ -59,7 +58,3 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
-
-
-
-

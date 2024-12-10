@@ -1,19 +1,23 @@
 const router = require('express').Router();
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
+const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
 
 
 router.get('/', authenticate, async (req, res) => {
     try {
+        console.log('Fetching chatbots for user:', req.user.id); // Log the user ID to confirm it's being passed
         const chatbots = await Chatbot.find({ userId: req.user.id });
+        console.log('Chatbots found:', chatbots); // Log the fetched chatbots
         res.json(chatbots);
     } catch (error) {
         console.error('Failed to fetch chatbots', error);
         res.status(500).json({ message: "Failed to fetch chatbots", error: error.toString() });
     }
 });
+
 
 router.post('/', authenticate, async (req, res) => {
     const { name, type, faqs } = req.body;  // Data from the client
@@ -104,6 +108,43 @@ router.delete('/:chatbotId', authenticate, async (req, res) => {
     } catch (error) {
         console.error("Error during deletion:", error);
         res.status(500).json({ message: 'Failed to delete chatbot', error: error.toString() });
+    }
+});
+
+router.get('/ratings/:chatbotId', authenticate, async (req, res) => {
+    try {
+        const chatbotId = req.params.chatbotId;
+
+        // Fetch ratings based on chatbot ID, assuming you have a Ratings model.
+        const ratings = await Feedback.find({ chatbotId });
+
+        if (!ratings || ratings.length === 0) {
+            return res.status(404).json({ message: 'No ratings found for this chatbot' });
+        }
+
+        res.json(ratings);
+    } catch (error) {
+        console.error('Error fetching ratings:', error);
+        res.status(500).json({ message: 'Failed to fetch ratings', error: error.toString() });
+    }
+});
+
+router.get('/chatbots', authenticate, async (req, res) => {
+    try {
+        const chatbots = await Chatbot.find({ userId: req.user.id }, 'name');
+        res.json(chatbots);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching chatbots', error: error.message });
+    }
+});
+
+// Get feedbacks for a specific chatbot
+router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
+    try {
+        const feedbacks = await Feedback.find({ chatbotId: req.params.chatbotId });
+        res.json(feedbacks);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching feedbacks', error: error.message });
     }
 });
 

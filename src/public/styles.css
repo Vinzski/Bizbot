@@ -19,7 +19,8 @@ body {
 
 .container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    overflow:hidden;
 }
 
 .sidebar {
@@ -27,6 +28,7 @@ body {
     background-color: #fff;
     border-right: 1px solid var(--border-color);
     padding: 20px;
+    height:100%;
 }
 
 .sidebar h2 {
@@ -60,6 +62,9 @@ body {
 .main-content {
     flex: 1;
     padding: 20px;
+    height:100%;
+    overflow-x:hidden;
+    overflow-y:scroll;
 }
 
 .dashboard-header {
@@ -257,4 +262,189 @@ th {
 
 .save-chatbot-button:hover {
     background-color: #45a049;
+}
+#faq-table td:last-child {
+    text-align: center;
+    vertical-align: middle;
+    display: flex; 
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+table button{
+    color: black;
+}
+
+.btn-edit{
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-delete{
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    background-color: red;
+    color: white;
+}
+
+.btn-delete:hover,.btn-edit:hover
+{
+    transform: scale(1.1);
+    color: black;
+}
+
+.btn-logout {
+    background-color: transparent;
+    color: black;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    margin-top: 350px;
+}
+
+.btn-logout:hover{
+    background-color:red;
+    color:white;
+}
+
+.chart-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    height: 90vh;           
+}
+
+
+#pieChart {
+    width: 700px !important;  
+    height: 700px !important;  
+}
+.feedbacks-container {
+    max-height: 300px;
+    overflow-y: scroll;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.feedback {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.feedback p {
+    margin: 5px 0;
+}
+
+.feedback strong {
+    color: #007bff; /* Chatbot name highlighted in blue */
+}
+
+#chatbot-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.terminal {
+    background-color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 5px;
+    padding: 20px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.terminal-header, .terminal-footer {
+    margin-bottom: 20px;
+}
+
+.prompt {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.cursor {
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+.chatbot-select {
+    margin-bottom: 20px;
+}
+
+#chatbot-select {
+    width: 100%;
+    padding: 5px;
+    border: 2px solid var(--primary-color);
+    border-radius: 3px;
+    background-color: white;
+    color: var(--text-color);
+}
+
+.feedback-container {
+    height: 60vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.feedback {
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.feedback:last-child {
+    border-bottom: none;
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.feedback-content {
+    margin-left: 20px;
+}
+
+.chatbot-name {
+    color: var(--primary-dark);
+    font-weight: bold;
+}
+
+/* Custom style for sweet alert */
+
+.swal-container {
+    /* Add any container styles if needed */
+}
+
+.swal-popup {
+    /* Add any popup styles if needed */
+}
+
+.swal-title {
+    /* Add any title styles if needed */
+}
+
+.swal-content {
+    text-align: left;
+}
+
+.swal-confirm {
+    background-color: #10B981 !important;
+    color: white !important;
+}
+
+.swal-confirm:focus {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5) !important;
 }

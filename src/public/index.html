@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login and Signup</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -108,10 +109,10 @@
         <h2 id="formTitle">Login</h2>
         <form id="authForm">
             <div class="input-group">
-                <label for="username">Username:</label>
+                <label for="username" style="display: none;">Username:</label>
                 <input type="text" id="username" style="display: none;">
-            </div>
-
+            </div>  
+            
             <div class="input-group">
                 <label for="email">Email:</label>
                 <input type="email" id="email" required>

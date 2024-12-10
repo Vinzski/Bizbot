@@ -1,31 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics and Reports - BizBot Admin</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
 </head>
+
 <body>
     <div class="container">
-        <aside class="sidebar">
-            <h2>BizBot Admin</h2>
-            <nav>
-                <ul>
-                    <li><a href="dashboard.html">Dashboard</a></li>
-                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
-                    <li><a href="training.html">Training Data</a></li>
-                    <li><a href="integration.html">Integration</a></li>
-                    <li><a href="settings.html">Settings</a></li>
-                    <li><a href="analytics.html" class="active">Analytics</a></li>
-                    <li><a href="support.html">Support</a></li>
-                </ul>
-            </nav>
-        </aside>
+<aside class="sidebar">
+    <h2>BizBot Admin</h2>
+    <nav>
+        <ul>
+            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
+            <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
+            <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
+            <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="analytics.html" class="active"><i class="fas fa-chart-line"></i> Analytics</a></li>
+            <li><a href="support.html"><i class="fas fa-life-ring"></i> Support</a></li>
+            <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
+        </ul>
+    </nav>
+</aside>
         <main class="main-content">
             <header class="dashboard-header">
                 <h1>Analytics and Reports</h1>
             </header>
+
+            <!-- Dropdown to choose a chatbot -->
+            <div class="card">
+                <h2>Choose a Chatbot</h2>
+                <select id="chatbotSelector">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+
+            <!-- Dropdown to choose chart type -->
+            <div class="card">
+                <h2>Choose a Chart</h2>
+                <select id="chartSelector">
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </div>
+
+            <!-- Bar Chart Section -->
+            <div class="card" id="barChartContainer" style="display: block;">
+                <h2>Chatbot Rating (Bar Chart)</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <!-- Line Chart Section -->
+            <div class="card" id="lineChartContainer" style="display: none;">
+                <h2>Chatbot Rating (Line Chart)</h2>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <!-- Pie Chart Section -->
+            <div class="card" id="pieChartContainer" style="display: none;">
+                <h2>Chatbot Rating (Pie Chart)</h2>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
             <div class="card">
                 <h2>Interaction Logs</h2>
                 <table>
@@ -38,44 +82,138 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>2023-05-20 15:30</td>
-                            <td>Sales Assistant</td>
-                            <td>What are your pricing plans?</td>
-                            <td>We offer three pricing plans: Basic, Pro, and Enterprise. The Basic plan starts at $29/month...</td>
-                        </tr>
-                        <tr>
-                            <td>2023-05-20 15:35</td>
-                            <td>Customer Support</td>
-                            <td>How do I reset my password?</td>
-                            <td>To reset your password, please follow these steps: 1. Click on the "Forgot Password" link...</td>
-                        </tr>
+                        <option value="choose">Choose a chatbot</option>
                     </tbody>
                 </table>
             </div>
-            <div class="card">
-                <h2>Download Reports</h2>
-                <form>
-                    <div class="form-group">
-                        <label for="report-type">Report Type:</label>
-                        <select id="report-type" name="report-type">
-                            <option value="interactions">Chatbot Interactions</option>
-                            <option value="performance">Performance Metrics</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="date-range">Date Range:</label>
-                        <select id="date-range" name="date-range">
-                            <option value="last-7-days">Last 7 Days</option>
-                            <option value="last-30-days">Last 30 Days</option>
-                            <option value="custom">Custom Range</option>
-                        </select>
-                    </div>
-                    <button type="submit">Download CSV</button>
-                    <button type="submit">Download PDF</button>
-                </form>
-            </div>
         </main>
     </div>
+    <script src="app.js"></script>
+    <script>
+        // Initialize Chart.js context
+        let barChart, lineChart, pieChart;
+        const barChartCtx = document.getElementById('barChart').getContext('2d');
+        const lineChartCtx = document.getElementById('lineChart').getContext('2d');
+        const pieChartCtx = document.getElementById('pieChart').getContext('2d');
+
+        // Function to create and return a new chart instance
+        function createChart(ctx, type) {
+            return new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'],
+                    datasets: [{
+                        label: 'Ratings',
+                        data: [0, 0, 0, 0, 0],  // Initial data (to be updated)
+                        backgroundColor: ['#ff0000', '#ff9900', '#ffff00', '#33cc33', '#3399ff'],
+                        borderColor: '#333',
+                        borderWidth: 1
+                    }]
+                }
+            });
+        }
+
+        // Create chart instances on page load
+        barChart = createChart(barChartCtx, 'bar');
+        lineChart = createChart(lineChartCtx, 'line');
+        pieChart = createChart(pieChartCtx, 'pie');
+
+        // Fetch chatbots for the logged-in user
+        async function fetchChatbots() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/chatbots', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const chatbots = await response.json();
+                const chatbotSelector = document.getElementById('chatbotSelector');
+                chatbotSelector.innerHTML = '';  // Clear previous options
+
+                chatbots.forEach(chatbot => {
+                    const option = document.createElement('option');
+                    option.value = chatbot._id;
+                    option.textContent = chatbot.name;
+                    chatbotSelector.appendChild(option);
+                });
+
+                // Trigger update charts when the first chatbot is loaded
+                if (chatbots.length > 0) {
+                    updateCharts(chatbots[0]._id);
+                }
+            } catch (error) {
+                console.error('Error fetching chatbots:', error);
+            }
+        }
+
+        // Fetch ratings for the selected chatbot
+        async function fetchRatings(chatbotId) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/chatbots/ratings/${chatbotId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching ratings:', error);
+            }
+        }
+
+        // Update the charts with new ratings data
+        async function updateCharts(chatbotId) {
+            const ratings = await fetchRatings(chatbotId);
+            const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
+
+            ratings.forEach(rating => {
+                ratingCounts[rating.rating]++;
+            });
+
+            const data = Object.values(ratingCounts);
+
+            // Update bar chart
+            barChart.data.datasets[0].data = data;
+            barChart.update();
+
+            // Update line chart
+            lineChart.data.datasets[0].data = data;
+            lineChart.update();
+
+            // Update pie chart
+            pieChart.data.datasets[0].data = data;
+            pieChart.update();
+        }
+
+        // Event listener for chatbot selection
+        document.getElementById('chatbotSelector').addEventListener('change', function () {
+            const selectedChatbotId = this.value;
+            if (selectedChatbotId) {
+                updateCharts(selectedChatbotId);
+            }
+        });
+
+        // Event listener for chart type selection
+        document.getElementById('chartSelector').addEventListener('change', function () {
+            const selectedChartType = this.value;
+
+            // Hide all chart containers
+            document.getElementById('barChartContainer').style.display = 'none';
+            document.getElementById('lineChartContainer').style.display = 'none';
+            document.getElementById('pieChartContainer').style.display = 'none';
+
+            // Show the selected chart container
+            if (selectedChartType === 'bar') {
+                document.getElementById('barChartContainer').style.display = 'block';
+            } else if (selectedChartType === 'line') {
+                document.getElementById('lineChartContainer').style.display = 'block';
+            } else if (selectedChartType === 'pie') {
+                document.getElementById('pieChartContainer').style.display = 'block';
+            }
+        });
+
+        // Initialize the page by fetching chatbots
+        fetchChatbots();
+    </script>
 </body>
+
 </html>

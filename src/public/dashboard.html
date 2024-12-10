@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BizBot Admin Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
 </head>
 <body>
     <div class="container">
         <aside class="sidebar">
-            <h2>BizBot Admin</h2> 
+            <h2>BizBot Admin</h2>
             <nav>
                 <ul>
-                    <li><a href="dashboard.html" class="active">Dashboard</a></li>
-                    <li><a href="chatbot-management.html">Chatbot Management</a></li>
-                    <li><a href="training.html">Training Data</a></li>
-                    <li><a href="integration.html">Integration</a></li>
-                    <li><a href="settings.html">Settings</a></li>
-                    <li><a href="analytics.html">Analytics</a></li>
-                    <li><a href="support.html">Support</a></li>
+                    <li><a href="dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
+                    <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
+                    <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><a href="support.html"><i class="fas fa-life-ring"></i> Support</a></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
                 </ul>
             </nav>
         </aside>
@@ -34,21 +36,28 @@
                 </div>
                 <div class="card">
                     <h2>Total FAQS</h2>
-                    <p class="faq-number">38</p>
+                    <p class="faq-number"></p>
                 </div>
                 <div class="card">
                     <h2>User Interactions</h2>
                     <p class="large-number">1,234</p>
                 </div>
-                <div class="card">
-                    <h2>Avg. Response Time</h2>
-                    <p class="large-number">1.5s</p>
-                </div>
             </div>
-            <div class="card">
-                <h2>Recent Chatbot Activities</h2>
-                <div class="chart-container">
-                    <p>Chart showing recent chatbot activities goes here</p>
+            <div class="terminal">
+                <div class="terminal-header">
+                    <span class="prompt">admin@feedback-terminal:~$</span> ./display_feedbacks.sh
+                </div>
+                <div class="chatbot-select">
+                    <label for="chatbot-select">Select Chatbot:</label>
+                    <select id="chatbot-select">
+                        <option value="">Select a chatbot</option>
+                    </select>
+                </div>
+                <div class="feedback-container">
+                    <!-- Feedbacks will be dynamically inserted here -->
+                </div>
+                <div class="terminal-footer">
+                    <span class="prompt">admin@feedback-terminal:~$</span> <span class="cursor">█</span>
                 </div>
             </div>
             <div class="card">
@@ -59,8 +68,36 @@
             </div>
         </main>
     </div>
-    <script src="http://localhost:3000/widget.js" id="bizbot-widget" data-chatbot-id="6724b03d8c1ecfaff784de40">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     </script>
     <script src="dashboard.js"></script>
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+  // Check if the login was successful
+  if (localStorage.getItem("loginSuccess") === "true") {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      }
+    });
+
+    Toast.fire({
+      icon: "success",
+      title: "Signed in successfully"
+    });
+
+    // Clear the loginSuccess flag after showing the message
+    localStorage.removeItem("loginSuccess");
+  }
+});
+
+    </script>
 </body>
 </html>

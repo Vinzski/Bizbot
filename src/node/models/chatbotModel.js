@@ -4,8 +4,8 @@ const chatbotSchema = new mongoose.Schema({
     name: { type: String, required: true },
     type: { type: String, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    faqs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FAQ' }]
-}, { timestamps: true });  // Enables automatic handling of createdAt and updatedAt
+    faqs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FAQ' }] }, 
+    { timestamps: true });  // Enables automatic handling of createdAt and updatedAt
 
 const Chatbot = mongoose.model('Chatbot', chatbotSchema);
 
