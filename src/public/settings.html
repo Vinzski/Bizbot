@@ -90,15 +90,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('email') || '{}');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-            console.log(email);
+            console.log(user);
 
             if (user.username) {
-                console.log(`Currently logged in as: ${email.email}`);
+                console.log(`Currently logged in as: ${user.username}`);
 
                 // Assigning values to the input fields
-                document.getElementById('username').value = user.email;
+                document.getElementById('username').value = user.username;
+                document.getElementById('email').value = user.email;
 
                 // For security reasons, avoid displaying the password
             } else {
@@ -188,43 +189,25 @@
                 }
             };
         });
-          
-async function fetchCustomization(chatbotId) {
-    if (!chatbotId) { // Check if chatbotId is provided
-        console.error('No chatbot ID provided');
-        return;
-    }
 
-    try {
-        const token = localStorage.getItem('token'); // Ensure you retrieve the token
-        const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`, // Assuming you use Bearer token authentication
-                'Content-Type': 'application/json'
+         // Function to fetch and populate existing customization when chatbot is selected
+    async function fetchCustomization(chatbotId) {
+        try {
+            const response = await fetch(`/customization/get-customization/${chatbotId}`);
+            const data = await response.json();
+
+            // Populate form fields with the current customization or defaults
+            document.getElementById('themeColor').value = data.themeColor;
+            document.getElementById('welcomeMessage').value = data.welcomeMessage;
+
+            // If a logo exists, display it
+            if (data.logo) {
+                document.getElementById('logoPreview').src = data.logo;
             }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        } catch (error) {
+            console.error('Error fetching customization data:', error);
         }
-
-        const data = await response.json();
-
-        // Populate form fields with the current customization or defaults
-        document.getElementById('theme-color').value = data.themeColor || '#FFFFFF'; // Provide fallback default color
-        document.getElementById('welcome-message').value = data.welcomeMessage || 'Welcome!'; // Provide a default message
-
-        // Handling logo display; ensure there is an img element with id='logoPreview' in your HTML
-        const logoPreview = document.getElementById('logoPreview');
-        if (logoPreview) {
-            logoPreview.src = data.logo || 'path/to/default/logo.png'; // Provide a default logo if none exists
-        }
-    } catch (error) {
-        console.error('Error fetching customization data:', error);
-        alert('Failed to fetch customization data. Check console for details.');
     }
-}
-
 
     // Event listener to detect chatbot selection and fetch customization data
     document.getElementById('chatbotSelect').addEventListener('change', (event) => {
