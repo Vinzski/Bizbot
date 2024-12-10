@@ -189,6 +189,29 @@
                 }
             };
         });
+          async function fetchCustomization(chatbotId) {
+        try {
+            const response = await fetch(`/customization/get-customization/${chatbotId}`);
+            const data = await response.json();
+
+            // Populate form fields with the current customization or defaults
+            document.getElementById('themeColor').value = data.themeColor;
+            document.getElementById('welcomeMessage').value = data.welcomeMessage;
+
+            // If a logo exists, display it
+            if (data.logo) {
+                document.getElementById('logoPreview').src = data.logo;
+            }
+        } catch (error) {
+            console.error('Error fetching customization data:', error);
+        }
+    }
+
+    // Event listener to detect chatbot selection and fetch customization data
+    document.getElementById('chatbotSelect').addEventListener('change', (event) => {
+        const chatbotId = event.target.value;
+        fetchCustomization(chatbotId);
+    });
     </script>
 
 </body>
