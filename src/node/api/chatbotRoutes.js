@@ -61,7 +61,6 @@ router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
 });
 
 
-
 router.get('/', authenticate, async (req, res) => {
     try {
         console.log('Fetching chatbots for user:', req.user.id); // Log the user ID to confirm it's being passed
