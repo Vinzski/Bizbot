@@ -3,6 +3,7 @@
     let isFeedbackSubmitted = false; // Flag to track feedback submission status
     let themeColor = '#10B981'; // Default theme color
     let welcomeMessage = 'Welcome! How can I assist you today?'; // Default welcome message
+    let chatbotName = 'BizBot'; // Default name, will be replaced
 
     // Function to add Font Awesome
     function addFontAwesome() {
@@ -31,7 +32,7 @@
                         icon: 'warning',
                         title: 'Oops...',
                         text: 'Please enter your feedback.',
-                        confirmButtonColor: themeColor // Use theme color
+                        confirmButtonColor: themeColor
                     });
                 } else {
                     console.log(`Feedback submitted: ${feedbackText}`);
@@ -122,33 +123,62 @@
             return;
         }
 
-        // Fetch the token from the server
-        fetch('https://bizbot-khpq.onrender.com/api/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${initialToken}`
-            },
-            body: JSON.stringify({ chatbotId, userId })
+        // First fetch the chatbot's name
+        fetchChatbotName(chatbotId)
+            .then(() => {
+                // Once name is fetched, proceed to fetch the token
+                return fetch('https://bizbot-khpq.onrender.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${initialToken}`
+                    },
+                    body: JSON.stringify({ chatbotId, userId })
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.token) {
+                    token = data.token; // Store token in memory
+                    console.log('Chatbot token fetched successfully:', token);
+                    // Once we have the token, fetch the customization
+                    fetchCustomization(chatbotId);
+                } else {
+                    throw new Error('Failed to fetch token');
+                }
+            })
+            .catch(error => {
+                console.error('Error initializing chatbot:', error);
+            });
+    }
+
+    // Function to fetch the chatbot's name
+    function fetchChatbotName(chatbotId) {
+        return fetch(`https://bizbot-khpq.onrender.com/api/chatbot/name/${chatbotId}`, {
+            // Add authorization header if needed depending on your setup:
+            // headers: { 'Authorization': `Bearer ${someToken}` },
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Network response was not ok: ${response.statusText}`);
             }
             return response.json();
         })
         .then(data => {
-            if (data.token) {
-                token = data.token; // Store token in memory
-                console.log('Chatbot token fetched successfully:', token);
-                // Once we have the token, fetch the customization
-                fetchCustomization(chatbotId);
+            if (data.name) {
+                chatbotName = data.name;
+                console.log(`Chatbot name fetched: ${chatbotName}`);
             } else {
-                throw new Error('Failed to fetch token');
+                console.warn('No chatbot name found, using default.');
             }
         })
         .catch(error => {
-            console.error('Error fetching chatbot token:', error);
+            console.error('Error fetching chatbot name:', error);
         });
     }
 
@@ -167,7 +197,7 @@
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
                     applyCustomization();
-                    enableSendButton(); // Enable send button once token & customization are ready
+                    enableSendButton();
                 } else {
                     console.warn('No customization found, using defaults.');
                     applyCustomization();
@@ -181,7 +211,7 @@
             });
     }
 
-    // Function to apply the customization (theme color & welcome message)
+    // Function to apply the customization (theme color, welcome message, and chatbot name)
     function applyCustomization() {
         const chatHeader = document.getElementById('chat-header');
         const sendfeedbackBtn = document.getElementById('sendfeedback');
@@ -189,6 +219,11 @@
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
+
+        // Apply chatbot name
+        if (chatTitle && chatbotName) {
+            chatTitle.textContent = chatbotName;
+        }
 
         // Apply theme color
         if (chatHeader) {
@@ -240,7 +275,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Use the updated token
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({ question: userInput, userId: userId })
         })
@@ -615,7 +650,7 @@ Thank you!</span>
         flex-direction: row;
     }
     `;
-    const styleSheet = document.createElement('style');
+  const styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
@@ -675,7 +710,7 @@ Thank you!</span>
         });
     });
 
-    // Event listener for sending feedback (fallback if SweetAlert isn't loaded yet)
+    // Feedback fallback event listener
     feedbackBtn.onclick = function () {
         if (selectedRating) {
             const feedbackText = feedbackTextarea.value;
@@ -742,7 +777,7 @@ Thank you!</span>
 
         if (userInput.value.trim() === '') {
             alert('Please enter a message.');
-            return; 
+            return;
         }
 
         // Append the user's message to the chat
