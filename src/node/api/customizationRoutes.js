@@ -9,10 +9,22 @@ const bcrypt = require('bcrypt');
 
 // File upload configuration
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, '../shared/'),
-    filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`)
+    destination: (req, file, cb) => {
+        // Ensure the directory exists or create it
+        const dir = './shared/';
+        fs.exists(dir, exist => {
+            if (!exist) {
+                return fs.mkdir(dir, error => cb(error, dir));
+            }
+            return cb(null, dir);
+        });
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}_${file.originalname}`)
+    }
 });
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
+
 
 // Save customization
 router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
