@@ -14,6 +14,41 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
+    try {
+        const { chatbotId } = req.params;
+
+        // Verify that the chatbot belongs to the authenticated user
+        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId: req.user.id });
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Chatbot not found or does not belong to the user.' });
+        }
+
+        // Fetch customization if it exists
+        const customization = await ChatbotCustomization.findOne({ chatbotId });
+
+        if (customization) {
+            // Return existing customization if found
+            return res.status(200).json({
+                logo: customization.logo || '/default/logo.png',  // Use default logo if none exists
+                themeColor: customization.themeColor || '#FFFFFF',  // Default theme color
+                welcomeMessage: customization.welcomeMessage || 'Welcome to our chatbot!',  // Default welcome message
+            });
+        } else {
+            // Return default values if no customization exists
+            return res.status(200).json({
+                logo: '/default/logo.png',
+                themeColor: '#FFFFFF',
+                welcomeMessage: 'Welcome to our chatbot!',
+            });
+        }
+    } catch (error) {
+        console.error('Error fetching customization:', error);
+        res.status(500).json({ message: 'Error fetching customization', error: error.message });
+    }
+});
+
+
 // Save customization
 router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
     try {
