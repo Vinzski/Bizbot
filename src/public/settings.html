@@ -268,6 +268,7 @@ document.getElementById('chatbot-select').addEventListener('change', async funct
 
                 try {
                     const response = await fetch('/api/customization/save', {
+                        const token = localStorage.getItem('token');
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`
