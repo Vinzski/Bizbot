@@ -190,29 +190,38 @@
             };
         });
 
-            async function fetchCustomization(chatbotId) {
-        try {
-            const response = await fetch(`/api/customization/get-customization/${chatbotId}`);
-            const data = await response.json();
+async function fetchCustomization(chatbotId) {
+    if (!chatbotId) return;  // Guard clause to ensure chatbotId is present
 
-            // Populate form fields with the current customization or defaults
-            document.getElementById('themeColor').value = data.themeColor;
-            document.getElementById('welcomeMessage').value = data.welcomeMessage;
-
-            // If a logo exists, display it
-            if (data.logo) {
-                document.getElementById('logoPreview').src = data.logo;
+    try {
+        const response = await fetch(`/api/get-customization/${chatbotId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Assuming you use Bearer token for authentication
+                'Content-Type': 'application/json'
             }
-        } catch (error) {
-            console.error('Error fetching customization data:', error);
-        }
-    }
+        });
 
-    // Event listener to detect chatbot selection and fetch customization data
-    document.getElementById('chatbotSelect').addEventListener('change', (event) => {
-        const chatbotId = event.target.value;
-        fetchCustomization(chatbotId);
-    });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Populate form fields with the current customization or defaults
+        document.getElementById('theme-color').value = data.themeColor;
+        document.getElementById('welcome-message').value = data.welcomeMessage;
+
+        // Optional: handle logo update if your UI supports it
+    } catch (error) {
+        console.error('Error fetching customization data:', error);
+        alert('Failed to fetch customization data.');
+    }
+}
+
+document.getElementById('chatbot-select').addEventListener('change', (event) => {
+    fetchCustomization(event.target.value);
+});
+
     </script>
 
 </body>
