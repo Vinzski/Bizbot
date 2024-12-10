@@ -9,10 +9,17 @@ const bcrypt = require('bcrypt');
 
 // File upload configuration
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, '../shared/'),
-    filename: (req, file, cb) => cb(null, `${Date.now()}_${file.originalname}`)
+    destination: (req, file, cb) => {
+        // Specify the absolute path to the shared folder
+        const uploadPath = path.resolve(__dirname, '../shared');
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}_${file.originalname}`);
+    }
 });
 const upload = multer({ storage });
+
 
 router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
     try {
@@ -67,7 +74,7 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
         };
 
         if (req.file) {
-            customizationData.logo = `/uploads/${req.file.filename}`;
+            customizationData.logo = `/shared/${req.file.filename}`; // Adjust the path for your frontend
         }
 
         // Update existing customization or create a new one if it doesn't exist
