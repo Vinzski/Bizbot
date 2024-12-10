@@ -11,7 +11,7 @@ const fs = require('fs');
 // File upload configuration
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const dir = '../shared/';
+        const dir = '../../uploads/';
         // Check if directory exists using fs.access
         fs.access(dir, fs.constants.F_OK, (err) => {
             if (err) {
