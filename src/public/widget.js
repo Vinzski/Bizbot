@@ -20,9 +20,8 @@
     script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
     document.head.appendChild(script);
 
-    // After the script is loaded, handle the feedback button click event
     script.onload = function () {
-        // Event listener for sending feedback
+        // Event listener for sending feedback using SweetAlert
         feedbackBtn.onclick = function () {
             if (selectedRating) {
                 const feedbackText = feedbackTextarea.value;
@@ -104,7 +103,6 @@
         };
     }
 
-
     addFontAwesome(); // Add Font Awesome on load
 
     // Function to initialize the chatbot widget
@@ -156,8 +154,7 @@
 
     // Function to fetch customization
     function fetchCustomization(chatbotId) {
-        // Assuming there's an endpoint to fetch customization
-        // Example: GET /api/customization?chatbotId=<ID>
+        // Update this endpoint according to your actual route
         fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
             .then(response => {
                 if (!response.ok) {
@@ -173,13 +170,13 @@
                     enableSendButton(); // Enable send button once token & customization are ready
                 } else {
                     console.warn('No customization found, using defaults.');
-                    applyCustomization(); 
+                    applyCustomization();
                     enableSendButton();
                 }
             })
             .catch(error => {
                 console.error('Error fetching customization:', error);
-                applyCustomization(); 
+                applyCustomization();
                 enableSendButton();
             });
     }
@@ -190,6 +187,8 @@
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
+        const chatToggleButton = document.getElementById('chat-toggle');
+        const sendMessageButton = document.getElementById('send-message');
 
         // Apply theme color
         if (chatHeader) {
@@ -198,13 +197,15 @@
         if (sendfeedbackBtn) {
             sendfeedbackBtn.style.backgroundColor = themeColor;
         }
+        if (chatToggleButton) {
+            chatToggleButton.style.backgroundColor = themeColor;
+        }
+        if (sendMessageButton) {
+            sendMessageButton.style.backgroundColor = themeColor;
+        }
 
-        // Apply welcome message (the initial bot message is the first .bot-message in #chat-messages)
-        // The code below assumes that the initial bot message is the last defined in the HTML structure.
-        // Replace it with the welcomeMessage from customization
+        // Apply welcome message
         if (botMessages && botMessages.length > 0) {
-            // The initial default message was 'Welcome! How can I assist you today?'
-            // Update it with the fetched welcomeMessage
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
         }
     }
@@ -267,7 +268,7 @@
         botMessageElement.classList.add('message', 'bot-message');
         botMessageElement.textContent = message;
         chatMessages.appendChild(botMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     }
 
     // Create elements for the chatbot widget
@@ -709,13 +710,10 @@ Thank you!</span>
                 .then(data => {
                     if (data.success) {
                         // Hide the chatbot widget and show the toggle button
-                        widgetElement.style.display = 'none'; // Hide the main widget
-                        const chatToggleButton = document.getElementById('chat-toggle');
-                        chatToggleButton.style.display = 'block'; // Show the toggle button
-                        const chatMsgs = document.getElementById('chat-messages');
-                        chatMsgs.style.display = 'none'; // Hide chat messages
-                        const chatInp = document.getElementById('chat-input');
-                        chatInp.style.display = 'none'; // Hide chat input
+                        widgetElement.style.display = 'none';
+                        chatToggleButton.style.display = 'block';
+                        chatMsgs.style.display = 'none';
+                        chatInp.style.display = 'none';
                     } else {
                         alert('Error submitting feedback. Please try again.');
                     }
@@ -758,7 +756,7 @@ Thank you!</span>
         userMessageElement.appendChild(userProfileImage);
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the latest message
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
 
         // Send the message to the API
         sendMessage(userInput.value);
