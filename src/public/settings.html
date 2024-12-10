@@ -11,21 +11,21 @@
 
 <body>
     <div class="container">
-<aside class="sidebar">
-    <h2>BizBot Admin</h2>
-    <nav>
-        <ul>
-            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
-            <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
-            <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
-            <li><a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a></li>
-            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><a href="support.html"><i class="fas fa-life-ring"></i> Support</a></li>
-            <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
-        </ul>
-    </nav>
-</aside>
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
+                    <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
+                    <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
+                    <li><a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a></li>
+                    <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><a href="support.html"><i class="fas fa-life-ring"></i> Support</a></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
+                </ul>
+            </nav>
+        </aside>
         <main class="main-content">
             <header class="dashboard-header">
                 <h1>Settings</h1>
@@ -61,7 +61,7 @@
                 <form id="customization-form">
                     <div class="form-group">
                         <label for="chatbot-select">Select Chatbot:</label>
-                        <select id="chatbot-select" name="chatbot-select">
+                        <select id="chatbot-select" name="chatbot-select" onchange="fetchCustomization(this.value)">
                             <option value="">Choose a chatbot</option>
                         </select>
                     </div>
@@ -83,7 +83,6 @@
             </div>
         </main>
     </div>
-
 
     <script src="app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -131,127 +130,30 @@
                 console.error('Error fetching chatbots:', error);
             }
 
-            document.querySelector('form').addEventListener('submit', async function (e) {
-                e.preventDefault(); // Prevent form submission
+            // Fetch customization when chatbot is selected
+            document.getElementById('chatbot-select').addEventListener('change', async (e) => {
+                const chatbotId = e.target.value;
+                if (!chatbotId) return;
 
-        const username = document.getElementById('username').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const oldPassword = document.getElementById('password').value.trim();
-        const newPassword = document.getElementById('new-password').value.trim();
-        const confirmPassword = document.getElementById('confirm-password').value.trim();
+                try {
+                    const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-        // Input validation
-        if (!username || !email || !oldPassword) {
-            alert("Username, email, and password are required!");
-            return;
-        }
+                    if (!response.ok) throw new Error('Failed to fetch customization');
 
-        if (newPassword && newPassword !== confirmPassword) {
-            alert("New password and confirm password do not match!");
-            return;
-        }
+                    const customization = await response.json();
 
-        // API call to update user profile
-        try {
-            const response = await fetch('/api/customization/update-profile', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username,
-                    email,
-                    oldPassword,
-                    newPassword,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error updating profile:', errorText);
-                alert('Failed to update profile. ' + errorText);
-                return;
-            }
-
-            // Profile update success logic
-            alert("Profile updated successfully!");
-            location.reload();
-
-        } catch (error) {
-            console.error('Error during fetch:', error);
-            alert('An unexpected error occurred: ' + error.message);
-        }
-    });
-});
-
-
-        document.getElementById('customization-form').onsubmit = async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData();
-            formData.append('chatbotId', document.getElementById('chatbot-select').value);
-            formData.append('themeColor', document.getElementById('theme-color').value);
-            formData.append('welcomeMessage', document.getElementById('welcome-message').value);
-
-            const fileInput = document.getElementById('dataset');
-            if (fileInput.files.length > 0) {
-                formData.append('logo', fileInput.files[0]);
-            }
-
-            try {
-                const response = await fetch('/api/customization/save', {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: formData
-                });
-
-                if (response.ok) {
-                    alert('Customization saved successfully!');
-                } else {
-                    const error = await response.json();
-                    alert(`Error: ${error.message}`);
+                    if (customization) {
+                        document.getElementById('theme-color').value = customization.themeColor;
+                        document.getElementById('welcome-message').value = customization.welcomeMessage;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch customization:', error);
                 }
-            } catch (error) {
-                console.error('Error saving customization:', error);
-                alert('An error occurred while saving the customization.');
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', async function() {
-    // existing initialization code
-
-document.getElementById('chatbot-select').addEventListener('change', async function() {
-    const chatbotId = this.value;
-    if (!chatbotId) {
-        console.log('No chatbot selected');
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('token'); // Ensure the token is properly managed and sent
-        const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        if (result) {
-            document.getElementById('theme-color').value = result.themeColor || '#FFFFFF'; // Default color
-            document.getElementById('welcome-message').value = result.welcomeMessage || 'Hello! How can I assist you today?'; // Default message
-        }
-    } catch (error) {
-        console.error('Failed to fetch customization:', error);
-        alert('Failed to fetch customization details. Check console for more info.');
-    }
-});
+            });
 
             document.getElementById('customization-form').onsubmit = async function(e) {
                 e.preventDefault();
@@ -265,13 +167,12 @@ document.getElementById('chatbot-select').addEventListener('change', async funct
                 if (fileInput.files.length > 0) {
                     formData.append('logo', fileInput.files[0]);
                 }
-                    
+
                 try {
-                    const token = localStorage.getItem('token');
                     const response = await fetch('/api/customization/save', {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${token}`
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
                         },
                         body: formData
                     });
