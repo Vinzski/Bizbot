@@ -70,9 +70,10 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
             customizationData.logo = `/uploads/${req.file.filename}`;
         }
 
+        // Update existing customization or create a new one if it doesn't exist
         const customization = await ChatbotCustomization.findOneAndUpdate(
             { chatbotId },
-            customizationData,
+            { $set: customizationData },
             { upsert: true, new: true }
         );
 
@@ -82,6 +83,7 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
         res.status(500).json({ message: 'Error saving customization', error: error.message });
     }
 });
+
 
 router.post('/update-profile', authenticate, async (req, res) => {
     const { id } = req.user; // Extract the user ID from the token
