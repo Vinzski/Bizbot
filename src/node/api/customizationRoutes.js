@@ -32,7 +32,7 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
         };
 
         if (req.file) {
-            customizationData.logo = `/uploads/${req.file.filename}`;
+            customizationData.logo = `/shared/${req.file.filename}`;
         }
 
         const customization = await ChatbotCustomization.findOneAndUpdate(
