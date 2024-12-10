@@ -1,6 +1,8 @@
 (function () {
     let token; // Store the widget token in memory
     let isFeedbackSubmitted = false; // Flag to track feedback submission status
+    let themeColor = '#10B981'; // Default theme color
+    let welcomeMessage = 'Welcome! How can I assist you today?'; // Default welcome message
 
     // Function to add Font Awesome
     function addFontAwesome() {
@@ -17,90 +19,90 @@
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
     document.head.appendChild(script);
-    
-// After the script is loaded, handle the feedback button click event
-script.onload = function () {
-    // Event listener for sending feedback
-    feedbackBtn.onclick = function () {
-        if (selectedRating) {
-            const feedbackText = feedbackTextarea.value;
-            if (feedbackText.trim() === '') {
-                // Show SweetAlert if feedback text is empty
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Oops...',
-                    text: 'Please enter your feedback.',
-                    confirmButtonColor: '#10B981' // Set button color
-                });
-            } else {
-                console.log(`Feedback submitted: ${feedbackText}`);
-                console.log(`Feedback submitted with rating: ${selectedRating}`);
-                
-                // Get the user ID and chatbot ID from the widget
-                const widgetElement = document.getElementById('bizbot-widget');
-                const userId = widgetElement.getAttribute('data-user-id');
-                const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        
-                // Prepare the feedback data
-                const feedbackData = {
-                    userId: userId,
-                    chatbotId: chatbotId,
-                    rating: selectedRating,
-                    feedback: feedbackText,
-                };
-        
-                // Send feedback to the server
-                fetch('https://bizbot-khpq.onrender.com/api/feedback', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(feedbackData),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Show SweetAlert for success and reload the page
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thank you!',
-                            text: 'Your feedback has been submitted successfully.',
-                            confirmButtonColor: '#10B981' // Set button color
-                        }).then(() => {
-                            // Reload the page after the user clicks "OK"
-                            window.location.reload();
-                        });
-                    } else {
+
+    // After the script is loaded, handle the feedback button click event
+    script.onload = function () {
+        // Event listener for sending feedback
+        feedbackBtn.onclick = function () {
+            if (selectedRating) {
+                const feedbackText = feedbackTextarea.value;
+                if (feedbackText.trim() === '') {
+                    // Show SweetAlert if feedback text is empty
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'Please enter your feedback.',
+                        confirmButtonColor: themeColor // Use theme color
+                    });
+                } else {
+                    console.log(`Feedback submitted: ${feedbackText}`);
+                    console.log(`Feedback submitted with rating: ${selectedRating}`);
+
+                    // Get the user ID and chatbot ID from the widget
+                    const widgetElement = document.getElementById('bizbot-widget');
+                    const userId = widgetElement.getAttribute('data-user-id');
+                    const chatbotId = widgetElement.getAttribute('data-chatbot-id');
+
+                    // Prepare the feedback data
+                    const feedbackData = {
+                        userId: userId,
+                        chatbotId: chatbotId,
+                        rating: selectedRating,
+                        feedback: feedbackText,
+                    };
+
+                    // Send feedback to the server
+                    fetch('https://bizbot-khpq.onrender.com/api/feedback', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(feedbackData),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show SweetAlert for success and reload the page
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thank you!',
+                                text: 'Your feedback has been submitted successfully.',
+                                confirmButtonColor: themeColor
+                            }).then(() => {
+                                // Reload the page after the user clicks "OK"
+                                window.location.reload();
+                            });
+                        } else {
+                            // Show SweetAlert for error
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'There was an issue submitting your feedback. Please try again.',
+                                confirmButtonColor: themeColor
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error submitting feedback:', error);
                         // Show SweetAlert for error
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
                             text: 'There was an issue submitting your feedback. Please try again.',
-                            confirmButtonColor: '#10B981' // Set button color
+                            confirmButtonColor: themeColor
                         });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting feedback:', error);
-                    // Show SweetAlert for error
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'There was an issue submitting your feedback. Please try again.',
-                        confirmButtonColor: '#10B981' // Set button color
                     });
+                }
+            } else {
+                // Show SweetAlert when rating is not selected
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Please select a rating before submitting feedback.',
+                    confirmButtonColor: themeColor
                 });
             }
-        } else {
-            // Show SweetAlert when rating is not selected
-            Swal.fire({
-                icon: 'warning',
-                title: 'Please select a rating before submitting feedback.',
-                confirmButtonColor: '#10B981' // Set button color
-            });
-        }
-    };
-}
+        };
+    }
 
 
     addFontAwesome(); // Add Font Awesome on load
@@ -141,7 +143,8 @@ script.onload = function () {
             if (data.token) {
                 token = data.token; // Store token in memory
                 console.log('Chatbot token fetched successfully:', token);
-                enableSendButton(); // Enable send button once token is ready
+                // Once we have the token, fetch the customization
+                fetchCustomization(chatbotId);
             } else {
                 throw new Error('Failed to fetch token');
             }
@@ -151,7 +154,62 @@ script.onload = function () {
         });
     }
 
-    // Function to enable the send button after token is fetched
+    // Function to fetch customization
+    function fetchCustomization(chatbotId) {
+        // Assuming there's an endpoint to fetch customization
+        // Example: GET /api/customization?chatbotId=<ID>
+        fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.customization) {
+                    themeColor = data.customization.themeColor || themeColor;
+                    welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
+                    applyCustomization();
+                    enableSendButton(); // Enable send button once token & customization are ready
+                } else {
+                    console.warn('No customization found, using defaults.');
+                    applyCustomization(); 
+                    enableSendButton();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching customization:', error);
+                applyCustomization(); 
+                enableSendButton();
+            });
+    }
+
+    // Function to apply the customization (theme color & welcome message)
+    function applyCustomization() {
+        const chatHeader = document.getElementById('chat-header');
+        const sendfeedbackBtn = document.getElementById('sendfeedback');
+        const chatTitle = document.getElementById('chat-title');
+        const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
+
+        // Apply theme color
+        if (chatHeader) {
+            chatHeader.style.backgroundColor = themeColor;
+        }
+        if (sendfeedbackBtn) {
+            sendfeedbackBtn.style.backgroundColor = themeColor;
+        }
+
+        // Apply welcome message (the initial bot message is the first .bot-message in #chat-messages)
+        // The code below assumes that the initial bot message is the last defined in the HTML structure.
+        // Replace it with the welcomeMessage from customization
+        if (botMessages && botMessages.length > 0) {
+            // The initial default message was 'Welcome! How can I assist you today?'
+            // Update it with the fetched welcomeMessage
+            botMessages[botMessages.length - 1].textContent = welcomeMessage;
+        }
+    }
+
+    // Function to enable the send button after token and customization are fetched
     function enableSendButton() {
         const sendButton = document.getElementById('send-message');
         if (sendButton) {
@@ -183,7 +241,7 @@ script.onload = function () {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`, // Use the updated token
             },
-            body: JSON.stringify({ question: userInput, userId: userId }) // Send chatbotId instead of userId
+            body: JSON.stringify({ question: userInput, userId: userId })
         })
             .then(response => {
                 if (!response.ok) {
@@ -255,7 +313,7 @@ Thank you!</span>
                     </div>
                 </div>
                 <textarea name="feedback" id="feedback" placeholder="Your feedback..."></textarea>
-                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>  <!-- Added "Send Feedback" button -->
+                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
             </div>
         </div>
         <div id="chat-messages">
@@ -266,7 +324,7 @@ Thank you!</span>
         </div>
         <div id="chat-input">
             <input type="text" id="user-input" placeholder="Type your message...">
-            <button id="send-message" disabled>Send</button> <!-- Disabled until token is ready -->
+            <button id="send-message" disabled>Send</button>
         </div>
     `;
 
@@ -616,21 +674,21 @@ Thank you!</span>
         });
     });
 
-    // Event listener for sending feedback
+    // Event listener for sending feedback (fallback if SweetAlert isn't loaded yet)
     feedbackBtn.onclick = function () {
         if (selectedRating) {
-            const feedbackText = feedbackTextarea.value; 
+            const feedbackText = feedbackTextarea.value;
             if (feedbackText.trim() === '') {
                 alert('Please enter your feedback.');
             } else {
                 console.log(`Feedback submitted: ${feedbackText}`);
                 console.log(`Feedback submitted with rating: ${selectedRating}`);
-                
+
                 // Get the user ID and chatbot ID from the widget
                 const widgetElement = document.getElementById('bizbot-widget');
                 const userId = widgetElement.getAttribute('data-user-id');
                 const chatbotId = widgetElement.getAttribute('data-chatbot-id');
-        
+
                 // Prepare the feedback data
                 const feedbackData = {
                     userId: userId,
@@ -638,7 +696,7 @@ Thank you!</span>
                     rating: selectedRating,
                     feedback: feedbackText,
                 };
-        
+
                 // Send feedback to the server
                 fetch('https://bizbot-khpq.onrender.com/api/feedback', {
                     method: 'POST',
@@ -672,7 +730,7 @@ Thank you!</span>
         }
     };
 
-        document.getElementById('sendfeedback').addEventListener('click', function () {
+    document.getElementById('sendfeedback').addEventListener('click', function () {
         const feedback = document.getElementById('feedback').value;
         if (feedback) {
             document.getElementById('feedback').value = ''; // Clear the feedback input
