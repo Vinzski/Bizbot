@@ -4,31 +4,16 @@ const FAQ = require('../models/faqModel');
 const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
 
-router.get('/', async (req, res) => {
-    const { chatbotId } = req.query;
-
-    if (!chatbotId) {
-        return res.status(400).json({ success: false, message: 'chatbotId is required' });
-    }
-
+router.get('/name/:chatbotId', authenticate, async (req, res) => {
     try {
-        const chatbot = await Chatbot.findById(chatbotId).exec();
+        const chatbot = await Chatbot.findById(req.params.chatbotId, 'name');
         if (!chatbot) {
-            return res.status(404).json({ success: false, message: 'Chatbot not found' });
+            return res.status(404).json({ message: 'Chatbot not found' });
         }
-
-        res.json({ 
-            success: true,
-            chatbot: {
-                _id: chatbot._id,
-                name: chatbot.name,
-                type: chatbot.type,
-                userId: chatbot.userId
-            }
-        });
+        res.json({ name: chatbot.name });
     } catch (error) {
-        console.error('Error fetching chatbot:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+        console.error('Failed to fetch chatbot name', error);
+        res.status(500).json({ message: "Failed to fetch chatbot name", error: error.toString() });
     }
 });
 
