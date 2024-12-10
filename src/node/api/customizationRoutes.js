@@ -30,6 +30,28 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// In customizationRoutes.js
+router.get('/', async (req, res) => {
+  const { chatbotId } = req.query;
+
+  if (!chatbotId) {
+    return res.status(400).json({ success: false, message: 'chatbotId is required' });
+  }
+
+  try {
+    const customization = await ChatbotCustomization.findOne({ chatbotId: chatbotId });
+    if (!customization) {
+      return res.json({ success: false, message: 'No customization found' });
+    }
+
+    res.json({ success: true, customization });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+
 
 // Save customization
 router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
