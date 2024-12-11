@@ -161,13 +161,21 @@ router.get('/chatbots', authenticate, async (req, res) => {
 
 // Get feedbacks for a specific chatbot
 router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
+    const { chatbotId } = req.params;
+    const { rating } = req.query; // Capture the rating from query parameters
+
     try {
-        const feedbacks = await Feedback.find({ chatbotId: req.params.chatbotId });
+        let query = { chatbotId: chatbotId };
+        if (rating && rating !== 'all') {
+            query.rating = rating; // Add rating to the query if it's specified and not 'all'
+        }
+
+        const feedbacks = await Feedback.find(query);
         res.json(feedbacks);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching feedbacks', error: error.message });
+        console.error('Error fetching feedbacks:', error);
+        res.status(500).json({ message: 'Server error while fetching feedbacks.', error: error.message });
     }
 });
-
 
 module.exports = router;
