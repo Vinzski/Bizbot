@@ -99,14 +99,11 @@
   }
 });
 
-  document.addEventListener("DOMContentLoaded", function() {
-    // Function to fetch and display dashboard data
 document.addEventListener("DOMContentLoaded", function() {
     // Function to fetch and display user interactions count
     async function fetchUserInteractions() {
-        const widgetScript = document.getElementById('bizbot-widget');
-        const userId = widgetScript.getAttribute('data-user-id');
-        const token = widgetScript.getAttribute('data-token');
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('user');
 
         if (!userId || !token) {
             console.error('User ID or Token is missing.');
@@ -149,9 +146,8 @@ document.addEventListener("DOMContentLoaded", function() {
     // Function to fetch and display user interactions count
     async function fetchUserInteractions() {
         // Get the script tag with id 'bizbot-widget'
-        const widgetScript = document.getElementById('bizbot-widget');
-        const userId = widgetScript.getAttribute('data-user-id');
-        const token = widgetScript.getAttribute('data-token');
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('user');
         if (!userId || !token) {
             console.error('User ID or Token is missing.');
             return;
