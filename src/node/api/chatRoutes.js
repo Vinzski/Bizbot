@@ -173,4 +173,49 @@ router.post('/', authenticate, async (req, res) => {
     }
 });
 
+router.get('/user-interactions/:userId', authenticate, async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        // Count the number of messages sent by the user
+        const interactionCount = await Message.countDocuments({
+            userId: userId,
+            sender: 'user',
+        });
+
+        res.json({ userId, interactionCount });
+    } catch (error) {
+        console.error('Error fetching user interactions count:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
+    }
+});
+
+router.get('/dashboard-data/:userId', authenticate, async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        // Count user interactions
+        const interactionCount = await Message.countDocuments({
+            userId: userId,
+            sender: 'user',
+        });
+
+        // Count total chatbots
+        const chatbotCount = await Chatbot.countDocuments();
+
+        // Count total FAQs
+        const faqCount = await FAQ.countDocuments();
+
+        res.json({
+            userId,
+            interactionCount,
+            chatbotCount,
+            faqCount,
+        });
+    } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
+    }
+});
+
 module.exports = router;
