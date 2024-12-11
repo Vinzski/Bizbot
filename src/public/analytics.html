@@ -75,8 +75,18 @@
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
+
+            <!-- Independent Word Cloud Container -->
+            <div class="card">
+                <h2>Chatbot Interactions Analysis (Word Cloud)</h2>
+                <div id="wordCloud" style="width: 100%; height: 300px;"></div>
+            </div>
+
+            
         </main>
     </div>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
     <script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="67595a851ded2dd74d13aa5e" data-user-id="6759576bdec096fe08ac3f07" data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0Ym90SWQiOiI2NzU5NWE4NTFkZWQyZGQ3NGQxM2FhNWUiLCJ1c2VySWQiOiI2NzU5NTc2YmRlYzA5NmZlMDhhYzNmMDciLCJpYXQiOjE3MzM5MDk2NTQsImV4cCI6MTczMzk5NjA1NH0.PpeukGXMl6TwPQcQUdoEGkRKTATMMupej_uOhUP3Wuo"></script>
     <script src="app.js"></script>
     <script>
@@ -308,6 +318,63 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
     const chartType = document.getElementById('chartSelector').value;
     downloadPDF(chatbotName, chartType);
 });
+
+
+
+
+async function updateInteractionWordCloud(chatbotId) {
+    const response = await fetch(`/api/messages/${chatbotId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    if (!response.ok) {
+        console.error('Failed to fetch interaction data');
+        return;
+    }
+    const messagesData = await response.json();
+    generateWordCloud(messagesData.words);
+}
+
+function generateWordCloud(words) {
+    const wordEntries = Object.entries(words).map(([text, size]) => ({ text, size }));
+    d3.layout.cloud()
+        .size([500, 300])  // Adjust the size as needed
+        .words(wordEntries)
+        .padding(5)
+        .rotate(() => 0)  // No rotation or set as needed
+        .fontSize(d => d.size)  // Adjust font size scaling as needed
+        .on("end", drawWordCloud)
+        .start();
+
+    function drawWordCloud(words) {
+        d3.select("#wordCloud").selectAll("*").remove(); // Clear previous
+        d3.select("#wordCloud").append("svg")
+            .attr("width", 500)
+            .attr("height", 300)
+            .append("g")
+            .attr("transform", "translate(250,150)")  // Center the cloud
+            .selectAll("text")
+            .data(words)
+            .enter().append("text")
+            .style("font-size", d => `${d.size}px`)
+            .style("fill", "#333")
+            .attr("transform", d => `translate(${d.x}, ${d.y})`)
+            .text(d => d.text);
+    }
+}
+
+        document.getElementById('chatbotSelector').addEventListener('change', function () {
+            const selectedChatbotId = this.value;
+            updateInteractionWordCloud(selectedChatbotId);  // Update the Word Cloud
+        });
+
+        function clearWordCloud() {
+            d3.select("#wordCloud").selectAll("*").remove();
+        }
+
+        async function updateInteractionWordCloud(chatbotId) {
+            clearWordCloud();  // Clear previous Word Cloud
+            // Fetch and generate new Word Cloud as previously coded
+        }
 
     </script>
 </body>
