@@ -70,6 +70,10 @@
             </div>
         </main>
     </div>
+
+    <div class="card">
+    <button id="printSelections">Print Selected Chatbot and Rating</button>
+    </div>
     <script src="app.js"></script>
     <script>
         // Initialize Chart.js context
@@ -114,7 +118,7 @@ async function fetchChatbots() {
 
         const chatbots = await response.json();
         const chatbotSelector = document.getElementById('chatbotSelector');
-        chatbotSelector.innerHTML = '';  // Clear previous options
+        chatbotSelector.innerHTML = '';
 
         if (chatbots.length > 0) {
             chatbots.forEach((chatbot, index) => {
@@ -123,14 +127,12 @@ async function fetchChatbots() {
                 option.textContent = chatbot.name;
                 chatbotSelector.appendChild(option);
                 if (index === 0) {
-                    chatbotSelector.value = chatbot._id; // Set the first chatbot as selected
-                    updateCharts(chatbot._id); // Update charts for the first chatbot
+                    chatbotSelector.value = chatbot._id;
+                    updateCharts(chatbot._id);
                 }
             });
         } else {
-            // No chatbots available
             chatbotSelector.innerHTML = '<option>No chatbots available</option>';
-            // Optionally clear charts or show a message
             clearCharts();
         }
     } catch (error) {
@@ -229,6 +231,54 @@ async function updateCharts(chatbotId) {
 
         // Initialize the page by fetching chatbots
         fetchChatbots();
+
+        document.addEventListener('DOMContentLoaded', function() {
+    fetchChatbots();
+
+    // Event listeners for chatbot and chart type selection
+    document.getElementById('chatbotSelector').addEventListener('change', function () {
+        updateCharts(this.value);
+    });
+
+    document.getElementById('chartSelector').addEventListener('change', function () {
+        toggleChartDisplay(this.value);
+    });
+
+    // Print button event listener
+    document.getElementById('printSelections').addEventListener('click', function() {
+        printCurrentSelections();
+    });
+});
+
+// Function to print current selections
+function printCurrentSelections() {
+    const chatbotSelector = document.getElementById('chatbotSelector');
+    const chartSelector = document.getElementById('chartSelector');
+    
+    const selectedChatbot = chatbotSelector.options[chatbotSelector.selectedIndex].text;
+    const selectedChartType = chartSelector.options[chartSelector.selectedIndex].text;
+    
+    console.log(`Selected Chatbot: ${selectedChatbot}`);
+    console.log(`Selected Chart Type: ${selectedChartType}`);
+    
+    // Optional: Display this information in a user-friendly way on the page
+    alert(`Selected Chatbot: ${selectedChatbot}\nSelected Chart Type: ${selectedChartType}`);
+}
+
+        // Function to toggle chart display based on selected chart type
+function toggleChartDisplay(selectedChartType) {
+    document.getElementById('barChartContainer').style.display = 'none';
+    document.getElementById('lineChartContainer').style.display = 'none';
+    document.getElementById('pieChartContainer').style.display = 'none';
+
+    if (selectedChartType === 'bar') {
+        document.getElementById('barChartContainer').style.display = 'block';
+    } else if (selectedChartType === 'line') {
+        document.getElementById('lineChartContainer').style.display = 'block';
+    } else if (selectedChartType === 'pie') {
+        document.getElementById('pieChartContainer').style.display = 'block';
+    }
+}
     </script>
 </body>
 
