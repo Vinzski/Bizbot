@@ -259,10 +259,11 @@ function downloadCSV(chatbotName, chartType) {
     link.click();
 }
 
+// Access jsPDF from the UMD module
 const { jsPDF } = window.jspdf;
 
 // Function to generate and download the PDF report
-function downloadPDF(chatbotName, chartType) {
+async function downloadPDF(chatbotName, chartType) {
     const doc = new jsPDF();
     
     // Add title
@@ -273,16 +274,21 @@ function downloadPDF(chatbotName, chartType) {
     doc.setFontSize(12);
     doc.text(`Chart Type: ${chartType}`, 10, 20);
 
-    // Add chart data
-    const data = chartType === 'bar' ? barChart.data.datasets[0].data :
-                 chartType === 'line' ? lineChart.data.datasets[0].data :
-                 pieChart.data.datasets[0].data;
+    // Get the chart data
+    let chartData;
+    if (chartType === 'bar') {
+        chartData = barChart;
+    } else if (chartType === 'line') {
+        chartData = lineChart;
+    } else if (chartType === 'pie') {
+        chartData = pieChart;
+    }
 
-    const ratings = ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'];
-    doc.text('Rating Data:', 10, 30);
-    ratings.forEach((rating, index) => {
-        doc.text(`${rating}: ${data[index]}`, 10, 40 + (index * 10));
-    });
+    // Get the chart as an image (base64-encoded)
+    const chartImage = chartData.toBase64Image();
+
+    // Add the chart image to the PDF
+    doc.addImage(chartImage, 'PNG', 10, 40, 180, 120);  // Adjust position and size as needed
 
     // Save the PDF
     doc.save(`${chatbotName}_report.pdf`);
