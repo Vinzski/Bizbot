@@ -426,7 +426,7 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
         if (chatbotId) params.append('chatbotId', chatbotId);
 
         try {
-            const response = await fetch(`/api/messages/interactions?${params.toString()}`, {
+            const response = await fetch(`/api/chatbots/interactions?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch filtered interactions');
