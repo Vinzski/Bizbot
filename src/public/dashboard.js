@@ -15,18 +15,11 @@ window.onload = () => {
             'Authorization': `Bearer ${token}`  // Send token in the Authorization header
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to fetch chatbot count');
-        }
-        return response.json();  // Parse JSON response
-    })
-    .then(data => {
-        document.getElementById('chatbot-count').textContent = data.count; // Update the UI with the count
-    })
+    .then(response => response.json())
+    .then(data => document.getElementById('chatbot-count').textContent = data.count)
     .catch(error => {
         console.error('Error fetching chatbot count:', error);
-        document.getElementById('chatbot-count').textContent = 'Error';  // Display error in the UI
+        document.getElementById('chatbot-count').textContent = 'Error';
     });
 
     // Fetch the FAQ count from the server
@@ -34,21 +27,14 @@ window.onload = () => {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`  // Send token in the Authorization header
+            'Authorization': `Bearer ${token}`
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to fetch FAQ count');
-        }
-        return response.json();  // Parse JSON response
-    })
-    .then(data => {
-        document.querySelector('.faq-number').textContent = data.count; // Update the FAQ count in the UI
-    })
+    .then(response => response.json())
+    .then(data => document.querySelector('.faq-number').textContent = data.count)
     .catch(error => {
         console.error('Error fetching FAQ count:', error);
-        document.querySelector('.faq-number').textContent = 'Error';  // Display error in the UI
+        document.querySelector('.faq-number').textContent = 'Error';
     });
 };
 
@@ -60,16 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch chatbots and populate the dropdown
     fetch('/api/chatbots', {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(chatbots => {
         chatbots.forEach(chatbot => {
             const option = document.createElement('option');
@@ -81,33 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(error => console.error('Error fetching chatbots:', error));
 
     // Event listener for the rating select dropdown
-    ratingSelect.addEventListener('change', function() {
-        if (chatbotSelect.value) {
-            fetchFeedbacks(chatbotSelect.value); // Fetch feedbacks with the selected rating
-        }
+    ratingSelect.addEventListener('change', () => {
+        if (chatbotSelect.value) fetchFeedbacks(chatbotSelect.value); // Fetch feedbacks with the selected rating
     });
 
     // Event listener for the chatbot select dropdown
-    chatbotSelect.addEventListener('change', function() {
-        fetchFeedbacks(this.value); // Fetch feedbacks for the selected chatbot ID
+    chatbotSelect.addEventListener('change', () => {
+        fetchFeedbacks(chatbotSelect.value); // Fetch feedbacks for the selected chatbot ID
     });
 
     function fetchFeedbacks(chatbotId) {
         const selectedRating = ratingSelect.value; // Get the selected rating
         fetch(`/api/chatbots/feedbacks/${chatbotId}?rating=${selectedRating}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(feedbacks => {
-            renderFeedbacks(feedbacks);
-        })
+        .then(response => response.json())
+        .then(feedbacks => renderFeedbacks(feedbacks))
         .catch(error => console.error('Error fetching feedbacks:', error));
     }
 
@@ -122,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span>${new Date(feedback.createdAt).toLocaleString()}</span>
                 </div>
                 <div class="feedback-content">
-                    <div><span class="prompt">&gt;</span> <strong>Chatbot:</strong> <span class="chatbot-name">${chatbotSelect.options[chatbotSelect.selectedIndex].text}</span></div>
+                    <div><span class="prompt">&gt;</span> <strong>Chatbot:</strong> <span>${chatbotSelect.options[chatbotSelect.selectedIndex].text}</span></div>
                     <div><span class="prompt">&gt;</span> <strong>Rating:</strong> ${feedback.rating}</div>
                     <div><span class="prompt">&gt;</span> <strong>Feedback:</strong> ${feedback.feedback.substring(0, 100)}${feedback.feedback.length > 100 ? '...' : ''}</div>
                 </div>
@@ -156,12 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         cancelButton: 'swal-cancel',
                         footer: 'swal-footer'
                     }
-                
                 });
-            
             });
             feedbackContainer.appendChild(feedbackElement);
-        }); 
+        });
     }
-})
-
+});
