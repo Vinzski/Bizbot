@@ -3,18 +3,19 @@ const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel'); // Ensure the path to userModel is correct
 
 exports.signup = async (req, res) => {
-    console.log('Signup data received:', req.body);
     const { username, email, password } = req.body;
     try {
-        console.log('Attempting to hash password');
+        // Check if user already exists with the same email or username
+        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+        if (existingUser) {
+            return res.status(409).json({ message: 'Username or Email already exists' });
+        }
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log('Password hashed, creating user');
         const newUser = await User.create({
             username,
             email,
             password: hashedPassword
         });
-        console.log('User created:', newUser);
         res.status(201).json({ 
             message: 'User created successfully', 
             user: { 
@@ -25,10 +26,10 @@ exports.signup = async (req, res) => {
         });
     } catch (error) {
         console.error('Signup error:', error);
-        // Modify below line to send JSON error message instead of plain text
         res.status(500).json({ message: "Error creating the user", error: error.message });
     }
 };
+
 
 // Login function
 exports.login = async (req, res) => {
