@@ -3,6 +3,7 @@ const axios = require('axios');
 const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
+const JaroWinklerDistance = natural.JaroWinklerDistance;
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
@@ -14,10 +15,6 @@ router.post('/send_message', (req, res) => {
     // Respond with a simple JSON object
     res.json({ reply: "Response based on " + userMessage });
 });
-
-// Tokenizer and distance metric initialization
-const tokenizer = new natural.WordTokenizer();
-const JaroWinklerDistance = natural.JaroWinklerDistance;
 
 // Route to handle incoming messages and check FAQ or forward to Rasa
 router.post('/chat', authenticate, async (req, res) => {
