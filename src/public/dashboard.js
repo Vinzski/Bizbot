@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         feedbackElement.className = 'feedback';
                         feedbackElement.innerHTML = `
                             <div class="feedback-header">
-                                <span class="prompt">user@feedback:~$</span>
+                                <span class="prompt">@user</span>
                                 <span>${new Date(feedback.createdAt).toLocaleString()}</span>
                             </div>
                             <div class="feedback-content">
