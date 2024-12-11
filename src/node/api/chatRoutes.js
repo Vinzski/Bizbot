@@ -205,21 +205,6 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-router.get('/messages/:chatbotId', authenticate, async (req, res) => {
-    const { chatbotId } = req.params;
-    try {
-        const messages = await Message.find({ chatbotId: chatbotId, sender: 'user' }).select('message -_id');
-        const wordList = messages.map(msg => msg.message.split(' ')).flat();
-        const wordCount = {};
-        wordList.forEach(word => {
-            wordCount[word] = (wordCount[word] || 0) + 1;
-        });
-        res.json({ messages: messages.length, words: wordCount });
-    } catch (error) {
-        console.error('Error fetching messages:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
-    }
-});
 
 
 module.exports = router;
