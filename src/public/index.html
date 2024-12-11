@@ -7,101 +7,135 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --primary-dark: #45a049;
-            --secondary-color: #81C784;
-            --background-color: #E8F5E9;
-            --text-color: #333;
-            --error-color: #f44336;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: var(--text-color);
-        }
-        
-        .container {
-            background-color: #ffffff;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            width: 350px;
-        }
-        
-        h2 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-        
-        .input-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-        
-        input {
-            width: 92.7%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-        
-        button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-        }
-        
-        button:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        .switch-btn {
-            background-color: transparent;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            margin-top: 1rem;
-        }
-        
-        .switch-btn:hover {
-            background-color: rgba(76, 175, 80, 0.1);
-        }
-        
-        #message {
-            text-align: center;
-            color: var(--error-color);
-            margin-top: 1rem;
-            font-weight: 500;
-        }
+  :root {
+    --primary-color: #4CAF50;
+    --primary-dark: #45a049;
+    --secondary-color: #81C784;
+    --background-color: #E8F5E9;
+    --text-color: #333;
+    --error-color: #f44336;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: var(--text-color);
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    transition: all 0.3s ease;
+}
+
+.container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+h2 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+label {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    color: #999;
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: transparent;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+input:focus + label,
+input:not(:placeholder-shown) + label {
+    top: -0.5rem;
+    left: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0 0.25rem;
+    background-color: white;
+    color: var(--primary-color);
+}
+
+button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.switch-btn {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.switch-btn:hover {
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+#message {
+    text-align: center;
+    color: var(--error-color);
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+}
     </style>
 </head>
 <body>
@@ -109,23 +143,23 @@
         <h2 id="formTitle">Login</h2>
         <form id="authForm">
             <div class="input-group">
-                <label for="username" style="display: none;">Username:</label>
-                <input type="text" id="username" style="display: none;">
+                <input type="text" id="username" placeholder="Username" style="display: none;">
+                <label for="username" style="display: none;">Username</label>
             </div>  
             
             <div class="input-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" required>
+                <input type="email" id="email" required placeholder="Email">
+                <label for="email">Email</label>
             </div>
             
             <div class="input-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" required>
+                <input type="password" id="password" required placeholder="Password">
+                <label for="password">Password</label>
             </div>
 
             <button type="submit" id="submitBtn">Login</button>
-            <button type="button" class="switch-btn" onclick="toggleForm()">Switch to Signup</button>
         </form>
+        <button type="button" class="switch-btn" onclick="toggleForm()">Switch to Signup</button>
         <p id="message"></p>
     </div>
 
