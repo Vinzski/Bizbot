@@ -50,9 +50,10 @@
             </div>
 
             <div class="card">
-                <button id="downloadCsvBtn">Download CSV</button>
-                <button id="downloadPdfBtn">Download PDF</button>
+                <button id="downloadCsv" class="btn">Download CSV</button>
+                <button id="downloadPdf" class="btn">Download PDF</button>
             </div>
+
             
             <!-- Bar Chart Section -->
             <div class="card" id="barChartContainer" style="display: block;">
@@ -236,48 +237,68 @@ async function updateCharts(chatbotId) {
         // Initialize the page by fetching chatbots
         fetchChatbots();
 
-        // Function to download CSV file
-function downloadCSV(data, chatbotName) {
-    const csvRows = [];
-    const headers = ['Rating', 'Count'];
-    csvRows.push(headers.join(','));
+        // Function to convert chart data to CSV format
+function downloadCSV(chatbotName, chartType) {
+    const data = chartType === 'bar' ? barChart.data.datasets[0].data :
+                 chartType === 'line' ? lineChart.data.datasets[0].data :
+                 pieChart.data.datasets[0].data;
 
-    data.forEach((count, index) => {
-        const row = [headers[index], count];
-        csvRows.push(row.join(','));
+    // Prepare CSV content
+    const csvHeader = 'Rating,Count\n';
+    const csvContent = ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']
+        .map((rating, index) => `${rating},${data[index]}`)
+        .join('\n');
+
+    const csvData = csvHeader + csvContent;
+    
+    // Create and trigger the download
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${chatbotName}_ratings.csv`;
+    link.click();
+}
+
+// Function to generate and download the PDF report
+function downloadPDF(chatbotName, chartType) {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text(`Chatbot: ${chatbotName}`, 10, 10);
+
+    // Add chart type
+    doc.setFontSize(12);
+    doc.text(`Chart Type: ${chartType}`, 10, 20);
+
+    // Add chart data
+    const data = chartType === 'bar' ? barChart.data.datasets[0].data :
+                 chartType === 'line' ? lineChart.data.datasets[0].data :
+                 pieChart.data.datasets[0].data;
+
+    const ratings = ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'];
+    doc.text('Rating Data:', 10, 30);
+    ratings.forEach((rating, index) => {
+        doc.text(`${rating}: ${data[index]}`, 10, 40 + (index * 10));
     });
 
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `${chatbotName}-ratings.csv`);
-    a.click();
+    // Save the PDF
+    doc.save(`${chatbotName}_report.pdf`);
 }
 
-// Function to download PDF file
-async function downloadPDF(chart, chatbotName) {
-    const canvas = chart.canvas;
-    const canvasUrl = canvas.toDataURL('image/png', 1.0);
-    const pdf = new jspdf.jsPDF();
-    pdf.text(`${chatbotName} - Ratings Chart`, 10, 10);
-    pdf.addImage(canvasUrl, 'PNG', 15, 20, 180, 150);
-    pdf.save(`${chatbotName}-ratings.pdf`);
-}
-
-// Example usage inside updateCharts function (after updating the chart data)
-function exampleUsageForDownloads(chatbotId) {
+// Event listener for the CSV download button
+document.getElementById('downloadCsv').addEventListener('click', () => {
     const chatbotName = document.getElementById('chatbotSelector').selectedOptions[0].text;
-    const data = barChart.data.datasets[0].data; // Assuming bar chart data is what you want to download
+    const chartType = document.getElementById('chartSelector').value;
+    downloadCSV(chatbotName, chartType);
+});
 
-    // Add download buttons event listeners
-    document.getElementById('downloadCsvBtn').addEventListener('click', () => downloadCSV(data, chatbotName));
-    document.getElementById('downloadPdfBtn').addEventListener('click', () => downloadPDF(barChart, chatbotName));
-}
-
-// Update this to be triggered when needed
-exampleUsageForDownloads(selectedChatbotId);
+// Event listener for the PDF download button
+document.getElementById('downloadPdf').addEventListener('click', () => {
+    const chatbotName = document.getElementById('chatbotSelector').selectedOptions[0].text;
+    const chartType = document.getElementById('chartSelector').value;
+    downloadPDF(chatbotName, chartType);
+});
 
     </script>
 </body>
