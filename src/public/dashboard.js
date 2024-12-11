@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(feedbacks => {
+        function renderFeedbacks(feedbacks) {
             feedbackContainer.innerHTML = ''; // Clear previous feedbacks
             feedbacks.forEach(feedback => {
                 const feedbackElement = document.createElement('div');
