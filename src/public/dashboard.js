@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchFeedbacks(chatbotId) {
         const selectedRating = ratingSelect.value; // Get the selected rating
-        fetch(`/api/feedbacks/${chatbotId}?rating=${selectedRating}`, {
+        fetch(`/api/chatbots/feedbacks/${chatbotId}?rating=${selectedRating}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
         .then(response => response.json())
