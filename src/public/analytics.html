@@ -101,34 +101,55 @@
         pieChart = createChart(pieChartCtx, 'pie');
 
         // Fetch chatbots for the logged-in user
-        async function fetchChatbots() {
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch('/api/chatbots', {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const chatbots = await response.json();
-                const chatbotSelector = document.getElementById('chatbotSelector');
-                chatbotSelector.innerHTML = '';  // Clear previous options
+// Fetch chatbots for the logged-in user and update charts
+async function fetchChatbots() {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch('/api/chatbots', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-                chatbots.forEach(chatbot => {
-                    const option = document.createElement('option');
-                    option.value = chatbot._id;
-                    option.textContent = chatbot.name;
-                    chatbotSelector.appendChild(option);
-                });
+        if (!response.ok) throw new Error('Failed to load chatbots');
 
-                // Trigger update charts when the first chatbot is loaded
-                if (chatbots.length === 0) {
-                    const chatbotSelector = document.getElementById('chatbotSelector');
-                    chatbotSelector.innerHTML = '<option>No chatbots available</option>';
-                    updateCharts(); // You might want to call updateCharts with no ID to clear the charts or keep them at zero
+        const chatbots = await response.json();
+        const chatbotSelector = document.getElementById('chatbotSelector');
+        chatbotSelector.innerHTML = '';  // Clear previous options
+
+        if (chatbots.length > 0) {
+            chatbots.forEach((chatbot, index) => {
+                const option = document.createElement('option');
+                option.value = chatbot._id;
+                option.textContent = chatbot.name;
+                chatbotSelector.appendChild(option);
+                if (index === 0) {
+                    chatbotSelector.value = chatbot._id; // Set the first chatbot as selected
+                    updateCharts(chatbot._id); // Update charts for the first chatbot
                 }
-            } catch (error) {
-                console.error('Error fetching chatbots:', error);
-            }
+            });
+        } else {
+            // No chatbots available
+            chatbotSelector.innerHTML = '<option>No chatbots available</option>';
+            // Optionally clear charts or show a message
+            clearCharts();
         }
+    } catch (error) {
+        console.error('Error fetching chatbots:', error);
+        chatbotSelector.innerHTML = '<option>Error loading chatbots</option>';
+        clearCharts();
+    }
+}
+
+// Function to clear charts or handle empty data scenarios
+function clearCharts() {
+    const datasets = [barChart, lineChart, pieChart].map(chart => chart.data.datasets[0].data);
+    datasets.forEach(data => data.fill(0)); // Set all data to zero
+    [barChart, lineChart, pieChart].forEach(chart => chart.update());
+}
+
+// Call fetchChatbots to initialize everything
+document.addEventListener('DOMContentLoaded', fetchChatbots);
+
 
         // Fetch ratings for the selected chatbot
 async function fetchRatings(chatbotId) {
