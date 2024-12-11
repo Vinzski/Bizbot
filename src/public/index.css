@@ -7,37 +7,77 @@
     --error-color: #f44336;
 }
 
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-color);
-    background-image: 
-        linear-gradient(120deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-        linear-gradient(240deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-        linear-gradient(180deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-        linear-gradient(300deg, rgba(255,255,255,0.1) 25%, transparent 25%);
-    background-size: 20px 40px;
-    background-position: 0 0, 10px 0, 10px -10px, 0px 10px;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(-45deg, #E8F5E9, #C8E6C9, #A5D6A7, #81C784);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    color: var(--text-color);
 }
 
-.container {
+.page-container {
+    display: flex;
     background-color: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    padding: 2.5rem;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    width: 350px;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    width: 800px;
+    max-width: 90%;
+    animation: float 6s ease-in-out infinite;
 }
 
-.container:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+.form-container {
+    flex: 1;
+    padding: 2.5rem;
+}
+
+.logo-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 2rem;
+}
+
+.welcome-message {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    text-align: center;
+    animation: pulse 2s infinite;
+}
+
+.logo-placeholder {
+    max-width: 100%;
+    height: auto;
 }
 
 h2 {
@@ -46,6 +86,7 @@ h2 {
     margin-bottom: 1.5rem;
     font-size: 2rem;
     font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .input-group {
@@ -101,12 +142,47 @@ button {
     font-weight: 600;
     transition: all 0.3s ease;
     margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
 }
 
 button:hover {
     background-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 1;
+    }
+    20% {
+        transform: scale(25, 25);
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(40, 40);
+    }
+}
+
+button:focus:not(:active)::after {
+    animation: ripple 1s ease-out;
 }
 
 .switch-btn {
@@ -136,27 +212,28 @@ button:hover {
     animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
 }
 
-@keyframes gradientAnimation {
-    0% {
-        background-position: 0% 50%;
+@media (max-width: 768px) {
+    .page-container {
+        flex-direction: column;
     }
-    50% {
-        background-position: 100% 50%;
+
+    .form-container,
+    .logo-container {
+        width: 100%;
     }
-    100% {
-        background-position: 0% 50%;
+
+    .logo-container {
+        order: -1;
+        padding: 2rem 0;
+    }
+
+    .logo-placeholder {
+        max-width: 50%;
+    }
+
+    .welcome-message {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
     }
 }
 
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(-45deg, rgba(76, 175, 80, 0.1), rgba(129, 199, 132, 0.1), rgba(232, 245, 233, 0.1));
-    background-size: 400% 400%;
-    animation: gradientAnimation 15s ease infinite;
-    z-index: -1;
-}
