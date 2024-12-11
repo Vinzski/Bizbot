@@ -178,4 +178,20 @@ router.get('/feedbacks/:chatbotId', authenticate, async (req, res) => {
     }
 });
 
+router.get('/interactions', authenticate, async (req, res) => {
+    const { chatbotId } = req.query;
+
+    const filter = {};
+    if (chatbotId) filter.chatbotId = chatbotId;
+
+    try {
+        const messages = await Message.find(filter).sort({ createdAt: 1 }); 
+        // Return messages array so we can derive data for charts and word cloud
+        res.json(messages);
+    } catch (error) {
+        console.error('Error fetching filtered interactions:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
+    }
+});
+
 module.exports = router;
