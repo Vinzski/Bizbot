@@ -169,11 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         cancelButton: 'swal-cancel',
                         footer: 'swal-footer'
                     }
+                
                 });
+            
             });
             feedbackContainer.appendChild(feedbackElement);
         });
+        
     }
+
 });
-
-
+})
