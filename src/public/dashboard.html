@@ -103,7 +103,7 @@
     // Function to fetch and display dashboard data
       async function fetchDashboardData() {
             try {
-                const response = await fetch('/api/chat/user-interactions', {
+                const response = await fetch('/api/chat/user-interactions${userId}', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -125,7 +125,7 @@
 
         async function fetchDashboardMetrics() {
             try {
-                const response = await fetch('/api/chat/dashboard-data', {
+                const response = await fetch('/api/chat/dashboard-data${userId}', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
