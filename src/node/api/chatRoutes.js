@@ -34,7 +34,7 @@ router.post('/send_message', async (req, res) => {
     }
 });
 
-router.get('/user-interactions/', authenticate, async (req, res) => {
+router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
 
     // Optional: Check if the requester has admin privileges
@@ -191,21 +191,13 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-router.get('/dashboard-data/', authenticate, async (req, res) => {
+router.get('/dashboard-data/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
 
     try {
-        // Count user interactions
-        const interactionCount = await Message.countDocuments({
-            userId: userId,
-            sender: 'user',
-        });
-
-        // Count total chatbots
-        const chatbotCount = await Chatbot.countDocuments({ userId: userId });
-
-        // Count total FAQs
-        const faqCount = await FAQ.countDocuments();
+        const interactionCount = await Message.countDocuments({ userId, sender: 'user' });
+        const chatbotCount = await Chatbot.countDocuments({ ownerId: userId });
+        const faqCount = await FAQ.countDocuments({ ownerId: userId });
 
         res.json({
             userId,
@@ -218,5 +210,6 @@ router.get('/dashboard-data/', authenticate, async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
     }
 });
+
 
 module.exports = router;
