@@ -34,7 +34,7 @@ router.post('/send_message', async (req, res) => {
     }
 });
 
-router.get('/user-interactions/', authenticate, async (req, res) => {
+router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
 
     // Optional: Check if the requester has admin privileges
@@ -191,7 +191,7 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-router.get('/dashboard-data/', authenticate, async (req, res) => {
+router.get('/dashboard-data/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
 
     try {
