@@ -33,6 +33,30 @@ router.post('/send_message', async (req, res) => {
     }
 });
 
+router.get('/user-interactions/:userId', authenticate, async (req, res) => {
+    const { userId } = req.params;
+
+    // Optional: Check if the requester has admin privileges
+    // This depends on your authentication middleware setup
+    // For example:
+    // if (!req.user.isAdmin) {
+    //     return res.status(403).json({ message: 'Access denied' });
+    // }
+
+    try {
+        // Count the number of messages sent by the user
+        const interactionCount = await Message.countDocuments({
+            userId: userId,
+            sender: 'user',
+        });
+
+        res.json({ userId, interactionCount });
+    } catch (error) {
+        console.error('Error fetching user interactions count:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
+    }
+});
+
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
