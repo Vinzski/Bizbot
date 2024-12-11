@@ -310,9 +310,7 @@ document
   });
 
 function authenticateUser() {
-  const isLogin = document
-    .getElementById("formTitle")
-    .textContent.includes("Login");
+  const isLogin = document.getElementById("formTitle").textContent.includes("Login");
   const username = isLogin ? null : document.getElementById("username").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -327,7 +325,6 @@ function authenticateUser() {
     .then((response) => response.json())
     .then((data) => {
       if (data.message === "User created successfully") {
-        // Show SweetAlert for successful signup
         Swal.fire({
           icon: "success",
           title: "Successfully Created an Account!",
@@ -338,6 +335,12 @@ function authenticateUser() {
         localStorage.setItem("user", JSON.stringify({ username: data.user.username, email: email }));
         localStorage.setItem("loginSuccess", "true");
         window.location.href = "dashboard.html";
+      } else if (data.message === "Username or Email already exists") {
+        Swal.fire({
+          icon: "error",
+          title: "Username or Email Already Exist",
+          text: "Please use a different username or email.",
+        });
       } else {
         Swal.fire({
           icon: "error",
