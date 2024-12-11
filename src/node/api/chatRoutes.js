@@ -81,7 +81,7 @@ router.post('/', authenticate, async (req, res) => {
         console.log('User message saved to database.');
 
         // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+        const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
 
         if (faqs.length === 0) {
