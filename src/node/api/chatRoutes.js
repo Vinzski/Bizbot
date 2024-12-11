@@ -15,72 +15,71 @@ router.post('/send_message', (req, res) => {
     res.json({ reply: "Response based on " + userMessage });
 });
 
-router.post('/', authenticate, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
+// Tokenizer and distance metric initialization
+const tokenizer = new natural.WordTokenizer();
+const JaroWinklerDistance = natural.JaroWinklerDistance;
 
-    console.log('--- Incoming Chat Request ---');
-    console.log(`User ID: ${userId}`);
-    console.log(`Chatbot ID: ${chatbotId}`);
-    console.log(`Question: "${question}"`);
+// Route to handle incoming messages and check FAQ or forward to Rasa
+router.post('/chat', authenticate, async (req, res) => {
+    const { message, chatbotId } = req.body;
+    const userId = req.user.id;
+
+    console.log('Received chat request:', { userId, chatbotId, message });
 
     try {
-        // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-        console.log(`Number of FAQs found: ${faqs.length}`);
+        const faqs = await FAQ.find({ userId, chatbotId });
+        console.log('FAQs loaded:', faqs.length);
 
-        if (faqs.length === 0) {
-            console.log('No FAQs found for the given userId and chatbotId.');
+        if (!faqs.length) {
+            console.log('No FAQs available, forwarding to Rasa.');
+            return forwardToRasa(message, res);
         }
 
-        // Normalize the user question
-        const normalizedUserQuestion = question.toLowerCase().trim();
-
-        // 1. Exact Match Check
-        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
+        const normalizedMessage = message.toLowerCase().trim();
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedMessage);
 
         if (exactMatch) {
-            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            console.log('Exact match found:', exactMatch.question);
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Similarity-Based Matching
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
-            const similarity = natural.JaroWinklerDistance(faqText, normalizedUserQuestion);
-            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
-
+            const similarity = JaroWinklerDistance(faqText, normalizedMessage);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
 
-        // Define similarity threshold
-        const SIMILARITY_THRESHOLD = 0.5; // Adjust as needed
-
+        const SIMILARITY_THRESHOLD = 0.7; // Adjusted for more accuracy
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+            console.log('Similar FAQ found:', bestMatch.faq.question, 'with score:', bestMatch.score);
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            console.log('No adequate FAQ match found. Forwarding to Rasa.');
-            try {
-                const rasaResponse = await axios.post('https://cuddly-areas-knock.loca.lt/webhooks/rest/webhook', {
-                    message: question,
-                    sender: 'chatbot-widget',
-                });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                console.log(`Rasa Response: "${botReply}"`);
-                res.json({ reply: botReply, source: 'Rasa' });
-            } catch (error) {
-                console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-            }
         }
+
+        console.log('No satisfactory FAQ match, forwarding to Rasa.');
+        forwardToRasa(message, res);
+
     } catch (error) {
-        console.error('Error processing chat request:', error);
-        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+        console.error('Error handling chat request:', error);
+        res.status(500).json({ error: 'Internal Server Error', details: error.toString() });
     }
 });
+
+// Function to handle forwarding messages to Rasa
+async function forwardToRasa(message, res) {
+    try {
+        const rasaResponse = await axios.post('https://your-rasa-server/webhooks/rest/webhook', {
+            message: message,
+            sender: 'chatbot-widget'
+        });
+        const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
+        res.json({ reply: botReply, source: 'Rasa' });
+    } catch (error) {
+        console.error('Failed to get response from Rasa:', error);
+        res.status(500).json({ reply: "Error contacting Rasa", error: error.toString() });
+    }
+}
 
 module.exports = router;
