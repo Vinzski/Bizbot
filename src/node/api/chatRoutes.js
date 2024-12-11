@@ -17,7 +17,7 @@ router.post('/send_message', (req, res) => {
 });
 
 // Route to handle incoming messages and check FAQ or forward to Rasa
-router.post('/chat', authenticate, async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
     const { message, chatbotId } = req.body;
     const userId = req.user.id;
 
