@@ -62,9 +62,9 @@ body {
 .main-content {
     flex: 1;
     padding: 20px;
-    height:100%;
-    overflow-x:hidden;
-    overflow-y:scroll;
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 .dashboard-header {
