@@ -79,6 +79,51 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => console.error('Error fetching feedbacks:', error));
     }
 
+    document.addEventListener("DOMContentLoaded", function() {
+    // Function to fetch and display user interactions count
+    async function fetchUserInteractions() {
+        // Get the script tag with id 'bizbot-widget'
+        const widgetScript = document.getElementById('bizbot-widget');
+        const userId = widgetScript.getAttribute('data-user-id');
+        const token = widgetScript.getAttribute('data-token');
+
+        if (!userId || !token) {
+            console.error('User ID or Token is missing.');
+            return;
+        }
+
+        try {
+            // Make an API call to fetch user interactions count
+            const response = await fetch(`https://bizbot-khpq.onrender.com/api/chat/user-interactions/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const interactionCount = data.interactionCount || 0;
+
+            // Update the HTML element with the fetched count
+            const interactionCountElement = document.getElementById('user-interactions-count');
+            if (interactionCountElement) {
+                interactionCountElement.textContent = interactionCount.toLocaleString();
+            } else {
+                console.error('Element with ID "user-interactions-count" not found.');
+            }
+        } catch (error) {
+            console.error('Failed to fetch user interactions count:', error);
+        }
+    }
+
+    // Call the function to fetch and display the count
+    fetchUserInteractions();
+
     function renderFeedbacks(feedbacks) {
         feedbackContainer.innerHTML = ''; // Clear previous feedbacks
         feedbacks.forEach(feedback => {
@@ -131,47 +176,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", function() {
-    // Function to fetch and display user interactions count
-    async function fetchUserInteractions() {
-        // Get the script tag with id 'bizbot-widget'
-        const widgetScript = document.getElementById('bizbot-widget');
-        const userId = widgetScript.getAttribute('data-user-id');
-        const token = widgetScript.getAttribute('data-token');
 
-        if (!userId || !token) {
-            console.error('User ID or Token is missing.');
-            return;
-        }
-
-        try {
-            // Make an API call to fetch user interactions count
-            const response = await fetch(`https://bizbot-khpq.onrender.com/api/chat/user-interactions/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error: ${response.status} ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            const interactionCount = data.interactionCount || 0;
-
-            // Update the HTML element with the fetched count
-            const interactionCountElement = document.getElementById('user-interactions-count');
-            if (interactionCountElement) {
-                interactionCountElement.textContent = interactionCount.toLocaleString();
-            } else {
-                console.error('Element with ID "user-interactions-count" not found.');
-            }
-        } catch (error) {
-            console.error('Failed to fetch user interactions count:', error);
-        }
-    }
-
-    // Call the function to fetch and display the count
-    fetchUserInteractions();
