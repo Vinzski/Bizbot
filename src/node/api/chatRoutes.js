@@ -202,7 +202,7 @@ router.get('/dashboard-data/', authenticate, async (req, res) => {
         });
 
         // Count total chatbots
-        const chatbotCount = await Chatbot.countDocuments();
+        const chatbotCount = await Chatbot.countDocuments({ ownerId: userId });
 
         // Count total FAQs
         const faqCount = await FAQ.countDocuments();
