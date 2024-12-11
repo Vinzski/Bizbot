@@ -15,7 +15,20 @@ connectDB();
 
 app.use(async (req, res, next) => {
     try {
-        const domains = await Domain.find().select('domain -_id'); // Fetch all domains from the database
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return next(); // Continue without setting CORS if no auth header
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey_12345');
+        const userId = decoded.id || decoded.userId;
+
+        if (!userId) {
+            return next(); // Continue without setting CORS if no user ID found
+        }
+
+        const domains = await Domain.find({ userId }).select('domain -_id'); // Fetch only domains associated with the user
         let allowedOrigins = domains.map(domain => domain.domain); // Extract domain names
 
         // Add the static domain to the allowed origins
@@ -37,6 +50,7 @@ app.use(async (req, res, next) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 
 // Import route modules
