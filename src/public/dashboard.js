@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 feedbackContainer.appendChild(feedbackElement);
             });
+        }
         })
         .catch(error => console.error('Error fetching feedbacks:', error));
     }
