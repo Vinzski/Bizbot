@@ -324,7 +324,7 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
 
 async function updateInteractionWordCloud(chatbotId) {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/chats/messages/${chatbotId}`, {
+    const response = await fetch(`/api/chat/messages/${chatbotId}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     if (!response.ok) {
