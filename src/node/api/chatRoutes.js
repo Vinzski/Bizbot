@@ -191,25 +191,20 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-router.get('/dashboard-data/:userId', authenticate, async (req, res) => {
+router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
-
     try {
-        const interactionCount = await Message.countDocuments({ userId, sender: 'user' });
-        const chatbotCount = await Chatbot.countDocuments({ ownerId: userId });
-        const faqCount = await FAQ.countDocuments({ ownerId: userId });
-
-        res.json({
-            userId,
-            interactionCount,
-            chatbotCount,
-            faqCount,
+        const interactionCount = await Message.countDocuments({
+            userId: userId,
+            sender: 'user',
         });
+        res.json({ userId, interactionCount });
     } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Error fetching user interactions count:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
     }
 });
+
 
 
 module.exports = router;
