@@ -205,24 +205,5 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-// Fetch user interactions by chatbotId
-router.get('/interactions-by-chatbot/:userId/:chatbotId', authenticate, async (req, res) => {
-    const { userId, chatbotId } = req.params;
-    try {
-        const interactions = await Message.find({
-            userId: userId,
-            chatbotId: chatbotId,
-            sender: 'user',
-        }).sort('createdAt'); // Sorting by creation time for the line chart
-
-        res.json({ interactions });
-    } catch (error) {
-        console.error('Error fetching interactions by chatbotId:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
-    }
-});
-
-
-
 
 module.exports = router;
