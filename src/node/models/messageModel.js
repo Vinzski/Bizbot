@@ -10,7 +10,7 @@ const messageSchema = new mongoose.Schema(
         chatbotId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Chatbot', // Assuming you have a Chatbot model
-            required: true,
+            required: false, // Make it optional
         },
         sender: {
             type: String,
