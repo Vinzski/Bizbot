@@ -5,16 +5,35 @@ const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
+const Message = require('../models/messageModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
 // Route to send a simple message (unprotected)
-router.post('/send_message', (req, res) => {
-    console.log("Received message:", req.body.message); // Log the received message to ensure it's reaching here
-    const userMessage = req.body.message;
-    // Respond with a simple JSON object
-    res.json({ reply: "Response based on " + userMessage });
+router.post('/send_message', async (req, res) => {
+    try {
+        const userMessage = req.body.message;
+        console.log("Received message:", userMessage);
+
+        // Save the user message to the database
+        const message = new Message({
+            userId: req.user ? req.user.id : null, // Handle cases where user might not be authenticated
+            chatbotId: req.body.chatbotId, // Ensure chatbotId is sent in the request
+            sender: 'user',
+            message: userMessage,
+        });
+
+        await message.save();
+        console.log('User message saved to database.');
+
+        // Respond with a simple JSON object
+        res.json({ reply: "Response based on " + userMessage });
+    } catch (error) {
+        console.error('Error in /send_message:', error);
+        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+    }
 });
 
+// Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id; // Get user ID from token
@@ -25,6 +44,17 @@ router.post('/', authenticate, async (req, res) => {
     console.log(`Question: "${question}"`);
 
     try {
+        // Save the user question to the database
+        const userMessage = new Message({
+            userId: userId,
+            chatbotId: chatbotId,
+            sender: 'user',
+            message: question,
+        });
+
+        await userMessage.save();
+        console.log('User message saved to database.');
+
         // Fetch FAQs specific to the chatbot and user
         const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
         console.log(`Number of FAQs found: ${faqs.length}`);
@@ -41,6 +71,18 @@ router.post('/', authenticate, async (req, res) => {
 
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: 'bot',
+                message: exactMatch.answer,
+            });
+
+            await botMessage.save();
+            console.log('Bot response saved to database.');
+
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
@@ -61,6 +103,18 @@ router.post('/', authenticate, async (req, res) => {
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: 'bot',
+                message: bestMatch.faq.answer,
+            });
+
+            await botMessage.save();
+            console.log('Bot response saved to database.');
+
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found. Forwarding to Rasa.');
@@ -71,6 +125,18 @@ router.post('/', authenticate, async (req, res) => {
                 });
                 const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
                 console.log(`Rasa Response: "${botReply}"`);
+
+                // Save the bot response to the database
+                const botMessage = new Message({
+                    userId: userId,
+                    chatbotId: chatbotId,
+                    sender: 'bot',
+                    message: botReply,
+                });
+
+                await botMessage.save();
+                console.log('Bot response saved to database.');
+
                 res.json({ reply: botReply, source: 'Rasa' });
             } catch (error) {
                 console.error('Error querying Rasa:', error);
