@@ -6,6 +6,7 @@ const tokenizer = new natural.WordTokenizer();
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const Message = require('../models/messageModel');
+const Chatbot = require('../models/chatbotModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
 // Route to send a simple message (unprotected)
