@@ -154,40 +154,55 @@
                 }
             });
 
-            document.getElementById('customization-form').onsubmit = async function(e) {
-                e.preventDefault();
+    document.getElementById('customization-form').onsubmit = async function(e) {
+        e.preventDefault();
 
-                const formData = new FormData();
-                formData.append('chatbotId', document.getElementById('chatbot-select').value);
-                formData.append('themeColor', document.getElementById('theme-color').value);
-                formData.append('welcomeMessage', document.getElementById('welcome-message').value);
+        const formData = new FormData();
+        formData.append('chatbotId', document.getElementById('chatbot-select').value);
+        formData.append('themeColor', document.getElementById('theme-color').value);
+        formData.append('welcomeMessage', document.getElementById('welcome-message').value);
 
-                const fileInput = document.getElementById('dataset');
-                if (fileInput.files.length > 0) {
-                    formData.append('logo', fileInput.files[0]);
-                }
+        const fileInput = document.getElementById('dataset');
+        if (fileInput.files.length > 0) {
+            formData.append('logo', fileInput.files[0]);
+        }
 
-                try {
-                    const response = await fetch('/api/customization/save', {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: formData
-                    });
+        try {
+            const response = await fetch('/api/customization/save', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
 
-                    if (response.ok) {
-                        alert('Customization saved successfully!');
-                    } else {
-                        const error = await response.json();
-                        alert(`Error: ${error.message}`);
-                    }
-                } catch (error) {
-                    console.error('Error saving customization:', error);
-                    alert('An error occurred while saving the customization.');
-                }
-            };
-        });
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Saved!',
+                    text: 'Customization saved successfully!',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                const error = await response.json();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: `Error: ${error.message}`,
+                    confirmButtonText: 'OK'
+                });
+            }
+        } catch (error) {
+            console.error('Error saving customization:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'An error occurred while saving the customization.',
+                confirmButtonText: 'OK'
+            });
+        }
+    };
+});
 
 async function fetchCustomization(chatbotId) {
     if (!chatbotId) return;  // Guard clause to ensure chatbotId is present
