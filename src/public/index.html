@@ -5,34 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login and Signup</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h2 id="formTitle">Login</h2>
-        <form id="authForm">
-            <div class="input-group">
-                <input type="text" id="username" placeholder="" style="display: none;">
-                <label for="username" style="display: none;">Username</label>
-            </div>  
-            
-            <div class="input-group">
-                <input type="email" id="email" required placeholder="">
-                <label for="email">Email</label>
-            </div>
-            
-            <div class="input-group">
-                <input type="password" id="password" required placeholder="">
-                <label for="password">Password</label>
-            </div>
+    <div class="page-container">
+        <div class="form-container">
+            <h2 id="formTitle">Login</h2>
+            <form id="authForm">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder=" " style="display: none;">
+                    <label for="username" style="display: none;">Username</label>
+                </div>  
+                
+                <div class="input-group">
+                    <input type="email" id="email" required placeholder=" ">
+                    <label for="email">Email</label>
+                </div>
+                
+                <div class="input-group">
+                    <input type="password" id="password" required placeholder=" ">
+                    <label for="password">Password</label>
+                </div>
 
-            <button type="submit" id="submitBtn">Login</button>
-        </form>
-        <button type="button" class="switch-btn" onclick="toggleForm()">Switch to Signup</button>
-        <p id="message"></p>
+                <button type="submit" id="submitBtn">Login</button>
+            </form>
+            <button type="button" class="switch-btn" onclick="toggleForm()">Switch to Signup</button>
+            <p id="message"></p>
+        </div>
+        <div class="logo-container">
+            <div class="welcome-message">Welcome to Bizbot!</div>
+            <img src="/placeholder.svg?height=300&width=300" alt="Logo Placeholder" class="logo-placeholder">
+        </div>
     </div>
 
     <script src="app.js"></script>
+    <script>
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.animation = 'pulse 0.5s';
+            });
+            button.addEventListener('animationend', function() {
+                this.style.animation = '';
+            });
+        });
+    </script>
 </body>
 </html>
-
