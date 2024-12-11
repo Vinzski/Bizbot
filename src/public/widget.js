@@ -282,7 +282,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ question: userInput, chatbotId: chatbotId, userId: userId })
+            body: JSON.stringify({ question: userInput, userId: userId })
         })
             .then(response => {
                 if (!response.ok) {
