@@ -7,6 +7,7 @@ function toggleForm() {
   const usernameLabel = document.querySelector('label[for="username"]');
   const formTitle = document.getElementById("formTitle");
   const submitBtn = document.getElementById("submitBtn");
+  const toggleBtn = document.querySelector(".switch-btn"); // Select the toggle button
 
   if (isLogin) {
     formTitle.textContent = "Signup";
@@ -14,14 +15,17 @@ function toggleForm() {
     usernameField.style.display = "block"; // Show the input field
     usernameLabel.style.display = "block"; // Show the label
     usernameField.required = true; // Make it required
+    toggleBtn.textContent = "Switch to Login"; // Update toggle button text
   } else {
     formTitle.textContent = "Login";
     submitBtn.textContent = "Login";
     usernameField.style.display = "none"; // Hide the input field
     usernameLabel.style.display = "none"; // Hide the label
     usernameField.required = false; // Remove the required attribute
+    toggleBtn.textContent = "Switch to Signup"; // Update toggle button text
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
