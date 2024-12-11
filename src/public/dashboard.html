@@ -101,55 +101,90 @@
 
   document.addEventListener("DOMContentLoaded", function() {
     // Function to fetch and display dashboard data
-      async function fetchDashboardData() {
-            try {
-                const response = await fetch('/api/chat/user-interactions${userId}', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth setup
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user interactions.');
-                }
-
-                const data = await response.json();
-                document.getElementById('interactionCount').textContent = data.interactionCount;
-            } catch (error) {
-                console.error(error);
-                document.getElementById('interactionCount').textContent = 'Error';
+    async function fetchDashboardData() {
+        // Get the script tag with id 'bizbot-widget'
+        const widgetScript = document.getElementById('bizbot-widget');
+        const userId = widgetScript.getAttribute('data-user-id');
+        const token = widgetScript.getAttribute('data-token');
+        if (!userId || !token) {
+            console.error('User ID or Token is missing.');
+            return;
+        }
+        try {
+            // Make an API call to fetch dashboard data
+            const response = await fetch(`https://bizbot-khpq.onrender.com/api/chat/dashboard-data/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
+            const data = await response.json();
+            // Update the HTML elements with the fetched counts
+            const interactionCountElement = document.getElementById('user-interactions-count');
+            const chatbotCountElement = document.getElementById('chatbot-count');
+            const faqCountElement = document.getElementById('faq-count');
+            if (interactionCountElement) {
+                interactionCountElement.textContent = data.interactionCount.toLocaleString();
+            }
+            if (chatbotCountElement) {
+                chatbotCountElement.textContent = data.chatbotCount.toLocaleString();
+            }
+            if (faqCountElement) {
+                faqCountElement.textContent = data.faqCount.toLocaleString();
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error);
+            // Optional: Display an error message to the user
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Failed to load dashboard data!',
+            });
+        }
+    }
+    // Function to fetch and display user interactions count
+    async function fetchUserInteractions() {
+        // Get the script tag with id 'bizbot-widget'
+        const widgetScript = document.getElementById('bizbot-widget');
+        const userId = widgetScript.getAttribute('data-user-id');
+        const token = widgetScript.getAttribute('data-token');
+        if (!userId || !token) {
+            console.error('User ID or Token is missing.');
+            return;
         }
 
-        async function fetchDashboardMetrics() {
-            try {
-                const response = await fetch('/api/chat/dashboard-data${userId}', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth setup
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch dashboard data.');
-                }
-
-                const data = await response.json();
-                document.getElementById('chatbotCount').textContent = data.chatbotCount;
-                document.getElementById('faqCount').textContent = data.faqCount;
-            } catch (error) {
-                console.error(error);
-                document.getElementById('chatbotCount').textContent = 'Error';
-                document.getElementById('faqCount').textContent = 'Error';
+        try {
+            // Make an API call to fetch user interactions count
+            const response = await fetch(`https://bizbot-khpq.onrender.com/api/chat/user-interactions/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} ${response.statusText}`);
             }
+            const data = await response.json();
+            const interactionCount = data.interactionCount || 0;
+            // Update the HTML element with the fetched count
+            const interactionCountElement = document.getElementById('user-interactions-count');
+            if (interactionCountElement) {
+                interactionCountElement.textContent = interactionCount.toLocaleString();
+            } else {
+                console.error('Element with ID "user-interactions-count" not found.');
+            }
+        } catch (error) {
+            console.error('Failed to fetch user interactions count:', error);
         }
+    }
 
-        // Initialize dashboard
-        fetchDashboardData();
-        fetchDashboardMetrics();
+    // Call the function to fetch and display dashboard data
+    fetchDashboardData();
   });
     </script>
 </body>
