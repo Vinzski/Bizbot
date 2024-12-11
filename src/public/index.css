@@ -10,16 +10,24 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--background-color);
+    background-image: 
+        linear-gradient(120deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+        linear-gradient(240deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+        linear-gradient(180deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+        linear-gradient(300deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+    background-size: 20px 40px;
+    background-position: 0 0, 10px 0, 10px -10px, 0px 10px;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
     color: var(--text-color);
 }
 
 .container {
-    background-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     padding: 2.5rem;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -56,7 +64,7 @@ label {
 }
 
 input {
-    width: 92.3%;
+    width: 100%;
     padding: 0.75rem;
     border: 2px solid #ddd;
     border-radius: 6px;
@@ -126,4 +134,29 @@ button:hover {
 
 .shake {
     animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(-45deg, rgba(76, 175, 80, 0.1), rgba(129, 199, 132, 0.1), rgba(232, 245, 233, 0.1));
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    z-index: -1;
 }
