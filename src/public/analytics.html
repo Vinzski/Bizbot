@@ -259,6 +259,8 @@ function downloadCSV(chatbotName, chartType) {
     link.click();
 }
 
+const { jsPDF } = window.jspdf;
+
 // Function to generate and download the PDF report
 function downloadPDF(chatbotName, chartType) {
     const doc = new jsPDF();
