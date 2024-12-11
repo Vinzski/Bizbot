@@ -29,7 +29,7 @@ router.post('/', authenticate, async (req, res) => {
         console.log('Forwarding to Rasa.');
         let rasaResponse;
         try {
-            rasaResponse = await axios.post('https://smart-teeth-brush.loca.lt/webhooks/rest/webhook', {
+            rasaResponse = await axios.post('https://cuddly-areas-knock.loca.lt/webhooks/rest/webhook', {
                 message: question,
                 sender: 'chatbot-widget',
             });
