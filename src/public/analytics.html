@@ -54,7 +54,28 @@
                 <button id="downloadCsv" class="btn">Download CSV</button>
                 <button id="downloadPdf" class="btn">Download PDF</button>
             </div>
-            
+
+
+            <!-- Bar Chart Section -->
+            <div class="card" id="barChartContainer" style="display: block;">
+                <h2>Chatbot Rating (Bar Chart)</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <!-- Line Chart Section -->
+            <div class="card" id="lineChartContainer" style="display: none;">
+                <h2>Chatbot Rating (Line Chart)</h2>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <!-- Pie Chart Section -->
+            <div class="card" id="pieChartContainer" style="display: none;">
+                <h2>Chatbot Rating (Pie Chart)</h2>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
         </main>
     </div>
     <script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="67595a851ded2dd74d13aa5e" data-user-id="6759576bdec096fe08ac3f07" data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0Ym90SWQiOiI2NzU5NWE4NTFkZWQyZGQ3NGQxM2FhNWUiLCJ1c2VySWQiOiI2NzU5NTc2YmRlYzA5NmZlMDhhYzNmMDciLCJpYXQiOjE3MzM5NzUzOTQsImV4cCI6MTczNDA2MTc5NH0.hBYDtCrqErLRN_Y7NGgg2qo5_rqhml7UcHBHGyJ1GkM"></script>
@@ -231,7 +252,7 @@ function downloadCSV(chatbotName, chartType) {
         .join('\n');
 
     const csvData = csvHeader + csvContent;
-    
+
     // Create and trigger the download
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -246,7 +267,7 @@ const { jsPDF } = window.jspdf;
 // Function to generate and download the PDF report
 async function downloadPDF(chatbotName, chartType) {
     const doc = new jsPDF();
-    
+
     // Add title
     doc.setFontSize(18);
     doc.text(`Chatbot: ${chatbotName}`, 10, 10);
@@ -288,6 +309,7 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
     const chartType = document.getElementById('chartSelector').value;
     downloadPDF(chatbotName, chartType);
 });
+
 
 
     </script>
