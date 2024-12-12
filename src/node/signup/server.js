@@ -56,7 +56,7 @@ app.use('/api/chatbots', chatbotRoutes);
 app.use('/api/customization', customizationRoutes);
 app.use('/api/domains', domainRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/analytics', analyticsRoutes');
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
