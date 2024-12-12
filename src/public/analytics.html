@@ -209,7 +209,6 @@ async function fetchMessages(chatbotId) {
 
 
 
-        // Update the charts with new ratings data
 // Update the charts with new ratings or messages data
 async function updateCharts(chatbotId, dataType) {
     if (dataType === 'ratings') {
@@ -225,19 +224,12 @@ async function updateCharts(chatbotId, dataType) {
 
         const data = Object.values(ratingCounts);
 
-        // Update bar chart
-        barChart.data.datasets[0].data = data;
-        barChart.update();
+        // Update charts for ratings
+        updateChart(barChart, data, ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']);
+        updateChart(lineChart, data, ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']);
+        updateChart(pieChart, data, ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']);
 
-        // Update line chart
-        lineChart.data.datasets[0].data = data;
-        lineChart.update();
-
-        // Update pie chart
-        pieChart.data.datasets[0].data = data;
-        pieChart.update();
-        
-        // Hide the messages container and show charts
+        // Show rating charts and hide message charts
         document.getElementById('messagesContainer').style.display = 'none';
         document.getElementById('barChartContainer').style.display = 'block';
         document.getElementById('lineChartContainer').style.display = 'block';
@@ -245,41 +237,53 @@ async function updateCharts(chatbotId, dataType) {
     } else if (dataType === 'messages') {
         const messages = await fetchMessages(chatbotId);
 
-        // Count messages by length categories
-        const messageCounts = { Short: 0, Medium: 0, Long: 0 };
+        // Prepare data for different charts:
+        const dateMessages = {}; // For line chart (messages over time)
+        const categoryMessages = { user: 0, bot: 0 }; // For bar and pie chart (message types)
 
         messages.forEach(msg => {
+            // For Line Chart: Group messages by date (e.g., daily messages)
+            const messageDate = new Date(msg.createdAt).toLocaleDateString(); // Group by day
+            dateMessages[messageDate] = (dateMessages[messageDate] || 0) + 1;
+
+            // For Bar and Pie Charts: Count user vs bot messages
             if (msg.sender === 'user') {
-                if (msg.message.length < 50) {
-                    messageCounts.Short++;
-                } else if (msg.message.length <= 150) {
-                    messageCounts.Medium++;
-                } else {
-                    messageCounts.Long++;
-                }
+                categoryMessages.user++;
+            } else if (msg.sender === 'bot') {
+                categoryMessages.bot++;
             }
         });
 
-        const data = Object.values(messageCounts);
+        // Prepare data for line chart (trend over time)
+        const lineLabels = Object.keys(dateMessages);
+        const lineData = Object.values(dateMessages);
 
-        // Update bar chart for messages
-        barChart.data.datasets[0].data = data;
-        barChart.update();
+        // Prepare data for bar and pie charts (user vs bot messages)
+        const barPieLabels = ['User Messages', 'Bot Responses'];
+        const barPieData = [categoryMessages.user, categoryMessages.bot];
 
-        // Update line chart for messages
-        lineChart.data.datasets[0].data = data;
-        lineChart.update();
+        // Update line chart
+        updateChart(lineChart, lineData, lineLabels);
 
-        // Update pie chart for messages
-        pieChart.data.datasets[0].data = data;
-        pieChart.update();
-        
-        // Hide the charts and show the messages container
+        // Update bar chart (user vs bot messages)
+        updateChart(barChart, barPieData, barPieLabels);
+
+        // Update pie chart (user vs bot messages proportions)
+        updateChart(pieChart, barPieData, barPieLabels);
+
+        // Show message charts and hide rating charts
         document.getElementById('messagesContainer').style.display = 'block';
         document.getElementById('barChartContainer').style.display = 'none';
         document.getElementById('lineChartContainer').style.display = 'none';
         document.getElementById('pieChartContainer').style.display = 'none';
     }
+}
+
+// Helper function to update charts
+function updateChart(chart, data, labels) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
 }
 
 
