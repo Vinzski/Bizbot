@@ -353,7 +353,7 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
 
    async function fetchAnalytics(chatbotId) {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/messages/analytics?chatbotId=${chatbotId}`, {
+            const res = await fetch(`/api/analytics/messages/analytics?chatbotId=${chatbotId}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
