@@ -40,6 +40,14 @@
                 </select>
             </div>
 
+            <div class="card">
+                <h2>Choose Data Type</h2>
+                <select id="dataSelector">
+                    <option value="ratings">Ratings</option>
+                    <option value="messages">Messages Interactions</option>
+                </select>
+            </div>
+
             <!-- Dropdown to choose chart type -->
             <div class="card">
                 <h2>Choose a Chart</h2>
@@ -180,42 +188,96 @@ async function fetchRatings(chatbotId) {
     }
 }
 
+        async function fetchMessages(chatbotId) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`/api/messages/chatbot/${chatbotId}`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            return await response.json(); // Returns an array of messages
+        } else {
+            throw new Error('Failed to fetch messages');
+        }
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        return [];
+    }
+}
+
 
         // Update the charts with new ratings data
-async function updateCharts(chatbotId) {
-    const ratings = await fetchRatings(chatbotId);
-    const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
+async function updateCharts(chatbotId, dataType) {
+    if (dataType === 'ratings') {
+        const ratings = await fetchRatings(chatbotId);
+        const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
 
-    // Update the rating counts based on fetched data
-    ratings.forEach(rating => {
-        if (ratingCounts.hasOwnProperty(rating.rating)) {
-            ratingCounts[rating.rating]++;
-        }
-    });
+        // Update the rating counts based on fetched data
+        ratings.forEach(rating => {
+            if (ratingCounts.hasOwnProperty(rating.rating)) {
+                ratingCounts[rating.rating]++;
+            }
+        });
 
-    const data = Object.values(ratingCounts);
+        const data = Object.values(ratingCounts);
 
-    // Update bar chart
-    barChart.data.datasets[0].data = data;
-    barChart.update();
+        // Update bar chart
+        barChart.data.datasets[0].data = data;
+        barChart.update();
 
-    // Update line chart
-    lineChart.data.datasets[0].data = data;
-    lineChart.update();
+        // Update line chart
+        lineChart.data.datasets[0].data = data;
+        lineChart.update();
 
-    // Update pie chart
-    pieChart.data.datasets[0].data = data;
-    pieChart.update();
+        // Update pie chart
+        pieChart.data.datasets[0].data = data;
+        pieChart.update();
+    } else if (dataType === 'messages') {
+        const messages = await fetchMessages(chatbotId);
+
+        // Display messages in a list format (or integrate into chart if desired)
+        const messagesContainer = document.getElementById('messagesContainer');
+        messagesContainer.innerHTML = '';  // Clear previous messages
+
+        messages.forEach(msg => {
+            if (msg.sender === 'user') {
+                const messageElement = document.createElement('p');
+                messageElement.textContent = `User: ${msg.message}`;
+                messagesContainer.appendChild(messageElement);
+            }
+        });
+    }
 }
 
 
         // Event listener for chatbot selection
-        document.getElementById('chatbotSelector').addEventListener('change', function () {
-            const selectedChatbotId = this.value;
-            if (selectedChatbotId) {
-                updateCharts(selectedChatbotId);
-            }
-        });
+ocument.getElementById('chatbotSelector').addEventListener('change', function () {
+    const selectedChatbotId = this.value;
+    const selectedDataType = document.getElementById('dataSelector').value;
+    if (selectedChatbotId) {
+        updateCharts(selectedChatbotId, selectedDataType);
+    }
+});
+
+// Event listener for data type selection (Ratings or Messages)
+document.getElementById('dataSelector').addEventListener('change', function () {
+    const selectedDataType = this.value;
+    const selectedChatbotId = document.getElementById('chatbotSelector').value;
+    if (selectedChatbotId) {
+        updateCharts(selectedChatbotId, selectedDataType);
+    }
+});
+
+// Initial setup to load data for the first chatbot and selected data type
+document.addEventListener('DOMContentLoaded', () => {
+    fetchChatbots();
+    const initialChatbotId = document.getElementById('chatbotSelector').value;
+    const initialDataType = document.getElementById('dataSelector').value;
+    if (initialChatbotId) {
+        updateCharts(initialChatbotId, initialDataType);
+    }
+});
 
         // Event listener for chart type selection
         document.getElementById('chartSelector').addEventListener('change', function () {
@@ -309,6 +371,7 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
     const chartType = document.getElementById('chartSelector').value;
     downloadPDF(chatbotName, chartType);
 });
+
 
 
 
