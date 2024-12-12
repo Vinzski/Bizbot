@@ -295,7 +295,7 @@ async function updateCharts(chatbotId, dataType, timePeriod = 'daily') {
         });
 
         // Bar and Pie chart data for user vs bot messages
-        const barPieLabels = ['User Messages', 'Bot Responses'];
+        const barPieLabels = ['User Messages', 'Other Bots'];
         const barPieData = [categoryMessages.user, categoryMessages.bot];
 
         // Update bar chart for user vs bot messages
