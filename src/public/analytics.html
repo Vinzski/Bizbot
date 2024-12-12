@@ -354,5 +354,171 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
 
 
 
+
+
+
+
+              const chatbotSelector = document.getElementById('chatbotSelector');
+        const chartSelector = document.getElementById('chartSelector');
+
+        const barChartContainer = document.getElementById('barChartContainer');
+        const lineChartContainer = document.getElementById('lineChartContainer');
+        const pieChartContainer = document.getElementById('pieChartContainer');
+
+        let barChart, lineChart, pieChart;
+        let currentLabels = [];
+        let currentCounts = [];
+
+        async function fetchChatbots() {
+            const res = await fetch('/api/chatbots');
+            const data = await res.json();
+            data.forEach(chatbot => {
+                const option = document.createElement('option');
+                option.value = chatbot._id;
+                option.textContent = chatbot.name || chatbot._id;
+                chatbotSelector.appendChild(option);
+            });
+        }
+
+        async function fetchAnalytics(chatbotId) {
+            const res = await fetch(`/api/messages/analytics?chatbotId=${chatbotId}`);
+            const data = await res.json();
+
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            currentLabels = data.labels;
+            currentCounts = data.counts;
+            updateCharts();
+        }
+
+        function createBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            if (barChart) barChart.destroy();
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: currentLabels,
+                    datasets: [{
+                        label: 'User Message Count',
+                        data: currentCounts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        function createLineChart() {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            if (lineChart) lineChart.destroy();
+            lineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: currentLabels,
+                    datasets: [{
+                        label: 'User Message Count',
+                        data: currentCounts,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        function createPieChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if (pieChart) pieChart.destroy();
+            // For a pie chart, we might not want a time series. 
+            // Here we sum all user messages into one slice (just for demo),
+            // or we can show distribution by day. For demonstration, let's keep daily counts.
+            pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: currentLabels,
+                    datasets: [{
+                        data: currentCounts,
+                        backgroundColor: currentCounts.map(() => `hsl(${Math.random() * 360}, 70%, 60%)`)
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        function updateCharts() {
+            const chartType = chartSelector.value;
+
+            // Show/hide containers
+            barChartContainer.style.display = (chartType === 'bar') ? 'block' : 'none';
+            lineChartContainer.style.display = (chartType === 'line') ? 'block' : 'none';
+            pieChartContainer.style.display = (chartType === 'pie') ? 'block' : 'none';
+
+            if (chartType === 'bar') createBarChart();
+            if (chartType === 'line') createLineChart();
+            if (chartType === 'pie') createPieChart();
+        }
+
+        chartSelector.addEventListener('change', updateCharts);
+        chatbotSelector.addEventListener('change', () => {
+            const chatbotId = chatbotSelector.value;
+            if (chatbotId) {
+                fetchAnalytics(chatbotId);
+            }
+        });
+
+        // CSV Download
+        document.getElementById('downloadCsv').addEventListener('click', () => {
+            let csv = 'Date,UserMessageCount\n';
+            for (let i = 0; i < currentLabels.length; i++) {
+                csv += `${currentLabels[i]},${currentCounts[i]}\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'analytics_data.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // PDF Download
+        document.getElementById('downloadPdf').addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text('Analytics Data', 10, 10);
+            doc.text('Date, User Message Count', 10, 20);
+            let yOffset = 30;
+            for (let i = 0; i < currentLabels.length; i++) {
+                doc.text(`${currentLabels[i]}, ${currentCounts[i]}`, 10, yOffset);
+                yOffset += 10;
+            }
+
+            doc.save('analytics_data.pdf');
+        });
+
+        // Initial load
+        (async () => {
+            await fetchChatbots();
+            // If there's at least one chatbot, load its data
+            if (chatbotSelector.options.length > 0) {
+                chatbotSelector.selectedIndex = 0;
+                const chatbotId = chatbotSelector.value;
+                fetchAnalytics(chatbotId);
+            }
+        })();
+
+
     </script>
 </body>
