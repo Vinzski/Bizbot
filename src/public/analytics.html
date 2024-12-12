@@ -370,7 +370,13 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
         let currentCounts = [];
 
         async function fetchChatbots() {
-            const res = await fetch('/api/chatbots');
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/chatbots', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await res.json();
             data.forEach(chatbot => {
                 const option = document.createElement('option');
@@ -380,8 +386,14 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
             });
         }
 
-        async function fetchAnalytics(chatbotId) {
-            const res = await fetch(`/api/messages/analytics?chatbotId=${chatbotId}`);
+   async function fetchAnalytics(chatbotId) {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/messages/analytics?chatbotId=${chatbotId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await res.json();
 
             if (data.error) {
@@ -393,6 +405,7 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
             currentCounts = data.counts;
             updateCharts();
         }
+
 
         function createBarChart() {
             const ctx = document.getElementById('barChartt').getContext('2d');
