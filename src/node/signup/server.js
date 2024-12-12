@@ -47,6 +47,7 @@ const chatbotRoutes = require('../api/chatbotRoutes');
 const customizationRoutes = require('../api/customizationRoutes');
 const domainRoutes = require('../api/domainRoutes')
 const feedbackRoutes = require('../api/feedbackRoutes');
+const messageRoutes = require('../api/messageRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -56,6 +57,7 @@ app.use('/api/chatbots', chatbotRoutes);
 app.use('/api/customization', customizationRoutes);
 app.use('/api/domains', domainRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/message', messageRoutes);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../public', 'login.html'));
