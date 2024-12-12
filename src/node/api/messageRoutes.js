@@ -3,7 +3,7 @@ const Message = require('../models/messagesModel'); // Assuming you have a messa
 const router = express.Router();
 
 // Route to fetch messages sent by the user for a specific chatbot
-router.get('/messages/:chatbotId', async (req, res) => {
+router.get('/:chatbotId', async (req, res) => {
     const { chatbotId } = req.params;
 
     try {
