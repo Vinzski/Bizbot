@@ -75,6 +75,48 @@
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
+
+               <div class="card">
+                <h2>Choose a Chatbot</h2>
+                <select id="chatbotSelector">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+
+            <!-- Dropdown to choose chart type -->
+            <div class="card">
+                <h2>Choose a Chart</h2>
+                <select id="chartSelector">
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </div>
+
+            <div class="card">
+                <button id="downloadCsv" class="btn">Download CSV</button>
+                <button id="downloadPdf" class="btn">Download PDF</button>
+            </div>
+
+            <!-- Bar Chart Section -->
+            <div class="card" id="barChartContainer" style="display: block;">
+                <h2>User Messages (Bar Chart)</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+
+            <!-- Line Chart Section -->
+            <div class="card" id="lineChartContainer" style="display: none;">
+                <h2>User Messages (Line Chart)</h2>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <!-- Pie Chart Section -->
+            <div class="card" id="pieChartContainer" style="display: none;">
+                <h2>User Messages (Pie Chart)</h2>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
             
         </main>
     </div>
