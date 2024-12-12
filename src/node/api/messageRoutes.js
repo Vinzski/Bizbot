@@ -1,5 +1,5 @@
 const express = require('express');
-const Message = require('../models/messagesModel'); // Assuming you have a messages model
+const Message = require('../models/messageModel'); // Assuming you have a messages model
 const router = express.Router();
 
 // Route to fetch messages sent by the user for a specific chatbot
