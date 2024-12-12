@@ -210,6 +210,7 @@ async function fetchMessages(chatbotId) {
 
 
         // Update the charts with new ratings data
+// Update the charts with new ratings or messages data
 async function updateCharts(chatbotId, dataType) {
     if (dataType === 'ratings') {
         const ratings = await fetchRatings(chatbotId);
@@ -235,22 +236,52 @@ async function updateCharts(chatbotId, dataType) {
         // Update pie chart
         pieChart.data.datasets[0].data = data;
         pieChart.update();
+        
+        // Hide the messages container and show charts
+        document.getElementById('messagesContainer').style.display = 'none';
+        document.getElementById('barChartContainer').style.display = 'block';
+        document.getElementById('lineChartContainer').style.display = 'block';
+        document.getElementById('pieChartContainer').style.display = 'block';
     } else if (dataType === 'messages') {
         const messages = await fetchMessages(chatbotId);
 
-        // Display messages in a list format (or integrate into chart if desired)
-        const messagesContainer = document.getElementById('messagesContainer');
-        messagesContainer.innerHTML = '';  // Clear previous messages
+        // Count messages by length categories
+        const messageCounts = { Short: 0, Medium: 0, Long: 0 };
 
         messages.forEach(msg => {
             if (msg.sender === 'user') {
-                const messageElement = document.createElement('p');
-                messageElement.textContent = `User: ${msg.message}`;
-                messagesContainer.appendChild(messageElement);
+                if (msg.message.length < 50) {
+                    messageCounts.Short++;
+                } else if (msg.message.length <= 150) {
+                    messageCounts.Medium++;
+                } else {
+                    messageCounts.Long++;
+                }
             }
         });
+
+        const data = Object.values(messageCounts);
+
+        // Update bar chart for messages
+        barChart.data.datasets[0].data = data;
+        barChart.update();
+
+        // Update line chart for messages
+        lineChart.data.datasets[0].data = data;
+        lineChart.update();
+
+        // Update pie chart for messages
+        pieChart.data.datasets[0].data = data;
+        pieChart.update();
+        
+        // Hide the charts and show the messages container
+        document.getElementById('messagesContainer').style.display = 'block';
+        document.getElementById('barChartContainer').style.display = 'none';
+        document.getElementById('lineChartContainer').style.display = 'none';
+        document.getElementById('pieChartContainer').style.display = 'none';
     }
 }
+
 
 
         // Event listener for chatbot selection
