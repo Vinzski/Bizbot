@@ -241,6 +241,7 @@ async function updateCharts(chatbotId, dataType, timePeriod = 'daily') {
                 ratingCounts[rating.rating]++;
             }
         });
+
         const data = Object.values(ratingCounts);
 
         // Update charts for ratings
@@ -255,28 +256,36 @@ async function updateCharts(chatbotId, dataType, timePeriod = 'daily') {
         document.getElementById('pieChartContainer').style.display = 'block';
     } else if (dataType === 'messages') {
         const messages = await fetchMessages(chatbotId);
+
         // Prepare data for different charts (group messages by date/week/month)
         const trendMessages = { daily: {}, weekly: {}, monthly: {} };
+
         messages.forEach(msg => {
             const messageDate = new Date(msg.createdAt);
-            
+
             // Daily: Group by date (YYYY-MM-DD)
             const dateKey = messageDate.toLocaleDateString();
             trendMessages.daily[dateKey] = (trendMessages.daily[dateKey] || 0) + 1;
+
             // Weekly: Group by week (YYYY-Www)
             const weekKey = `${messageDate.getFullYear()}-W${Math.ceil((messageDate.getDate() + 1) / 7)}`;
             trendMessages.weekly[weekKey] = (trendMessages.weekly[weekKey] || 0) + 1;
+
             // Monthly: Group by month (YYYY-MM)
             const monthKey = `${messageDate.getFullYear()}-${messageDate.getMonth() + 1}`;
             trendMessages.monthly[monthKey] = (trendMessages.monthly[monthKey] || 0) + 1;
         });
+
         // Prepare data for line chart (trend over time)
         const trendLabels = Object.keys(trendMessages[timePeriod]);
         const trendData = Object.values(trendMessages[timePeriod]);
+
         // Update line chart
         updateChart(lineChart, trendData, trendLabels);
+
         // Prepare data for bar and pie charts (user vs bot messages)
         const categoryMessages = { user: 0, bot: 0 };
+
         messages.forEach(msg => {
             if (msg.sender === 'user') {
                 categoryMessages.user++;
@@ -284,6 +293,7 @@ async function updateCharts(chatbotId, dataType, timePeriod = 'daily') {
                 categoryMessages.bot++;
             }
         });
+
         // Bar and Pie chart data for user vs bot messages
         const barPieLabels = ['User Messages', 'Other Bots'];
         const barPieData = [categoryMessages.user, categoryMessages.bot];
