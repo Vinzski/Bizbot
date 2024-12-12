@@ -192,7 +192,7 @@ async function fetchRatings(chatbotId) {
 async function fetchMessages(chatbotId) {
     const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`/api/messages/${chatbotId}`, {
+        const response = await fetch(`/api/message/${chatbotId}`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
