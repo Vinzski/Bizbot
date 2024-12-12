@@ -76,23 +76,6 @@
                 </div>
             </div>
 
-               <div class="card">
-                <h2>Choose a Chatbot</h2>
-                <select id="chatbotSelector">
-                    <!-- Options will be populated dynamically -->
-                </select>
-            </div>
-
-            <!-- Dropdown to choose chart type -->
-            <div class="card">
-                <h2>Choose a Chart</h2>
-                <select id="chartSelectorr">
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </div>
-
             <div class="card">
                 <button id="downloadCsv" class="btn">Download CSV</button>
                 <button id="downloadPdf" class="btn">Download PDF</button>
@@ -368,23 +351,6 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
         let barChartt, lineChartt, pieChartt;
         let currentLabels = [];
         let currentCounts = [];
-
-        async function fetchChatbots() {
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/chatbots', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await res.json();
-            data.forEach(chatbot => {
-                const option = document.createElement('option');
-                option.value = chatbot._id;
-                option.textContent = chatbot.name || chatbot._id;
-                chatbotSelector.appendChild(option);
-            });
-        }
 
    async function fetchAnalytics(chatbotId) {
             const token = localStorage.getItem('token');
