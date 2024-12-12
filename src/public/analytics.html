@@ -84,6 +84,17 @@
                 </div>
             </div>
 
+            <!-- Dropdown to choose the period (Daily, Weekly, Monthly) -->
+            <div class="card">
+                <h2>Choose Time Period</h2>
+                <select id="timePeriodSelector">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+
+
         </main>
     </div>
     <script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="67595a851ded2dd74d13aa5e" data-user-id="6759576bdec096fe08ac3f07" data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGF0Ym90SWQiOiI2NzU5NWE4NTFkZWQyZGQ3NGQxM2FhNWUiLCJ1c2VySWQiOiI2NzU5NTc2YmRlYzA5NmZlMDhhYzNmMDciLCJpYXQiOjE3MzM5NzUzOTQsImV4cCI6MTczNDA2MTc5NH0.hBYDtCrqErLRN_Y7NGgg2qo5_rqhml7UcHBHGyJ1GkM"></script>
@@ -209,9 +220,17 @@ async function fetchMessages(chatbotId) {
 
 
 
+// Event listener for time period selection (Daily, Weekly, Monthly)
+document.getElementById('timePeriodSelector').addEventListener('change', function () {
+    const selectedTimePeriod = this.value;
+    const selectedChatbotId = document.getElementById('chatbotSelector').value;
+    if (selectedChatbotId) {
+        updateCharts(selectedChatbotId, 'messages', selectedTimePeriod);
+    }
+});
+
 // Update the charts with new ratings or messages data
-// Update the charts with new ratings or messages data
-async function updateCharts(chatbotId, dataType) {
+async function updateCharts(chatbotId, dataType, timePeriod = 'daily') {
     if (dataType === 'ratings') {
         const ratings = await fetchRatings(chatbotId);
         const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
@@ -258,9 +277,8 @@ async function updateCharts(chatbotId, dataType) {
         });
 
         // Prepare data for line chart (trend over time)
-        const selectedPeriod = 'daily';  // Can be 'daily', 'weekly', or 'monthly'
-        const trendLabels = Object.keys(trendMessages[selectedPeriod]);
-        const trendData = Object.values(trendMessages[selectedPeriod]);
+        const trendLabels = Object.keys(trendMessages[timePeriod]);
+        const trendData = Object.values(trendMessages[timePeriod]);
 
         // Update line chart
         updateChart(lineChart, trendData, trendLabels);
@@ -275,32 +293,6 @@ async function updateCharts(chatbotId, dataType) {
                 categoryMessages.bot++;
             }
         });
-
-        // Bar and Pie chart data for user vs bot messages
-        const barPieLabels = ['User Messages', 'Bot Responses'];
-        const barPieData = [categoryMessages.user, categoryMessages.bot];
-
-        // Update bar chart for user vs bot messages
-        updateChart(barChart, barPieData, barPieLabels);
-
-        // Update pie chart for user vs bot messages
-        updateChart(pieChart, barPieData, barPieLabels);
-
-        // Show message charts and hide rating charts
-        document.getElementById('messagesContainer').style.display = 'block';
-        document.getElementById('barChartContainer').style.display = 'none';
-        document.getElementById('lineChartContainer').style.display = 'none';
-        document.getElementById('pieChartContainer').style.display = 'none';
-    }
-}
-
-// Helper function to update charts
-function updateChart(chart, data, labels) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = data;
-    chart.update();
-}
-
 
         // Bar and Pie chart data for user vs bot messages
         const barPieLabels = ['User Messages', 'Bot Responses'];
