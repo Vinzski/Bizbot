@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Message = require('../messageModel'); // adjust path as needed
-const Chatbot = require('../chatbotModel'); // adjust path as needed
+const Message = require('../models/messageModel'); // adjust path as needed
+const Chatbot = require('../models/chatbotModel'); // adjust path as needed
 
 // Route to get all chatbots for dropdown
 router.get('/chatbots', async (req, res) => {
