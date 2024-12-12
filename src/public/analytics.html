@@ -188,10 +188,11 @@ async function fetchRatings(chatbotId) {
     }
 }
 
-        async function fetchMessages(chatbotId) {
+// Fetch messages sent by the user for a specific chatbot
+async function fetchMessages(chatbotId) {
     const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`/api/messages/chatbot/${chatbotId}`, {
+        const response = await fetch(`/api/messages/${chatbotId}`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -205,6 +206,7 @@ async function fetchRatings(chatbotId) {
         return [];
     }
 }
+
 
 
         // Update the charts with new ratings data
