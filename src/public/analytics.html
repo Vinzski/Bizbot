@@ -210,6 +210,7 @@ async function fetchMessages(chatbotId) {
 
 
 // Update the charts with new ratings or messages data
+// Update the charts with new ratings or messages data
 async function updateCharts(chatbotId, dataType) {
     if (dataType === 'ratings') {
         const ratings = await fetchRatings(chatbotId);
@@ -274,6 +275,32 @@ async function updateCharts(chatbotId, dataType) {
                 categoryMessages.bot++;
             }
         });
+
+        // Bar and Pie chart data for user vs bot messages
+        const barPieLabels = ['User Messages', 'Bot Responses'];
+        const barPieData = [categoryMessages.user, categoryMessages.bot];
+
+        // Update bar chart for user vs bot messages
+        updateChart(barChart, barPieData, barPieLabels);
+
+        // Update pie chart for user vs bot messages
+        updateChart(pieChart, barPieData, barPieLabels);
+
+        // Show message charts and hide rating charts
+        document.getElementById('messagesContainer').style.display = 'block';
+        document.getElementById('barChartContainer').style.display = 'none';
+        document.getElementById('lineChartContainer').style.display = 'none';
+        document.getElementById('pieChartContainer').style.display = 'none';
+    }
+}
+
+// Helper function to update charts
+function updateChart(chart, data, labels) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
+}
+
 
         // Bar and Pie chart data for user vs bot messages
         const barPieLabels = ['User Messages', 'Bot Responses'];
