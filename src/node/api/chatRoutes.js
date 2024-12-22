@@ -144,7 +144,7 @@ router.post('/', authenticate, async (req, res) => {
         } else {
             console.log('No adequate FAQ match found. Forwarding to Rasa.');
             try {
-                const rasaResponse = await axios.post('https://13.55.82.197:5005/webhooks/rest/webhook', {
+                const rasaResponse = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
                     message: question,
                     sender: 'chatbot-widget',
                 });
