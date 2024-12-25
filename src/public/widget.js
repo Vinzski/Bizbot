@@ -798,12 +798,13 @@ Thank you!</span>
         // Append the user's message to the chat
         const userMessageElement = document.createElement('div');
         userMessageElement.classList.add('message', 'user-message');
-        const messageContent = document.createElement('span');
-        messageContent.classList.add('message-content');
-        messageContent.textContent = message;
-        userMessageElement.appendChild(messageContent);
+        const userText = document.createElement('span');
+        userText.classList.add('message-content');
+        userText.textContent = userInput.value;
+        userMessageElement.appendChild(userProfileImage);
+        userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        chatMessages.scrollTop = chatMessages.scrollHeight;// Auto-scroll
 
         // Send the message to the API
         sendMessage(userInput.value);
