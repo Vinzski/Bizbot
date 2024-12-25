@@ -310,8 +310,11 @@
         const botProfileImage = document.createElement('div');
         botProfileImage.classList.add('profile-image');
         botMessageElement.classList.add('message', 'bot-message');
-        botMessageElement.textContent = message;
+        const messageContent = document.createElement('span');
+        messageContent.classList.add('message-content');
+        messageContent.textContent = message;
         botMessageElement.appendChild(botProfileImage);
+        botMessageElement.appendChild(messageContent);
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     }
@@ -501,22 +504,20 @@ Thank you!</span>
         animation: fadeIn 0.3s ease;
     }
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     .user-message {
         background-color: #e6f3ff;
         align-self: flex-end;
-        flex-direction: row-reverse;
         border-bottom-right-radius: 5px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding: 10px 15px;
     }
     .bot-message {
         background-color: #f0f0f0;
         align-self: flex-start;
-        flex-direction: row;
         border-bottom-left-radius: 5px;
+        padding-left: 0;
     }
     .profile-image {
         width: 35px;
@@ -525,7 +526,7 @@ Thank you!</span>
         background-color: #ccc;
         background-image: url('bizbot logo.png');
         flex-shrink: 0;
-        margin: 0 10px;
+        margin-right: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -538,6 +539,7 @@ Thank you!</span>
         word-break: break-word;
         font-size: 14px;
         line-height: 1.4;
+        padding: 10px;
     }
     /* Scrollbar Styles */
     #chat-messages::-webkit-scrollbar {
@@ -790,19 +792,17 @@ Thank you!</span>
             alert('Please enter a message.');
             return;
         }
-
-        // Append the user's message to the chat
+        
+    function displayUserMessage(message) {
         const userMessageElement = document.createElement('div');
         userMessageElement.classList.add('message', 'user-message');
-        const userProfileImage = document.createElement('div');
-        userProfileImage.classList.add('profile-image');
-        const userText = document.createElement('span');
-        userText.classList.add('message-content');
-        userText.textContent = userInput.value;
-        userMessageElement.appendChild(userProfileImage);
-        userMessageElement.appendChild(userText);
+        const messageContent = document.createElement('span');
+        messageContent.classList.add('message-content');
+        messageContent.textContent = message;
+        userMessageElement.appendChild(messageContent);
         chatMessages.appendChild(userMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;// Auto-scroll
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+    }
 
         // Send the message to the API
         sendMessage(userInput.value);
