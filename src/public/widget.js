@@ -218,21 +218,49 @@
             });
     }
 
+     // Function to fetch customization
+    function fetchCustomization(chatbotId) {
+        // Update this endpoint according to your actual route
+        fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.customization) {
+                    themeColor = data.customization.themeColor || themeColor;
+                    welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
+                    applyCustomization();
+                    enableSendButton();
+                } else {
+                    console.warn('No customization found, using defaults.');
+                    applyCustomization();
+                    enableSendButton();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching customization:', error);
+                applyCustomization();
+                enableSendButton();
+            });
+    }
+
     // Function to apply the customization (theme color, welcome message, and chatbot name)
     function applyCustomization() {
         const chatHeader = document.getElementById('chat-header');
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
-        const botProfileImage = document.querySelector('.profile-image');
+        const botProfileImage = document.createElement('div');
+        botProfileImage.classList.add('profile-image');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
-    
         // Apply chatbot name
         if (chatTitle && chatbotName) {
             chatTitle.textContent = chatbotName;
         }
-    
         // Apply theme color
         if (chatHeader) {
             chatHeader.style.backgroundColor = themeColor;
@@ -246,15 +274,9 @@
         if (sendMessageButton) {
             sendMessageButton.style.backgroundColor = themeColor;
         }
-    
         // Apply welcome message
         if (botMessages && botMessages.length > 0) {
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
-        }
-    
-        // Apply chatbot logo (profile image)
-        if (botProfileImage && logo) {
-            botProfileImage.style.backgroundImage = `url(${logo})`;  // Set background image of profile div
         }
     }
 
