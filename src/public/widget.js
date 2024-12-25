@@ -223,7 +223,7 @@
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
-        const botProfileImage = document.getElementById('bot-profile-image'); // Profile image div
+        const botProfileImage = document.querySelector('.profile-image');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
     
@@ -251,11 +251,9 @@
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
         }
     
-        // Apply the bot's profile image (logo)
-        if (botProfileImage && logoUrl) {
-            botProfileImage.style.backgroundImage = `url(${logoUrl})`;
-            botProfileImage.style.backgroundSize = 'cover';
-            botProfileImage.style.backgroundPosition = 'center';
+        // Apply chatbot logo (profile image)
+        if (botProfileImage && logo) {
+            botProfileImage.style.backgroundImage = `url(${logo})`;  // Set background image of profile div
         }
     }
 
