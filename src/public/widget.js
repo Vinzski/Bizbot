@@ -801,7 +801,6 @@ Thank you!</span>
         const userText = document.createElement('span');
         userText.classList.add('message-content');
         userText.textContent = userInput.value;
-        userMessageElement.appendChild(userProfileImage);
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;// Auto-scroll
