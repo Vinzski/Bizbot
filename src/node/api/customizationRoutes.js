@@ -29,8 +29,6 @@ const upload = multer({
     }),
 });
 
-const upload = multer({ storage: storage });
-
 // In customizationRoutes.js
 router.get('/', async (req, res) => {
   const { chatbotId } = req.query;
