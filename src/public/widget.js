@@ -191,7 +191,7 @@
     function fetchCustomization(chatbotId, userId) {
     const widgetElement = document.getElementById('bizbot-widget');
     const initialToken = widgetElement.getAttribute('data-token');
-        fetch('https://bizbot-khpq.onrender.com/api/customization/get-customization', {
+        fetch('https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
