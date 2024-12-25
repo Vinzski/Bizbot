@@ -390,6 +390,7 @@ Thank you!</span>
     chatToggle.style.display = 'block'; // Ensure it is visible initially
 
     // Add styles directly or link to an external stylesheet
+    const widgetElement = document.getElementById('bizbot-widget');
     const logo_Image = widgetelement.getAttribute('logo');
     const styles = `
     #chatbot-widget {
