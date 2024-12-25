@@ -162,6 +162,7 @@
         const widgetElement = document.getElementById('bizbot-widget');
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
+
     
         return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
             headers: {
@@ -323,7 +324,7 @@
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     }
-
+    
     // Create elements for the chatbot widget
     const chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
@@ -389,6 +390,7 @@ Thank you!</span>
     chatToggle.style.display = 'block'; // Ensure it is visible initially
 
     // Add styles directly or link to an external stylesheet
+    const logo_Image = widgetelement.getAttribute('logo');
     const styles = `
     #chatbot-widget {
         position: fixed;
@@ -531,7 +533,7 @@ Thank you!</span>
         height: 35px;
         border-radius: 50%;
         background-color: #ccc;
-        background-image: urlurl(${logo});
+        background-image: urlurl(${logo_Image});
         flex-shrink: 0;
         margin: 10px;
         display: flex;
