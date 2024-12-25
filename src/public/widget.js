@@ -253,6 +253,8 @@
 
     // Function to apply customization
     function applyCustomization(profileImageUrl) {
+        console.log('Profile Image URL:', profileImageUrl);
+
         const chatHeader = document.getElementById('chat-header');
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
