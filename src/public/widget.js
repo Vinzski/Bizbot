@@ -528,7 +528,7 @@ Thank you!</span>
         background-color: #ccc;
         background-image: url('bizbot logo.png');
         flex-shrink: 0;
-        margin-right: 10px;
+        margin: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
