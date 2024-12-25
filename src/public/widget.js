@@ -531,7 +531,7 @@ Thank you!</span>
         height: 35px;
         border-radius: 50%;
         background-color: #ccc;
-        background-image: url('bizbot logo.png');
+        background-image: urlurl(${logo});
         flex-shrink: 0;
         margin: 10px;
         display: flex;
