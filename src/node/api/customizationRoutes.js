@@ -125,6 +125,7 @@ router.post('/update-profile', authenticate, async (req, res) => {
     }
 });
 
+// Fetching customization data, including the logo
 router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
     try {
         const { chatbotId } = req.params;
@@ -141,16 +142,22 @@ router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
         if (customization) {
             // Return existing customization if found
             return res.status(200).json({
-                logo: customization.logo || '/default/logo.png',  // Use default logo if none exists
-                themeColor: customization.themeColor || '#FFFFFF',  // Default theme color
-                welcomeMessage: customization.welcomeMessage || 'Welcome to our chatbot!',  // Default welcome message
+                success: true,
+                customization: {
+                    logo: customization.logo || '/default/logo.png',  // Use default logo if none exists
+                    themeColor: customization.themeColor || '#FFFFFF',  // Default theme color
+                    welcomeMessage: customization.welcomeMessage || 'Welcome to our chatbot!',  // Default welcome message
+                }
             });
         } else {
             // Return default values if no customization exists
             return res.status(200).json({
-                logo: '/default/logo.png',
-                themeColor: '#FFFFFF',
-                welcomeMessage: 'Welcome to our chatbot!',
+                success: true,
+                customization: {
+                    logo: '/default/logo.png',
+                    themeColor: '#FFFFFF',
+                    welcomeMessage: 'Welcome to our chatbot!',
+                }
             });
         }
     } catch (error) {
@@ -158,6 +165,7 @@ router.get('/get-customization/:chatbotId', authenticate, async (req, res) => {
         res.status(500).json({ message: 'Error fetching customization', error: error.message });
     }
 });
+
 
 
 module.exports = router;
