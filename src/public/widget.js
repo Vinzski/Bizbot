@@ -187,7 +187,7 @@
         });
     }
 
-    // Function to fetch customization
+     // Function to fetch customization
     function fetchCustomization(chatbotId) {
         // Update this endpoint according to your actual route
         fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
@@ -201,6 +201,7 @@
                 if (data.success && data.customization) {
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
+                    logo = data.customization.logo || '';  // Store the logo URL
                     applyCustomization();
                     enableSendButton();
                 } else {
