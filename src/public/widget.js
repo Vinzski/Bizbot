@@ -190,7 +190,7 @@
     // Function to fetch customization
     function fetchCustomization(chatbotId) {
         // Update this endpoint according to your actual route
-        fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
+        fetch(`https://bizbot-khpq.onrender.com/api/customization/get-customization/${chatbotId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
@@ -201,6 +201,7 @@
                 if (data.success && data.customization) {
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
+                    logoUrl = data.customization.logo || '';  // Store the logo URL
                     applyCustomization();
                     enableSendButton();
                 } else {
@@ -222,16 +223,15 @@
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
-        const botProfileImage = document.createElement('div');
-        botProfileImage.classList.add('profile-image');
+        const botProfileImage = document.getElementById('bot-profile-image'); // Profile image div
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
-
+    
         // Apply chatbot name
         if (chatTitle && chatbotName) {
             chatTitle.textContent = chatbotName;
         }
-
+    
         // Apply theme color
         if (chatHeader) {
             chatHeader.style.backgroundColor = themeColor;
@@ -245,10 +245,17 @@
         if (sendMessageButton) {
             sendMessageButton.style.backgroundColor = themeColor;
         }
-
+    
         // Apply welcome message
         if (botMessages && botMessages.length > 0) {
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
+        }
+    
+        // Apply the bot's profile image (logo)
+        if (botProfileImage && logoUrl) {
+            botProfileImage.style.backgroundImage = `url(${logoUrl})`;
+            botProfileImage.style.backgroundSize = 'cover';
+            botProfileImage.style.backgroundPosition = 'center';
         }
     }
 
