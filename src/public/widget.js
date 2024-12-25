@@ -795,7 +795,7 @@ Thank you!</span>
             return;
         }
         
-    function displayUserMessage(message) {
+        // Append the user's message to the chat
         const userMessageElement = document.createElement('div');
         userMessageElement.classList.add('message', 'user-message');
         const messageContent = document.createElement('span');
@@ -804,7 +804,6 @@ Thank you!</span>
         userMessageElement.appendChild(messageContent);
         chatMessages.appendChild(userMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
-    }
 
         // Send the message to the API
         sendMessage(userInput.value);
