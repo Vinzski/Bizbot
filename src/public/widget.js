@@ -222,8 +222,6 @@
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
-        const userProfileImage = document.createElement('div');
-        botProfileImage.classList.add('profile-image');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
 
@@ -307,8 +305,11 @@
     function displayBotMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
         const botMessageElement = document.createElement('div');
+        const botProfileImage = document.createElement('div');
+        botProfileImage.classList.add('profile-image');
         botMessageElement.classList.add('message', 'bot-message');
         botMessageElement.textContent = message;
+        botMessageElement.appendChild(botProfileImage);
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     }
@@ -791,12 +792,9 @@ Thank you!</span>
         // Append the user's message to the chat
         const userMessageElement = document.createElement('div');
         userMessageElement.classList.add('message', 'user-message');
-        const userProfileImage = document.createElement('div');
-        userProfileImage.classList.add('profile-image');
         const userText = document.createElement('span');
         userText.classList.add('message-content');
         userText.textContent = userInput.value;
-        userMessageElement.appendChild(userProfileImage);
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
