@@ -187,10 +187,16 @@
     }
 
 
-    // Function to fetch customization
-    function fetchCustomization(chatbotId) {
-        // Update this endpoint according to your actual route
-        fetch(`https://bizbot-khpq.onrender.com/api/customization/get-customization/${chatbotId}`)
+        // Function to fetch customization with POST method
+        function fetchCustomization(chatbotId, userId) {
+            fetch('https://bizbot-khpq.onrender.com/api/customization/get-customization', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${initialToken}` // Make sure initialToken is available
+                },
+                body: JSON.stringify({ chatbotId, userId })
+            })
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
