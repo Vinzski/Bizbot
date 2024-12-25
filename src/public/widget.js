@@ -187,42 +187,33 @@
         });
     }
 
-    // Function to fetch customization with POST method
-    function fetchCustomization(chatbotId, userId) {
-    const widgetElement = document.getElementById('bizbot-widget');
-    const initialToken = widgetElement.getAttribute('data-token');
-        fetch('https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${initialToken}` // Make sure initialToken is available
-            },
-            body: JSON.stringify({ chatbotId, userId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success && data.customization) {
-                themeColor = data.customization.themeColor || themeColor;
-                welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
-                logoUrl = data.customization.logo || '';  // Store the logo URL
+    // Function to fetch customization
+    function fetchCustomization(chatbotId) {
+        // Update this endpoint according to your actual route
+        fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.customization) {
+                    themeColor = data.customization.themeColor || themeColor;
+                    welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
+                    applyCustomization();
+                    enableSendButton();
+                } else {
+                    console.warn('No customization found, using defaults.');
+                    applyCustomization();
+                    enableSendButton();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching customization:', error);
                 applyCustomization();
                 enableSendButton();
-            } else {
-                console.warn('No customization found, using defaults.');
-                applyCustomization();
-                enableSendButton();
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching customization:', error);
-            applyCustomization();
-            enableSendButton();
-        });
+            });
     }
 
     // Function to apply the customization (theme color, welcome message, and chatbot name)
