@@ -162,9 +162,10 @@
         const widgetElement = document.getElementById('bizbot-widget');
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
+    
         return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
             headers: {
-                'Authorization': `Bearer ${initialToken}` // Replace with your actual token variable
+                'Authorization': `Bearer ${initialToken}`
             }
         })
         .then(response => {
@@ -185,7 +186,6 @@
             console.error('Error fetching chatbot name:', error);
         });
     }
-
 
     // Function to fetch customization with POST method
     function fetchCustomization(chatbotId, userId) {
