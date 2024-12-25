@@ -190,7 +190,6 @@
     // Function to fetch customization with POST method
     function fetchCustomization(chatbotId, userId) {
     const widgetElement = document.getElementById('bizbot-widget');
-    const userId = widgetElement.getAttribute('data-user-id');
     const initialToken = widgetElement.getAttribute('data-token');
         fetch('https://bizbot-khpq.onrender.com/api/customization/get-customization', {
             method: 'POST',
