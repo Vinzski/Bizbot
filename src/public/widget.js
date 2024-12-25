@@ -222,7 +222,7 @@
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
-        const userProfileImage = document.createElement('div');
+        const botProfileImage = document.createElement('div');
         botProfileImage.classList.add('profile-image');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
