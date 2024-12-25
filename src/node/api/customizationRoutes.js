@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const AWS = require('aws-sdk');
+const multerS3 = require('multer-s3');
 const ChatbotCustomization = require('../models/chatbotCustomizationModel');
 const authenticate = require('../signup/middleware/authMiddleware');
 const Chatbot = require('../models/chatbotModel');
@@ -8,24 +10,23 @@ const User = require('../models/userModel'); // Assuming this is the User model
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 
-// File upload configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = '../../uploads/';
-        // Check if directory exists using fs.access
-        fs.access(dir, fs.constants.F_OK, (err) => {
-            if (err) {
-                // Directory does not exist, create it
-                fs.mkdir(dir, { recursive: true }, error => cb(error, dir));
-            } else {
-                // Directory exists, pass null as the error and dir as the path
-                cb(null, dir);
-            }
-        });
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}_${file.originalname}`);
-    }
+const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION, // e.g., 'us-east-1'
+});
+
+// Multer S3 storage configuration
+const upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_S3_BUCKET_NAME, // Your bucket name
+        acl: 'public-read', // Permissions for the uploaded file
+        key: (req, file, cb) => {
+            const fileName = `${Date.now()}-${file.originalname}`;
+            cb(null, fileName); // Key (filename) for the uploaded file
+        },
+    }),
 });
 
 const upload = multer({ storage: storage });
@@ -71,7 +72,8 @@ router.post('/save', authenticate, upload.single('logo'), async (req, res) => {
         };
 
         if (req.file) {
-            customizationData.logo = `uploads/${req.file.filename}`;
+            // Save S3 URL to the database
+            customizationData.logo = req.file.location; // `location` contains the file's URL
         }
 
         const customization = await ChatbotCustomization.findOneAndUpdate(
