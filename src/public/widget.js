@@ -284,9 +284,10 @@
     
         // Apply profile image
         if (botProfileImage && profileImageUrl) {
-            botProfileImage.style.backgroundImage = `url(${profileImageUrl})`;
+            botProfileImage.style.backgroundImage = `url('${profileImageUrl}')`;
             botProfileImage.style.backgroundSize = 'cover';
             botProfileImage.style.backgroundPosition = 'center';
+            botProfileImage.style.backgroundRepeat = 'no-repeat';
         }
     
         // Apply welcome message
@@ -570,7 +571,7 @@ Thank you!</span>
         width: 35px;
         height: 35px;
         border-radius: 50%;
-        background-color: #ccc;
+        background-color: #ccc; /* Fallback color if no image is loaded */
         flex-shrink: 0;
         margin: 10px;
         display: flex;
@@ -579,6 +580,11 @@ Thank you!</span>
         font-weight: bold;
         color: #fff;
         font-size: 16px;
+    
+        /* Ensure proper image rendering */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
     .message-content {
         flex-grow: 1;
