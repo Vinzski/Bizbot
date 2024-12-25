@@ -510,8 +510,10 @@ Thank you!</span>
     .user-message {
         background-color: #e6f3ff;
         align-self: flex-end;
+        flex-direction: row-reverse;
         border-bottom-right-radius: 5px;
-        padding: 10px 15px;
+        padding-top: 10px;
+        padding-bottom: 10px;
     }
     .bot-message {
         background-color: #f0f0f0;
