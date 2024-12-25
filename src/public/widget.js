@@ -188,9 +188,8 @@
         });
     }
 
-     // Function to fetch customization
+    // Function to fetch customization
     function fetchCustomization(chatbotId) {
-        // Update this endpoint according to your actual route
         fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
             .then(response => {
                 if (!response.ok) {
@@ -202,7 +201,10 @@
                 if (data.success && data.customization) {
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
-                    logo = data.customization.logo || '';  // Store the logo URL
+                    const botProfileImageElement = document.querySelector('.profile-image');
+                    if (botProfileImageElement && data.customization.logo) {
+                        botProfileImageElement.style.backgroundImage = `url('${data.customization.logo}')`;
+                    }
                     applyCustomization();
                     enableSendButton();
                 } else {
@@ -218,9 +220,8 @@
             });
     }
 
-     // Function to fetch customization
+    // Function to fetch customization
     function fetchCustomization(chatbotId) {
-        // Update this endpoint according to your actual route
         fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
             .then(response => {
                 if (!response.ok) {
@@ -232,35 +233,39 @@
                 if (data.success && data.customization) {
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
-                    applyCustomization();
+                    const profileImageUrl = data.customization.logo; // Fetch logo URL
+    
+                    // Apply customization and display profile image
+                    applyCustomization(profileImageUrl);
                     enableSendButton();
                 } else {
                     console.warn('No customization found, using defaults.');
-                    applyCustomization();
+                    applyCustomization('/default/logo.png'); // Default profile image
                     enableSendButton();
                 }
             })
             .catch(error => {
                 console.error('Error fetching customization:', error);
-                applyCustomization();
+                applyCustomization('/default/logo.png'); // Default profile image on error
                 enableSendButton();
             });
     }
 
-    // Function to apply the customization (theme color, welcome message, and chatbot name)
-    function applyCustomization() {
+    // Function to apply customization
+    function applyCustomization(profileImageUrl) {
         const chatHeader = document.getElementById('chat-header');
         const sendfeedbackBtn = document.getElementById('sendfeedback');
         const chatTitle = document.getElementById('chat-title');
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
-        const botProfileImage = document.createElement('div');
-        botProfileImage.classList.add('profile-image');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
+        const botProfileImage = document.querySelector('.profile-image');
+    
         // Apply chatbot name
         if (chatTitle && chatbotName) {
             chatTitle.textContent = chatbotName;
         }
+    
         // Apply theme color
         if (chatHeader) {
             chatHeader.style.backgroundColor = themeColor;
@@ -274,6 +279,14 @@
         if (sendMessageButton) {
             sendMessageButton.style.backgroundColor = themeColor;
         }
+    
+        // Apply profile image
+        if (botProfileImage && profileImageUrl) {
+            botProfileImage.style.backgroundImage = `url(${profileImageUrl})`;
+            botProfileImage.style.backgroundSize = 'cover';
+            botProfileImage.style.backgroundPosition = 'center';
+        }
+    
         // Apply welcome message
         if (botMessages && botMessages.length > 0) {
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
