@@ -261,13 +261,13 @@
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
-        const botProfileImage = document.querySelector('.profile-image');
-    
+        const botProfileImages = document.querySelectorAll('.profile-image');
+
         // Apply chatbot name
         if (chatTitle && chatbotName) {
             chatTitle.textContent = chatbotName;
         }
-    
+
         // Apply theme color
         if (chatHeader) {
             chatHeader.style.backgroundColor = themeColor;
@@ -281,28 +281,22 @@
         if (sendMessageButton) {
             sendMessageButton.style.backgroundColor = themeColor;
         }
-    
-        // Apply profile image
-        if (botProfileImage && profileImageUrl) {
-            botProfileImage.style.backgroundImage = `url('https://bizbot-images.s3.ap-southeast-2.amazonaws.com/1735131087651-rule%20of%20odds%201.jpg')`;
-            botProfileImage.style.backgroundSize = 'cover';
-            botProfileImage.style.backgroundPosition = 'center';
-            botProfileImage.style.backgroundRepeat = 'no-repeat';
+
+        // Apply profile image to all bot profile images
+        if (botProfileImages && profileImageUrl) {
+            botProfileImages.forEach(img => {
+                img.style.backgroundImage = `url('${profileImageUrl}')`;
+                img.style.backgroundSize = 'cover';
+                img.style.backgroundPosition = 'center';
+                img.style.backgroundRepeat = 'no-repeat';
+            });
         }
-    
+
         // Apply welcome message
         if (botMessages && botMessages.length > 0) {
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
         }
     }
-    
-    document.querySelectorAll('.profile-image').forEach((element) => {
-        element.style.backgroundImage = `url('${profileImageUrl}')`;
-        element.style.backgroundSize = 'cover';
-        element.style.backgroundPosition = 'center';
-        element.style.backgroundRepeat = 'no-repeat';
-    });
-
 
     // Function to enable the send button after token and customization are fetched
     function enableSendButton() {
@@ -371,11 +365,11 @@
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     }
     
-    // Create elements for the chatbot widget
+   // Create elements for the chatbot widget
     const chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
-    chatbotWidget.innerHTML = `
-        <div id="chat-header">
+    chatbotWidget.innerHTML = 
+        `<div id="chat-header">
             <span id="chat-title">BizBot</span>
             <button id="close-chat">X</button>
         </div>
@@ -426,8 +420,8 @@ Thank you!</span>
         <div id="chat-input">
             <input type="text" id="user-input" placeholder="Type your message...">
             <button id="send-message" disabled>Send</button>
-        </div>
-    `;
+        </div>`
+        ;
 
     // Create the toggle button once
     const chatToggle = document.createElement('button');
