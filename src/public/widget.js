@@ -350,29 +350,41 @@
             });
     }
 
-// Function to display bot messages
-    function displayBotMessage(message) {
-        const chatMessages = document.getElementById('chat-messages');
-        const botMessageElement = document.createElement('div');
-        const botProfileImage = document.createElement('div');
-        botProfileImage.classList.add('profile-image');
-        botMessageElement.classList.add('message', 'bot-message');
-        const messageContent = document.createElement('span');
-        messageContent.classList.add('message-content');
-        messageContent.textContent = message;
-        botMessageElement.appendChild(botProfileImage);
-        botMessageElement.appendChild(messageContent);
-        chatMessages.appendChild(botMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+function displayBotMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
 
-        // Apply the profile image to the new message
-        if (currentProfileImageUrl) {
-            botProfileImage.style.backgroundImage = `url('${currentProfileImageUrl}')`;
-            botProfileImage.style.backgroundSize = 'cover';
-            botProfileImage.style.backgroundPosition = 'center';
-            botProfileImage.style.backgroundRepeat = 'no-repeat';
-        }
+    // Create bot message container
+    const botMessageElement = document.createElement('div');
+    botMessageElement.classList.add('message', 'bot-message');
+
+    // Create profile image element
+    const botProfileImage = document.createElement('div');
+    botProfileImage.classList.add('profile-image');
+
+    // Apply the profile image directly
+    if (currentProfileImageUrl) {
+        botProfileImage.style.backgroundImage = `url('${currentProfileImageUrl}')`;
+        botProfileImage.style.backgroundSize = 'cover';
+        botProfileImage.style.backgroundPosition = 'center';
+        botProfileImage.style.backgroundRepeat = 'no-repeat';
     }
+
+    // Create message content element
+    const messageContent = document.createElement('span');
+    messageContent.classList.add('message-content');
+    messageContent.textContent = message;
+
+    // Append elements to the bot message container
+    botMessageElement.appendChild(botProfileImage);
+    botMessageElement.appendChild(messageContent);
+
+    // Append the bot message to the chat messages container
+    chatMessages.appendChild(botMessageElement);
+
+    // Auto-scroll to the latest message
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
     
    // Create elements for the chatbot widget
     const chatbotWidget = document.createElement('div');
