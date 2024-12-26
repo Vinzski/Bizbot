@@ -181,11 +181,18 @@ async function fetchCustomization(chatbotId) {
 
         const data = await response.json();
 
-        // Populate form fields with the current customization or defaults
-        document.getElementById('theme-color').value = data.themeColor;
-        document.getElementById('welcome-message').value = data.welcomeMessage;
+        // Validate and set the themeColor value to the form field
+        const validColor = /^#[0-9A-Fa-f]{6}$/i.test(data.customization.themeColor) 
+            ? data.customization.themeColor 
+            : '#FFFFFF'; // Default to white if themeColor is invalid
+
+        document.getElementById('theme-color').value = validColor;
+        document.getElementById('welcome-message').value = data.customization.welcomeMessage;
 
         // Optional: handle logo update if your UI supports it
+        // For example: display the logo as an image
+        // document.getElementById('logo').src = data.customization.logo;
+
     } catch (error) {
         console.error('Error fetching customization data:', error);
         alert('Failed to fetch customization data.');
@@ -195,6 +202,7 @@ async function fetchCustomization(chatbotId) {
 document.getElementById('chatbot-select').addEventListener('change', (event) => {
     fetchCustomization(event.target.value);
 });
+
 
     </script>
 
