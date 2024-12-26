@@ -201,21 +201,20 @@
                 if (data.success && data.customization) {
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
-                    const botProfileImageElement = document.querySelector('.profile-image');
-                    if (botProfileImageElement && data.customization.logo) {
-                        botProfileImageElement.style.backgroundImage = `url('${data.customization.logo}')`;
-                    }
-                    applyCustomization();
+                    currentProfileImageUrl = data.customization.logo || currentProfileImageUrl; // Set the current profile image URL
+    
+                    // Apply customization and display profile image
+                    applyCustomization(currentProfileImageUrl);
                     enableSendButton();
                 } else {
                     console.warn('No customization found, using defaults.');
-                    applyCustomization();
+                    applyCustomization(currentProfileImageUrl);
                     enableSendButton();
                 }
             })
             .catch(error => {
                 console.error('Error fetching customization:', error);
-                applyCustomization();
+                applyCustomization(currentProfileImageUrl);
                 enableSendButton();
             });
     }
