@@ -284,7 +284,7 @@
     
         // Apply profile image
         if (botProfileImage && profileImageUrl) {
-            botProfileImage.style.backgroundImage = `url('${profileImageUrl}')`;
+            botProfileImage.style.backgroundImage = `url('https://bizbot-images.s3.ap-southeast-2.amazonaws.com/1735131087651-rule%20of%20odds%201.jpg')`;
             botProfileImage.style.backgroundSize = 'cover';
             botProfileImage.style.backgroundPosition = 'center';
             botProfileImage.style.backgroundRepeat = 'no-repeat';
@@ -295,6 +295,14 @@
             botMessages[botMessages.length - 1].textContent = welcomeMessage;
         }
     }
+    
+    document.querySelectorAll('.profile-image').forEach((element) => {
+        element.style.backgroundImage = `url('${profileImageUrl}')`;
+        element.style.backgroundSize = 'cover';
+        element.style.backgroundPosition = 'center';
+        element.style.backgroundRepeat = 'no-repeat';
+    });
+
 
     // Function to enable the send button after token and customization are fetched
     function enableSendButton() {
@@ -428,8 +436,6 @@ Thank you!</span>
     chatToggle.style.display = 'block'; // Ensure it is visible initially
 
     // Add styles directly or link to an external stylesheet
-    const widgetElement = document.getElementById('bizbot-widget');
-    const logo_Image = widgetElement.getAttribute('logo');
     const styles = `
     #chatbot-widget {
         position: fixed;
