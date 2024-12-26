@@ -65,6 +65,7 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
     try {
         // Fetch chatbots
         const response = await fetch('/api/chatbots', {
@@ -105,19 +106,30 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             const customization = await response.json();
 
-            if (customization) {
-                // Check if the themeColor is valid, if not use default #FFFFFF
-                const validColor = /^#[0-9A-Fa-f]{6}$/i.test(customization.themeColor) 
-                    ? customization.themeColor 
-                    : '#FFFFFF'; // Default to white if themeColor is invalid
+            console.log('Customization Data:', customization); // Log response data to see structure
 
-                document.getElementById('theme-color').value = validColor;
-                document.getElementById('welcome-message').value = customization.welcomeMessage;
+            if (customization && customization.customization) {
+                const { themeColor, welcomeMessage } = customization.customization;
+
+                // Validate and set theme color
+                const validThemeColor = /^#[0-9A-Fa-f]{6}$/i.test(themeColor)
+                    ? themeColor
+                    : '#FFFFFF'; // Default to white if themeColor is invalid or missing
+
+                console.log('Theme Color:', validThemeColor); // Log theme color to ensure it's valid
+                document.getElementById('theme-color').value = validThemeColor;
+
+                // Validate and set welcome message
+                console.log('Welcome Message:', welcomeMessage); // Log welcome message to ensure it's fetched correctly
+                document.getElementById('welcome-message').value = welcomeMessage || 'Welcome to our chatbot!'; // Default fallback message
+            } else {
+                console.log('No customization data available for this chatbot.');
             }
         } catch (error) {
             console.error('Failed to fetch customization:', error);
         }
     });
+});
 
     document.getElementById('customization-form').onsubmit = async function(e) {
         e.preventDefault();
@@ -207,7 +219,6 @@ async function fetchCustomization(chatbotId) {
 document.getElementById('chatbot-select').addEventListener('change', (event) => {
     fetchCustomization(event.target.value);
 });
-
 
     </script>
 
