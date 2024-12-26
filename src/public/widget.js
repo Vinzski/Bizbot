@@ -350,7 +350,7 @@
             });
     }
 
-    // Function to display bot messages
+// Function to display bot messages
     function displayBotMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
         const botMessageElement = document.createElement('div');
@@ -365,8 +365,13 @@
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
 
-        // Apply customization to the new message
-        applyCustomization(currentProfileImageUrl, botMessageElement);
+        // Apply the profile image to the new message
+        if (currentProfileImageUrl) {
+            botProfileImage.style.backgroundImage = `url('${currentProfileImageUrl}')`;
+            botProfileImage.style.backgroundSize = 'cover';
+            botProfileImage.style.backgroundPosition = 'center';
+            botProfileImage.style.backgroundRepeat = 'no-repeat';
+        }
     }
     
    // Create elements for the chatbot widget
