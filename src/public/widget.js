@@ -252,7 +252,7 @@
     }
 
     // Function to apply customization
-    function applyCustomization(profileImageUrl) {
+    function applyCustomization(profileImageUrl, element = null) {
         console.log('Profile Image URL:', profileImageUrl);
 
         const chatHeader = document.getElementById('chat-header');
@@ -261,7 +261,7 @@
         const botMessages = document.querySelectorAll('#chat-messages .bot-message .message-content');
         const chatToggleButton = document.getElementById('chat-toggle');
         const sendMessageButton = document.getElementById('send-message');
-        const botProfileImages = document.querySelectorAll('.profile-image');
+        const botProfileImages = element ? [element.querySelector('.profile-image')] : document.querySelectorAll('.profile-image');
 
         // Apply chatbot name
         if (chatTitle && chatbotName) {
@@ -282,13 +282,15 @@
             sendMessageButton.style.backgroundColor = themeColor;
         }
 
-        // Apply profile image to all bot profile images
+        // Apply profile image to a single element or all bot profile images
         if (botProfileImages && profileImageUrl) {
             botProfileImages.forEach(img => {
-                img.style.backgroundImage = `url('${profileImageUrl}')`;
-                img.style.backgroundSize = 'cover';
-                img.style.backgroundPosition = 'center';
-                img.style.backgroundRepeat = 'no-repeat';
+                if (img) {
+                    img.style.backgroundImage = `url('${profileImageUrl}')`;
+                    img.style.backgroundSize = 'cover';
+                    img.style.backgroundPosition = 'center';
+                    img.style.backgroundRepeat = 'no-repeat';
+                }
             });
         }
 
@@ -363,6 +365,9 @@
         botMessageElement.appendChild(messageContent);
         chatMessages.appendChild(botMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+
+        // Apply customization to the new message
+        applyCustomization(currentProfileImageUrl, botMessageElement);
     }
     
    // Create elements for the chatbot widget
