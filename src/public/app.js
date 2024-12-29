@@ -209,7 +209,7 @@ function testChatbot() {
   };
   console.log("Request Headers:", headers);
 
-  fetch("/api/chat", {
+  fetch("/api/chat/test", {
     method: "POST",
     headers: headers,
     body: JSON.stringify(payload),
