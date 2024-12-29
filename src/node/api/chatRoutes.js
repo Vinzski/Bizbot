@@ -1,6 +1,6 @@
 const express = require('express');
 const natural = require('natural');
-const JaroWinkler = require('natural').JaroWinkler;
+const JaroWinkler = natural.JaroWinkler;
 const TfIdf = require('natural').TfIdf; // Corrected: import TfIdf directly
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
