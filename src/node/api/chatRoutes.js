@@ -118,18 +118,19 @@ router.post('/', authenticate, async (req, res) => {
 
         // 2. Similarity-Based Matching Using Cosine Similarity
         let bestMatch = { score: 0, faq: null };
-
+        
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
             const stemmedFaq = tokenizedFaq.map(token => stemmer.stem(token)).join(' ');  // Stem FAQ
-
+        
             // Use Cosine Similarity to compare FAQ with user question
             const similarity = cosineSimilarity([stemmedQuestion], [stemmedFaq]);
-
-            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
-
-            if (similarity > bestMatch.score) {
+        
+            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity}`);
+        
+            // Ensure similarity is a number before applying toFixed
+            if (typeof similarity === 'number' && similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
