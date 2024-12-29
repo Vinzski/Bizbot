@@ -199,6 +199,85 @@ router.post('/', authenticate, async (req, res) => {
     }
 });
 
+// For testing
+router.post('/test', authenticate, async (req, res) => {
+    const { question, chatbotId } = req.body;
+    const userId = req.user.id;
+
+    console.log('--- Incoming Chat Request ---');
+    console.log(`User ID: ${userId}`);
+    console.log(`Chatbot ID: ${chatbotId}`);
+    console.log(`Question: "${question}"`);
+
+    try {
+        // Fetch FAQs specific to the chatbot and user
+        const faqs = await FAQ.find({ userId: userId });
+        console.log(`Number of FAQs found: ${faqs.length}`);
+
+        if (faqs.length === 0) {
+            console.log('No FAQs found for the given userId and chatbotId.');
+        }
+
+        // Normalize the user question
+        const normalizedUserQuestion = question.toLowerCase().trim();
+        const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+
+        // 1. Exact Match Check
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
+        if (exactMatch) {
+            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
+        }
+
+        // 2. Jaccard Similarity Check
+        let bestMatch = { score: 0, faq: null };
+        faqs.forEach(faq => {
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // 3. Cosine Similarity Check
+        faqs.forEach(faq => {
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
+        faqs.forEach(faq => {
+            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
+            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // Define threshold for similarity matching
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
+
+        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+        } else {
+            console.log('No adequate FAQ match found.');
+            res.json({ reply: "Sorry, I couldn't find an answer to that question.", source: 'FAQ' });
+        }
+    } catch (error) {
+        console.error('Error processing chat request:', error);
+        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+    }
+});
+
 router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
     try {
