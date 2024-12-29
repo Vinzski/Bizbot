@@ -1,5 +1,4 @@
 const express = require('express');
-const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const { JaroWinkler } = require('natural');
 const tfidf = require('natural').TFIDF;
