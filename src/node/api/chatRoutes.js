@@ -62,10 +62,6 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-const Message = require('../models/messageModel');
-const FAQ = require('../models/faqModel');
-const authenticate = require('../signup/middleware/authMiddleware');
-
 // Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
     const intersection = setA.filter(x => setB.includes(x));
