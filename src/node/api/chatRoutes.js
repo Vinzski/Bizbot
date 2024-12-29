@@ -5,9 +5,14 @@ const { JaroWinkler } = require('natural');
 const tfidf = require('natural').TFIDF;
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
-const Message = require('../models/messageModel');
-const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 const fuzzy = require('fuzzy');
+const router = express.Router();
+
+const Message = require('../models/messageModel');
+const Chatbot = require('../models/chatbotModel');
+const FAQ = require('../models/faqModel');
+const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
+
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', async (req, res) => {
