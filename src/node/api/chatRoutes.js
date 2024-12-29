@@ -1,7 +1,7 @@
 const express = require('express');
 const natural = require('natural');
-const JaroWinkler = natural.JaroWinkler;
-const TfIdf = require('natural').TfIdf; // Corrected: import TfIdf directly
+const JaroWinkler = natural.JaroWinklerDistance; // Corrected: Ensure we're using the correct class or function
+const TfIdf = require('natural').TfIdf;
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
@@ -62,6 +62,10 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
+const Message = require('../models/messageModel');
+const FAQ = require('../models/faqModel');
+const authenticate = require('../signup/middleware/authMiddleware');
+
 // Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
     const intersection = setA.filter(x => setB.includes(x));
@@ -83,14 +87,15 @@ function jaroWinklerSimilarity(str1, str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
         return 0; // Return a default similarity score if inputs are invalid
     }
-    return JaroWinkler.distance(str1, str2);
+    // Use the JaroWinklerDistance function directly
+    const jaro = new JaroWinkler();
+    return jaro.distance(str1, str2); // Correctly using the JaroWinkler class
 }
-
 
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
+    const userId = req.user.id;
 
     console.log('--- Incoming Chat Request ---');
     console.log(`User ID: ${userId}`);
@@ -196,23 +201,6 @@ router.post('/', authenticate, async (req, res) => {
     } catch (error) {
         console.error('Error processing chat request:', error);
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
-    }
-});
-
-router.get('/user-interactions/:userId', authenticate, async (req, res) => {
-    const { userId } = req.params;
-
-    try {
-        // Count the number of messages sent by the user
-        const interactionCount = await Message.countDocuments({
-            userId: userId,
-            sender: 'user',
-        });
-
-        res.json({ userId, interactionCount });
-    } catch (error) {
-        console.error('Error fetching user interactions count:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
     }
 });
 
