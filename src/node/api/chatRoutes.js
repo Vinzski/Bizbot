@@ -84,7 +84,7 @@ function jaroWinklerSimilarity(str1, str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
         return 0; // Return a default similarity score if inputs are invalid
     }
-    return JaroWinklerDistance.distance(str1, str2); // Corrected the way to access JaroWinkler
+    return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
 // Helper function to fetch and normalize the user query with synonyms
