@@ -116,7 +116,7 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-         // 2. Similarity-Based Matching Using Jaro-Winkler Distance
+        // 2. Similarity-Based Matching Using Jaro-Winkler Distance
         let bestMatch = { score: 0, faq: null };
         
         faqs.forEach(faq => {
@@ -157,8 +157,8 @@ router.post('/', authenticate, async (req, res) => {
             await botMessage.save();
             console.log('Bot response saved to database.');
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-            } else {
-                console.log('No adequate FAQ match found. Forwarding to Rasa.');
+        } else {
+            console.log('No adequate FAQ match found. Forwarding to Rasa.');
             try {
                 const rasaResponse = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
                     message: question,
