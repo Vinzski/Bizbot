@@ -203,7 +203,7 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // Protected route for handling chat
-router.post('/', authenticate, async (req, res) => {
+router.post('/test', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
