@@ -7,7 +7,6 @@ const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
 const router = express.Router();
 
-const { getSynonyms } = require('../shared/thesaurusAPI');
 const Message = require('../models/messageModel');
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
@@ -72,10 +71,10 @@ function jaccardSimilarity(setA, setB) {
 
 // Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidf = new (require('natural').TfIdf)(); // Using TfIdf for cosine similarity
-    tfidf.addDocument(tokensA);
-    tfidf.addDocument(tokensB);
-    return tfidf.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
+    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
+    tfidfModel.addDocument(tokensA);
+    tfidfModel.addDocument(tokensB);
+    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
 }
 
 // Jaro-Winkler Similarity
@@ -84,26 +83,14 @@ function jaroWinklerSimilarity(str1, str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
         return 0; // Return a default similarity score if inputs are invalid
     }
+    // Use the JaroWinklerDistance function directly as it is not a method of a class
     return JaroWinklerDistance(str1, str2); // Correctly using the function now
-}
-
-// Helper function to fetch and normalize the user query with synonyms
-async function normalizeQueryWithSynonyms(query) {
-    const tokens = tokenizer.tokenize(query.toLowerCase());
-    const normalizedTokens = [];
-
-    for (let token of tokens) {
-        const synonyms = await getSynonyms(token); // Fetch synonyms dynamically
-        normalizedTokens.push(...synonyms, token);  // Add synonyms and the original token
-    }
-
-    return normalizedTokens.map(token => stemmer.stem(token)); // Stem tokens for better matching
 }
 
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
-    const userId = req.user.id; // Get user ID from token
+    const userId = req.user.id;
 
     console.log('--- Incoming Chat Request ---');
     console.log(`User ID: ${userId}`);
@@ -130,12 +117,13 @@ router.post('/', authenticate, async (req, res) => {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-        // Normalize the user question and fetch dynamic synonyms
-        const normalizedTokens = await normalizeQueryWithSynonyms(question);
-        console.log(`Normalized User Question (with Synonyms): ${normalizedTokens.join(' ')}`);
+        // Normalize the user question
+        const normalizedUserQuestion = question.toLowerCase().trim();
+        const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
         // 1. Exact Match Check
-        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === question.toLowerCase().trim());
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
             // Save the bot response to the database
@@ -157,7 +145,7 @@ router.post('/', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = jaccardSimilarity(normalizedTokens, tokenizedFaq);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
@@ -168,16 +156,16 @@ router.post('/', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = cosineSimilarity(normalizedTokens, tokenizedFaq);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
 
-        // 4. Jaro-Winkler Similarity Check
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
         faqs.forEach(faq => {
-            const similarity = jaroWinklerSimilarity(question, faq.question.toLowerCase().trim());
+            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
             console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
