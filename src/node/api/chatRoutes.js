@@ -191,7 +191,10 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found.');
-            res.json({ reply: "Sorry, I couldn't find an answer to that question.", source: 'FAQ' });
+
+            // If no match found in FAQ, forward the question to Rasa for response
+            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+            return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
     } catch (error) {
         console.error('Error processing chat request:', error);
@@ -199,8 +202,8 @@ router.post('/', authenticate, async (req, res) => {
     }
 });
 
-// For testing
-router.post('/test', authenticate, async (req, res) => {
+// Protected route for handling chat
+router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
@@ -210,6 +213,17 @@ router.post('/test', authenticate, async (req, res) => {
     console.log(`Question: "${question}"`);
 
     try {
+        // Save the user question to the database
+        const userMessage = new Message({
+            userId: userId,
+            chatbotId: chatbotId,
+            sender: 'user',
+            message: question,
+        });
+
+        await userMessage.save();
+        console.log('User message saved to database.');
+
         // Fetch FAQs specific to the chatbot and user
         const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
@@ -227,6 +241,17 @@ router.post('/test', authenticate, async (req, res) => {
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: 'bot',
+                message: exactMatch.answer,
+            });
+
+            await botMessage.save();
+            console.log('Bot response saved to database.');
+
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
@@ -267,16 +292,50 @@ router.post('/test', authenticate, async (req, res) => {
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: 'bot',
+                message: bestMatch.faq.answer,
+            });
+
+            await botMessage.save();
+            console.log('Bot response saved to database.');
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found.');
-            res.json({ reply: "Sorry, I couldn't find an answer to that question.", source: 'FAQ' });
+
+            // If no match found in FAQ, forward the question to Rasa for response
+            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+            return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
     } catch (error) {
         console.error('Error processing chat request:', error);
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
+
+// Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
+async function getRasaResponse(question) {
+    // Assuming Rasa API is set up to accept a POST request with the user question
+    try {
+        const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
+            message: question
+        });
+
+        if (response.data && response.data.length > 0) {
+            return response.data[0].text;
+        } else {
+            return "Sorry, I couldn't find an answer to that question.";
+        }
+    } catch (error) {
+        console.error('Error fetching response from Rasa:', error);
+        return "Sorry, I couldn't fetch an answer from Rasa at the moment.";
+    }
+}
+
 
 router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
