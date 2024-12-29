@@ -1,16 +1,13 @@
 const express = require('express');
-const axios = require('axios');
 const FAQ = require('../models/faqModel');
 const natural = require('natural');
+const { JaroWinkler } = require('natural');
+const tfidf = require('natural').TFIDF;
 const tokenizer = new natural.WordTokenizer();
-const stemmer = natural.PorterStemmer;  // Added stemming
-const jaroWinkler = natural.JaroWinklerDistance;
-const cosineSimilarity = require('cosine-similarity');  // Using cosine similarity for improved matching
-const jwt = require('jsonwebtoken');
-const router = express.Router();
+const stemmer = natural.PorterStemmer;
 const Message = require('../models/messageModel');
-const Chatbot = require('../models/chatbotModel');
-const authenticate = require('../signup/middleware/authMiddleware');
+const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
+const fuzzy = require('fuzzy');
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', async (req, res) => {
@@ -61,6 +58,26 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
+// Jaccard Similarity function
+function jaccardSimilarity(setA, setB) {
+    const intersection = setA.filter(x => setB.includes(x));
+    const union = [...new Set([...setA, ...setB])];
+    return intersection.length / union.length;
+}
+
+// Cosine Similarity function
+function cosineSimilarity(tokensA, tokensB) {
+    const tfidfModel = new tfidf();
+    tfidfModel.addDocument(tokensA);
+    tfidfModel.addDocument(tokensB);
+    return tfidfModel.tfidfs(tokensA);
+}
+
+// Jaro-Winkler Similarity
+function jaroWinklerSimilarity(str1, str2) {
+    return JaroWinkler.distance(str1, str2);
+}
+
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
@@ -93,15 +110,13 @@ router.post('/', authenticate, async (req, res) => {
 
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
-        const tokenizedQuestion = tokenizer.tokenize(normalizedUserQuestion);  // Tokenize question
-        const stemmedQuestion = tokenizedQuestion.map(token => stemmer.stem(token)).join(' ');  // Apply stemming
+        const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
-
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -116,36 +131,44 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Similarity-Based Matching Using Jaro-Winkler Distance
+        // 2. Jaccard Similarity Check
         let bestMatch = { score: 0, faq: null };
-        
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
-            const normalizedQuestion = question.toLowerCase().trim(); // Normalized user input
-        
-            // Tokenize and stem the FAQ and user input
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const tokenizedQuestion = tokenizer.tokenize(normalizedQuestion);
-            
-            const stemmedFaq = tokenizedFaq.map(token => stemmer.stem(token)).join(' ');
-            const stemmedQuestion = tokenizedQuestion.map(token => stemmer.stem(token)).join(' ');
-        
-            // Use Jaro-Winkler Distance for partial matches
-            const similarity = jaroWinkler(stemmedQuestion, stemmedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
-        
-            // Update best match based on similarity score
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // 3. Cosine Similarity Check
+        faqs.forEach(faq => {
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
+        faqs.forEach(faq => {
+            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
+            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 0.8; // You can adjust this
-        
+        const SIMILARITY_THRESHOLD = 0.2; // Adjust this threshold based on testing
+
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
-        
+
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -153,36 +176,13 @@ router.post('/', authenticate, async (req, res) => {
                 sender: 'bot',
                 message: bestMatch.faq.answer,
             });
-        
+
             await botMessage.save();
             console.log('Bot response saved to database.');
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            console.log('No adequate FAQ match found. Forwarding to Rasa.');
-            try {
-                const rasaResponse = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
-                    message: question,
-                    sender: 'chatbot-widget',
-                });
-                const botReply = rasaResponse.data[0]?.text || "Sorry, I couldn't understand that.";
-                console.log(`Rasa Response: "${botReply}"`);
-
-                // Save the bot response to the database
-                const botMessage = new Message({
-                    userId: userId,
-                    chatbotId: chatbotId,
-                    sender: 'bot',
-                    message: botReply,
-                });
-
-                await botMessage.save();
-                console.log('Bot response saved to database.');
-
-                res.json({ reply: botReply, source: 'Rasa' });
-            } catch (error) {
-                console.error('Error querying Rasa:', error);
-                res.status(500).json({ message: "Error contacting Rasa", error: error.toString() });
-            }
+            console.log('No adequate FAQ match found.');
+            res.json({ reply: "Sorry, I couldn't find an answer to that question.", source: 'FAQ' });
         }
     } catch (error) {
         console.error('Error processing chat request:', error);
