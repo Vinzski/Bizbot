@@ -1,6 +1,6 @@
 const express = require('express');
 const natural = require('natural');
-const { JaroWinkler } = require('natural');
+const JaroWinkler = require('natural').JaroWinkler;
 const TfIdf = require('natural').TfIdf; // Corrected: import TfIdf directly
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
@@ -79,8 +79,13 @@ function cosineSimilarity(tokensA, tokensB) {
 
 // Jaro-Winkler Similarity
 function jaroWinklerSimilarity(str1, str2) {
+    if (!str1 || !str2) {
+        console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
+        return 0; // Return a default similarity score if inputs are invalid
+    }
     return JaroWinkler.distance(str1, str2);
 }
+
 
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
