@@ -1,7 +1,7 @@
 const express = require('express');
 const natural = require('natural');
 const { JaroWinkler } = require('natural');
-const tfidf = require('natural').TFIDF;
+const TfIdf = require('natural').TfIdf; // Corrected: import TfIdf directly
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
@@ -71,10 +71,10 @@ function jaccardSimilarity(setA, setB) {
 
 // Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidfModel = new tfidf();
+    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
     tfidfModel.addDocument(tokensA);
     tfidfModel.addDocument(tokensB);
-    return tfidfModel.tfidfs(tokensA);
+    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
 }
 
 // Jaro-Winkler Similarity
