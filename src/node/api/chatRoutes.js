@@ -1,6 +1,6 @@
 const express = require('express');
 const natural = require('natural');
-const JaroWinkler = natural.JaroWinklerDistance; // Corrected: Ensure we're using the correct class or function
+const JaroWinklerDistance = natural.JaroWinklerDistance; // Correct function import
 const TfIdf = require('natural').TfIdf;
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
@@ -83,9 +83,8 @@ function jaroWinklerSimilarity(str1, str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
         return 0; // Return a default similarity score if inputs are invalid
     }
-    // Use the JaroWinklerDistance function directly
-    const jaro = new JaroWinkler();
-    return jaro.distance(str1, str2); // Correctly using the JaroWinkler class
+    // Use the JaroWinklerDistance function directly as it is not a method of a class
+    return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
 // Protected route for handling chat
