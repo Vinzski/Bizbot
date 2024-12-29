@@ -116,31 +116,36 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Similarity-Based Matching Using Cosine Similarity
+         // 2. Similarity-Based Matching Using Jaro-Winkler Distance
         let bestMatch = { score: 0, faq: null };
         
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
+            const normalizedQuestion = question.toLowerCase().trim(); // Normalized user input
+        
+            // Tokenize and stem the FAQ and user input
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const stemmedFaq = tokenizedFaq.map(token => stemmer.stem(token)).join(' ');  // Stem FAQ
+            const tokenizedQuestion = tokenizer.tokenize(normalizedQuestion);
+            
+            const stemmedFaq = tokenizedFaq.map(token => stemmer.stem(token)).join(' ');
+            const stemmedQuestion = tokenizedQuestion.map(token => stemmer.stem(token)).join(' ');
         
-            // Use Cosine Similarity to compare FAQ with user question
-            const similarity = cosineSimilarity([stemmedQuestion], [stemmedFaq]);
+            // Use Jaro-Winkler Distance for partial matches
+            const similarity = jaroWinkler(stemmedQuestion, stemmedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
         
-            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity}`);
-        
-            // Ensure similarity is a number before applying toFixed
-            if (typeof similarity === 'number' && similarity > bestMatch.score) {
+            // Update best match based on similarity score
+            if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
 
-        // Define similarity threshold
-        const SIMILARITY_THRESHOLD = 0.8; // Adjust as needed
-
+        // Define threshold for similarity matching
+        const SIMILARITY_THRESHOLD = 0.8; // You can adjust this
+        
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
-
+        
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -148,13 +153,12 @@ router.post('/', authenticate, async (req, res) => {
                 sender: 'bot',
                 message: bestMatch.faq.answer,
             });
-
+        
             await botMessage.save();
             console.log('Bot response saved to database.');
-
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
-        } else {
-            console.log('No adequate FAQ match found. Forwarding to Rasa.');
+            } else {
+                console.log('No adequate FAQ match found. Forwarding to Rasa.');
             try {
                 const rasaResponse = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
                     message: question,
