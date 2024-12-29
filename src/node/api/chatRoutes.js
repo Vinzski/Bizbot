@@ -214,17 +214,6 @@ router.post('/test', authenticate, async (req, res) => {
     console.log(`Question: "${question}"`);
 
     try {
-        // Save the user question to the database
-        const userMessage = new Message({
-            userId: userId,
-            chatbotId: chatbotId,
-            sender: 'user',
-            message: question,
-        });
-
-        await userMessage.save();
-        console.log('User message saved to database.');
-
         // Fetch FAQs specific to the chatbot and user
         const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
@@ -242,17 +231,6 @@ router.post('/test', authenticate, async (req, res) => {
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-            // Save the bot response to the database
-            const botMessage = new Message({
-                userId: userId,
-                chatbotId: chatbotId,
-                sender: 'bot',
-                message: exactMatch.answer,
-            });
-
-            await botMessage.save();
-            console.log('Bot response saved to database.');
-
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
@@ -293,17 +271,6 @@ router.post('/test', authenticate, async (req, res) => {
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
-
-            // Save the bot response to the database
-            const botMessage = new Message({
-                userId: userId,
-                chatbotId: chatbotId,
-                sender: 'bot',
-                message: bestMatch.faq.answer,
-            });
-
-            await botMessage.save();
-            console.log('Bot response saved to database.');
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found.');
