@@ -3,6 +3,7 @@ const axios = require('axios');
 const FAQ = require('../models/faqModel');
 const natural = require('natural');
 const tokenizer = new natural.WordTokenizer();
+const { findBestMatch } = require('../shared/nlp');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const Message = require('../models/messageModel');
