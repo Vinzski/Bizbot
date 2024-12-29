@@ -27,6 +27,6 @@
     "multer-s3": "^2.10.0",
     "natural": "^8.0.1",
     "spacy-node": "^1.0.0",
-    "cosine-similarity": "^3.0.0"
+    "cosine-similarity": "^1.0.0"
   }
 }
