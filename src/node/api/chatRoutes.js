@@ -267,7 +267,7 @@ router.post('/test', authenticate, async (req, res) => {
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 0.10; // Adjust this threshold based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
