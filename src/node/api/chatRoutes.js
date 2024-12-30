@@ -88,14 +88,6 @@ function jaroWinklerSimilarity(str1, str2) {
     return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
-// Define a list of stop words
-const stopWords = new Set(['the', 'are', 'what', 'can', 'this', 'for', 'which', 'if', 'to', 'and', 'or', 'is', 'in', 'on', 'it', 'of', 'why', 'who', 'do']);
-
-// Function to remove stop words
-function removeStopWords(tokens) {
-    return tokens.filter(token => !stopWords.has(token));
-}
-
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
@@ -126,17 +118,10 @@ router.post('/', authenticate, async (req, res) => {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-         // Normalize the user question
+        // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-
-        // Remove stop words from the tokenized user question
-        const filteredTokens = removeStopWords(tokenizedUserQuestion);
-
-        // Apply stemming after removing stop words
-        const stemmedUserQuestion = filteredTokens.map(token => stemmer.stem(token)).join(' ');
-
-        console.log(`Filtered and Stemmed Question: "${stemmedUserQuestion}"`);
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
@@ -156,67 +141,32 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Improved Keyword Inclusion Check
-        let bestKeywordMatch = { faq: null, keywordCount: 0 };
-        
-        // Use filtered tokens for improved keyword inclusion check
+        // 2. Jaccard Similarity Check
+        let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
-            const faqTokens = tokenizer.tokenize(faq.question.toLowerCase());
-            const filteredFaqTokens = removeStopWords(faqTokens); // Apply stop word removal to FAQ tokens
-            const commonKeywords = filteredFaqTokens.filter(token => filteredTokens.includes(token)); // Compare with filtered user tokens
-        
-            if (commonKeywords.length > bestKeywordMatch.keywordCount) {
-                console.log(`Keyword Match Found in FAQ: "${faq.question}" | Common Keywords: ${commonKeywords.join(', ')}`);
-                bestKeywordMatch = { faq, keywordCount: commonKeywords.length };
-            }
-        });
-        
-        if (bestKeywordMatch.faq) {
-            console.log(`Best FAQ Matched by Keyword Inclusion: "${bestKeywordMatch.faq.question}" with ${bestKeywordMatch.keywordCount} common keywords`);
-        
-            // Save the bot response to the database
-            const botMessage = new Message({
-                userId: userId,
-                chatbotId: chatbotId,
-                sender: 'bot',
-                message: bestKeywordMatch.faq.answer,
-            });
-        
-            await botMessage.save();
-            console.log('Bot response saved to database.');
-        
-            return res.json({ reply: bestKeywordMatch.faq.answer, source: 'FAQ' });
-        }
-
-        // 3. Jaccard Similarity Check
-        faqs.forEach(faq => {
-            const faqTokens = tokenizer.tokenize(faq.question.toLowerCase());
-            const filteredFaqTokens = removeStopWords(faqTokens); // Filter FAQ tokens
-            const similarity = jaccardSimilarity(filteredTokens, filteredFaqTokens); // Use filtered user tokens
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
 
-        // 4. Cosine Similarity Check
+        // 3. Cosine Similarity Check
         faqs.forEach(faq => {
-            const faqTokens = tokenizer.tokenize(faq.question.toLowerCase());
-            const filteredFaqTokens = removeStopWords(faqTokens); // Filter FAQ tokens
-            const similarity = cosineSimilarity(filteredTokens, filteredFaqTokens); // Use filtered user tokens
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
-        
-        // 5. Jaro-Winkler Similarity Check (for fuzzy matching)
+
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
         faqs.forEach(faq => {
-            const faqTokens = tokenizer.tokenize(faq.question.toLowerCase().trim());
-            const filteredFaqTokens = removeStopWords(faqTokens).join(' '); // Filter and rejoin FAQ tokens into a string
-            const filteredUserQuestion = removeStopWords(tokenizer.tokenize(normalizedUserQuestion)).join(' '); // Filter and rejoin user question tokens
-        
-            const similarity = jaroWinklerSimilarity(filteredUserQuestion, filteredFaqTokens);
+            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
             console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
@@ -224,7 +174,7 @@ router.post('/', authenticate, async (req, res) => {
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
@@ -275,15 +225,8 @@ router.post('/test', authenticate, async (req, res) => {
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
-        // Remove stop words from the tokenized user question
-        const filteredTokens = removeStopWords(tokenizedUserQuestion);
-
-        // Apply stemming after removing stop words
-        const stemmedUserQuestion = filteredTokens.map(token => stemmer.stem(token)).join(' ');
-
-        console.log(`Filtered and Stemmed Question: "${stemmedUserQuestion}"`);
-        
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
@@ -291,36 +234,7 @@ router.post('/test', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Improved Keyword Inclusion Check
-        let bestKeywordMatch = { faq: null, keywordCount: 0 };
-        
-        faqs.forEach(faq => {
-            const faqTokens = tokenizer.tokenize(faq.question.toLowerCase());
-            const commonKeywords = faqTokens.filter(token => tokenizedUserQuestion.includes(token));
-            if (commonKeywords.length > bestKeywordMatch.keywordCount) {
-                console.log(`Keyword Match Found in FAQ: "${faq.question}" | Common Keywords: ${commonKeywords.join(', ')}`);
-                bestKeywordMatch = { faq, keywordCount: commonKeywords.length };
-            }
-        });
-        
-        if (bestKeywordMatch.faq) {
-            console.log(`Best FAQ Matched by Keyword Inclusion: "${bestKeywordMatch.faq.question}" with ${bestKeywordMatch.keywordCount} common keywords`);
-        
-            // Save the bot response to the database
-            const botMessage = new Message({
-                userId: userId,
-                chatbotId: chatbotId,
-                sender: 'bot',
-                message: bestKeywordMatch.faq.answer,
-            });
-        
-            await botMessage.save();
-            console.log('Bot response saved to database.');
-        
-            return res.json({ reply: bestKeywordMatch.faq.answer, source: 'FAQ' });
-        }
-
-        // 3. Jaccard Similarity Check
+        // 2. Jaccard Similarity Check
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
@@ -332,7 +246,7 @@ router.post('/test', authenticate, async (req, res) => {
             }
         });
 
-        // 4. Cosine Similarity Check
+        // 3. Cosine Similarity Check
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
@@ -343,7 +257,7 @@ router.post('/test', authenticate, async (req, res) => {
             }
         });
 
-        // 5. Jaro-Winkler Similarity Check (for fuzzy matching)
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
         faqs.forEach(faq => {
             const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
             console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
@@ -353,7 +267,7 @@ router.post('/test', authenticate, async (req, res) => {
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
