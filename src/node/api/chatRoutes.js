@@ -126,10 +126,17 @@ router.post('/', authenticate, async (req, res) => {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-        // Normalize the user question
+         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+
+        // Remove stop words from the tokenized user question
+        const filteredTokens = removeStopWords(tokenizedUserQuestion);
+
+        // Apply stemming after removing stop words
+        const stemmedUserQuestion = filteredTokens.map(token => stemmer.stem(token)).join(' ');
+
+        console.log(`Filtered and Stemmed Question: "${stemmedUserQuestion}"`);
 
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
@@ -262,8 +269,15 @@ router.post('/test', authenticate, async (req, res) => {
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
+        // Remove stop words from the tokenized user question
+        const filteredTokens = removeStopWords(tokenizedUserQuestion);
+
+        // Apply stemming after removing stop words
+        const stemmedUserQuestion = filteredTokens.map(token => stemmer.stem(token)).join(' ');
+
+        console.log(`Filtered and Stemmed Question: "${stemmedUserQuestion}"`);
+        
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
