@@ -88,6 +88,14 @@ function jaroWinklerSimilarity(str1, str2) {
     return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
+// Define a list of stop words
+const stopWords = new Set(['the', 'are', 'what', 'can', 'this', 'for', 'which', 'if', 'to', 'and', 'or', 'is', 'in', 'on', 'it', 'of', 'why', 'who', 'do']);
+
+// Function to remove stop words
+function removeStopWords(tokens) {
+    return tokens.filter(token => !stopWords.has(token));
+}
+
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
