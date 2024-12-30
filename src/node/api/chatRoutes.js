@@ -63,6 +63,31 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
+// Jaccard Similarity function
+function jaccardSimilarity(setA, setB) {
+    const intersection = setA.filter(x => setB.includes(x));
+    const union = [...new Set([...setA, ...setB])];
+    return intersection.length / union.length;
+}
+
+// Cosine Similarity function
+function cosineSimilarity(tokensA, tokensB) {
+    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
+    tfidfModel.addDocument(tokensA);
+    tfidfModel.addDocument(tokensB);
+    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
+}
+
+// Jaro-Winkler Similarity
+function jaroWinklerSimilarity(str1, str2) {
+    if (!str1 || !str2) {
+        console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
+        return 0; // Return a default similarity score if inputs are invalid
+    }
+    // Use the JaroWinklerDistance function directly as it is not a method of a class
+    return JaroWinklerDistance(str1, str2); // Correctly using the function now
+}
+
 // Define the stop words list
 const stopWords = new Set([
     'the', 'are', 'what', 'can', 'this', 'for', 'which', 'if', 'to', 'and', 'or', 'is', 'in', 'on', 'it', 'of',
