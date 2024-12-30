@@ -141,32 +141,33 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Keyword Inclusion Check
-        let keywordMatch = null;
+        // 2. Improved Keyword Inclusion Check
+        let bestKeywordMatch = { faq: null, keywordCount: 0 };
+        
         faqs.forEach(faq => {
             const faqTokens = tokenizer.tokenize(faq.question.toLowerCase());
             const commonKeywords = faqTokens.filter(token => tokenizedUserQuestion.includes(token));
-            if (commonKeywords.length > 0) {
+            if (commonKeywords.length > bestKeywordMatch.keywordCount) {
                 console.log(`Keyword Match Found in FAQ: "${faq.question}" | Common Keywords: ${commonKeywords.join(', ')}`);
-                keywordMatch = faq; // Assign the first matching FAQ and break early
+                bestKeywordMatch = { faq, keywordCount: commonKeywords.length };
             }
         });
         
-        if (keywordMatch) {
-            console.log(`FAQ Matched by Keyword Inclusion: "${keywordMatch.question}"`);
+        if (bestKeywordMatch.faq) {
+            console.log(`Best FAQ Matched by Keyword Inclusion: "${bestKeywordMatch.faq.question}" with ${bestKeywordMatch.keywordCount} common keywords`);
         
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
                 chatbotId: chatbotId,
                 sender: 'bot',
-                message: keywordMatch.answer,
+                message: bestKeywordMatch.faq.answer,
             });
         
             await botMessage.save();
             console.log('Bot response saved to database.');
         
-            return res.json({ reply: keywordMatch.answer, source: 'FAQ' });
+            return res.json({ reply: bestKeywordMatch.faq.answer, source: 'FAQ' });
         }
 
         // 3. Jaccard Similarity Check
@@ -262,32 +263,33 @@ router.post('/test', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Keyword Inclusion Check
-        let keywordMatch = null;
+        // 2. Improved Keyword Inclusion Check
+        let bestKeywordMatch = { faq: null, keywordCount: 0 };
+        
         faqs.forEach(faq => {
             const faqTokens = tokenizer.tokenize(faq.question.toLowerCase());
             const commonKeywords = faqTokens.filter(token => tokenizedUserQuestion.includes(token));
-            if (commonKeywords.length > 0) {
+            if (commonKeywords.length > bestKeywordMatch.keywordCount) {
                 console.log(`Keyword Match Found in FAQ: "${faq.question}" | Common Keywords: ${commonKeywords.join(', ')}`);
-                keywordMatch = faq; // Assign the first matching FAQ and break early
+                bestKeywordMatch = { faq, keywordCount: commonKeywords.length };
             }
         });
         
-        if (keywordMatch) {
-            console.log(`FAQ Matched by Keyword Inclusion: "${keywordMatch.question}"`);
+        if (bestKeywordMatch.faq) {
+            console.log(`Best FAQ Matched by Keyword Inclusion: "${bestKeywordMatch.faq.question}" with ${bestKeywordMatch.keywordCount} common keywords`);
         
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
                 chatbotId: chatbotId,
                 sender: 'bot',
-                message: keywordMatch.answer,
+                message: bestKeywordMatch.faq.answer,
             });
         
             await botMessage.save();
             console.log('Bot response saved to database.');
         
-            return res.json({ reply: keywordMatch.answer, source: 'FAQ' });
+            return res.json({ reply: bestKeywordMatch.faq.answer, source: 'FAQ' });
         }
 
         // 3. Jaccard Similarity Check
