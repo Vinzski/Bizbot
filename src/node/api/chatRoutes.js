@@ -65,7 +65,12 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
 
 // List of stopwords to filter out
 const stopwords = new Set([
-    'the', 'are', 'what', 'can', 'this', 'for', 'which', 'if', 'to', 'and', 'or', 'is', 'in', 'on', 'it', 'of'
+    'the', 'are', 'what', 'can', 'this', 'for', 'which', 'if', 'to', 'and', 'or', 'is', 'in', 'on', 'it', 'of',
+    'a', 'an', 'by', 'with', 'as', 'at', 'from', 'about', 'that', 'we', 'you', 'they', 'he', 'she', 'it', 'i',
+    'be', 'was', 'were', 'been', 'being', 'has', 'have', 'had', 'do', 'does', 'did', 'doing', 'such', 'no', 
+    'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'will', 'just', 'don', 'should', 
+    'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', 'couldn', 'didn', 'doesn', 'hadn', 'hasn', 'haven', 
+    'isn', 'ma', 'mightn', 'mustn', 'needn', 'shan', 'shouldn', 'wasn', 'weren', 'won', 'wouldn'
 ]);
 
 // Function to filter stopwords from a question
@@ -240,7 +245,7 @@ router.post('/test', authenticate, async (req, res) => {
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         let tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        tokenizedUserQuestion = removeStopWords(tokenizedUserQuestion); // Remove stop words
+        tokenizedUserQuestion = filterStopwords(tokenizedUserQuestion); // Remove stop words
         const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
         // 1. Exact Match Check (direct match of words in FAQ)
@@ -248,7 +253,7 @@ router.post('/test', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const faqTokens = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = removeStopWords(faqTokens); // Remove stop words from FAQ question
+            const filteredFaqTokens = filterStopwords(faqTokens); // Remove stop words from FAQ question
             if (filteredFaqTokens.some(token => tokenizedUserQuestion.includes(token))) {
                 exactMatch = faq;
             }
@@ -264,7 +269,7 @@ router.post('/test', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = removeStopWords(tokenizedFaq); // Remove stop words from FAQ question
+            const filteredFaqTokens = filterStopwords(tokenizedFaq); // Remove stop words from FAQ question
             const similarity = jaccardSimilarity(tokenizedUserQuestion, filteredFaqTokens);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
@@ -276,7 +281,7 @@ router.post('/test', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = removeStopWords(tokenizedFaq); // Remove stop words from FAQ question
+            const filteredFaqTokens = filterStopwords(tokenizedFaq); // Remove stop words from FAQ question
             const similarity = cosineSimilarity(tokenizedUserQuestion, filteredFaqTokens);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
