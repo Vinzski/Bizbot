@@ -63,43 +63,29 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-// List of stopwords to filter out
-const stopwords = new Set([
-    'the', 'are', 'what', 'can', 'this', 'for', 'which', 'if', 'to', 'and', 'or', 'is', 'in', 'on', 'it', 'of',
-    'a', 'an', 'by', 'with', 'as', 'at', 'from', 'about', 'that', 'we', 'you', 'they', 'he', 'she', 'it', 'i',
-    'be', 'was', 'were', 'been', 'being', 'has', 'have', 'had', 'do', 'does', 'did', 'doing', 'such', 'no', 
-    'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'will', 'just', 'don', 'should', 
-    'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', 'couldn', 'didn', 'doesn', 'hadn', 'hasn', 'haven', 
-    'isn', 'ma', 'mightn', 'mustn', 'needn', 'shan', 'shouldn', 'wasn', 'weren', 'won', 'wouldn'
-]);
-
-// Function to filter stopwords from a question
-function filterStopwords(tokens) {
-    return tokens.filter(token => !stopwords.has(token));
-}
-
-// Jaccard Similarity function (remains unchanged)
+// Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
     const intersection = setA.filter(x => setB.includes(x));
     const union = [...new Set([...setA, ...setB])];
     return intersection.length / union.length;
 }
 
-// Cosine Similarity function (remains unchanged)
+// Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidfModel = new TfIdf();
+    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
     tfidfModel.addDocument(tokensA);
     tfidfModel.addDocument(tokensB);
-    return tfidfModel.tfidfs(tokensA)[1];
+    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
 }
 
-// Jaro-Winkler Similarity (remains unchanged)
+// Jaro-Winkler Similarity
 function jaroWinklerSimilarity(str1, str2) {
     if (!str1 || !str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
-        return 0;
+        return 0; // Return a default similarity score if inputs are invalid
     }
-    return JaroWinklerDistance(str1, str2);
+    // Use the JaroWinklerDistance function directly as it is not a method of a class
+    return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
 // Protected route for handling chat
@@ -135,53 +121,43 @@ router.post('/', authenticate, async (req, res) => {
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        const filteredUserQuestion = filterStopwords(tokenizedUserQuestion);
-        const stemmedUserQuestion = filteredUserQuestion.map(token => stemmer.stem(token)).join(' ');
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
-        // 1. Direct Word Match (Check if any FAQ matches directly with a word in the question)
-        let directMatch = null;
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const faqTokens = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = filterStopwords(faqTokens);
-            if (filteredFaqTokens.some(token => filteredUserQuestion.includes(token))) {
-                directMatch = faq;
-            }
-        });
-
-        if (directMatch) {
-            console.log(`Direct Match Found: "${directMatch.question}"`);
+        // 1. Exact Match Check
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
+        if (exactMatch) {
+            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
                 chatbotId: chatbotId,
                 sender: 'bot',
-                message: directMatch.answer,
+                message: exactMatch.answer,
             });
 
             await botMessage.save();
             console.log('Bot response saved to database.');
-            return res.json({ reply: directMatch.answer, source: 'FAQ' });
+
+            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Jaccard Similarity Check (continued)
+        // 2. Jaccard Similarity Check
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const filteredFaq = filterStopwords(tokenizedFaq);
-            const similarity = jaccardSimilarity(filteredUserQuestion, filteredFaq);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
         });
 
-        // 3. Cosine Similarity Check (continued)
+        // 3. Cosine Similarity Check
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const filteredFaq = filterStopwords(tokenizedFaq);
-            const similarity = cosineSimilarity(filteredUserQuestion, filteredFaq);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
@@ -197,10 +173,13 @@ router.post('/', authenticate, async (req, res) => {
             }
         });
 
-        const SIMILARITY_THRESHOLD = 0.8;
+        // Define threshold for similarity matching
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+
+            // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
                 chatbotId: chatbotId,
@@ -213,7 +192,9 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found.');
-            const rasaResponse = await getRasaResponse(question);  // Forward to Rasa if no FAQ match
+
+            // If no match found in FAQ, forward the question to Rasa for response
+            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
             return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
     } catch (error) {
@@ -221,7 +202,6 @@ router.post('/', authenticate, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
-
 
 // Protected route for handling chat
 router.post('/test', authenticate, async (req, res) => {
@@ -244,21 +224,11 @@ router.post('/test', authenticate, async (req, res) => {
 
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
-        let tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        tokenizedUserQuestion = filterStopwords(tokenizedUserQuestion); // Remove stop words
+        const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
         const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
-        // 1. Exact Match Check (direct match of words in FAQ)
-        let exactMatch = null;
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const faqTokens = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = filterStopwords(faqTokens); // Remove stop words from FAQ question
-            if (filteredFaqTokens.some(token => tokenizedUserQuestion.includes(token))) {
-                exactMatch = faq;
-            }
-        });
-
+        // 1. Exact Match Check
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
@@ -269,8 +239,7 @@ router.post('/test', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = filterStopwords(tokenizedFaq); // Remove stop words from FAQ question
-            const similarity = jaccardSimilarity(tokenizedUserQuestion, filteredFaqTokens);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
@@ -281,8 +250,7 @@ router.post('/test', authenticate, async (req, res) => {
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const filteredFaqTokens = filterStopwords(tokenizedFaq); // Remove stop words from FAQ question
-            const similarity = cosineSimilarity(tokenizedUserQuestion, filteredFaqTokens);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
