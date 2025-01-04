@@ -116,10 +116,15 @@
     <script>
     document.getElementById('pdf-upload-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-
+    
         const formData = new FormData();
-        formData.append('pdf', document.getElementById('pdf-file').files[0]);
-
+        const pdfFile = document.getElementById('pdf-file').files[0];
+        
+        if (pdfFile) {
+            formData.append('pdf', pdfFile);
+            formData.append('filename', pdfFile.name); // Adding filename explicitly (optional, but it can be useful)
+        }
+    
         try {
             const response = await fetch('/upload-pdf', {
                 method: 'POST',
@@ -128,7 +133,7 @@
                 },
                 body: formData
             });
-
+    
             const result = await response.json();
             alert(result.message);
         } catch (error) {
