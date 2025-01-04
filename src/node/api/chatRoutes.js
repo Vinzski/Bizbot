@@ -25,8 +25,14 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
         const pdfText = await pdfParse(req.file.buffer);
         const extractedText = pdfText.text;
 
-        // Save extracted text to MongoDB
-        const pdfData = new PDF({ content: extractedText, userId: req.user.id });
+        // Save extracted text and other data to MongoDB
+        const pdfData = new PDF({
+            filename: req.file.originalname,  // Store the uploaded file's original name
+            chatbotId: req.body.chatbotId,  // Assuming the chatbotId is passed in the request body
+            userId: req.user.id,
+            content: extractedText,
+        });
+
         await pdfData.save();
 
         res.status(200).json({ message: 'PDF uploaded and content saved successfully' });
@@ -35,6 +41,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
         res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
     }
 });
+
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', async (req, res) => {
