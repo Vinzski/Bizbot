@@ -261,9 +261,10 @@ router.post('/test', authenticate, async (req, res) => {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-        // Normalize the user question
+        // Normalize the user question and expand with synonyms
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+        const expandedUserTokens = await expandWithSynonyms(tokenizedUserQuestion);
         const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
         // Short Query Handling
@@ -288,35 +289,37 @@ router.post('/test', authenticate, async (req, res) => {
 
         // 2. Jaccard Similarity Check
         let bestMatch = { score: 0, faq: null };
-        faqs.forEach(faq => {
+        for (const faq of faqs) {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            const expandedFaqTokens = await expandWithSynonyms(tokenizedFaq);
+            const similarity = jaccardSimilarity(expandedUserTokens, expandedFaqTokens);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
-        });
+        }
 
         // 3. Cosine Similarity Check
-        faqs.forEach(faq => {
+        for (const faq of faqs) {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            const expandedFaqTokens = await expandWithSynonyms(tokenizedFaq);
+            const similarity = cosineSimilarity(expandedUserTokens, expandedFaqTokens);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
-        });
+        }
 
         // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
-        faqs.forEach(faq => {
+        for (const faq of faqs) {
             const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
             console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
                 bestMatch = { score: similarity, faq };
             }
-        });
+        }
 
         // Define threshold for similarity matching
         const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
@@ -328,7 +331,7 @@ router.post('/test', authenticate, async (req, res) => {
             console.log('No adequate FAQ match found.');
 
             // If no match found in FAQ, forward the question to Rasa for response
-            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+            const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
             return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
     } catch (error) {
