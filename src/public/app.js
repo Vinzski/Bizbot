@@ -522,32 +522,4 @@ function removeFaqRow(id) {
     console.warn("Row not found to remove!");
   }
 }
-  
-    document.getElementById('pdf-upload-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-    
-        const formData = new FormData();
-        const pdfFile = document.getElementById('pdf-file').files[0];
-        
-        if (pdfFile) {
-            formData.append('pdf', pdfFile);
-            formData.append('filename', pdfFile.name); // Adding filename explicitly (optional, but it can be useful)
-        }
-    
-        try {
-            const token = localStorage.getItem("token");
-            const response = await fetch('/upload-pdf', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`  // Include JWT token for authentication
-                },
-                body: formData
-            });
-    
-            const result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error('Error uploading PDF:', error);
-            alert('Failed to upload PDF');
-        }
-    });
+
