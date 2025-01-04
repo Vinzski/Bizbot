@@ -386,8 +386,7 @@
         <div class="satisfactory">
             <div class="message bot-message">
                 <div class="profile-image"></div>
-                <span class="message-content">We’d love your feedback! Please leave a rating and share your thoughts to help us improve.
-Thank you!</span>
+                <span class="message-content">We value your feedback! Please rate and share your thoughts to help us improve. Thank you!</span>
             </div>
             <div class="rating">
                 <p>How would you rate it?</p>
