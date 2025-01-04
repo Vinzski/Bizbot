@@ -88,6 +88,27 @@ function jaroWinklerSimilarity(str1, str2) {
     return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
+// Fetch synonyms from Thesaurus API
+const getSynonyms = async (word) => {
+    try {
+        const response = await axios.get(`https://api.synonyms.com/words/${word}`);
+        return response.data.synonyms || [];
+    } catch (error) {
+        console.error(`Error fetching synonyms for "${word}":`, error);
+        return [];
+    }
+};
+
+// Expand tokens with synonyms
+const expandWithSynonyms = async (tokens) => {
+    const expandedTokens = [];
+    for (const token of tokens) {
+        const synonyms = await getSynonyms(token);
+        expandedTokens.push(...synonyms, token);
+    }
+    return [...new Set(expandedTokens)];
+};
+
 // Protected route for handling chat
 router.post('/', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
@@ -118,10 +139,10 @@ router.post('/', authenticate, async (req, res) => {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-        // Normalize the user question
+        // Normalize the user question and expand with synonyms
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+        const expandedUserTokens = await expandWithSynonyms(tokenizedUserQuestion);
 
         // Handle short queries (1- or 2-word inputs)
         if (tokenizedUserQuestion.length <= 2) {
@@ -165,37 +186,31 @@ router.post('/', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Jaccard Similarity Check
+        // Expand FAQ tokens with synonyms
         let bestMatch = { score: 0, faq: null };
-        faqs.forEach(faq => {
+        for (const faq of faqs) {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
-            }
-        });
+            const expandedFaqTokens = await expandWithSynonyms(tokenizedFaq);
 
-        // 3. Cosine Similarity Check
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+            // 2. Jaccard Similarity Check
+            const jaccardScore = jaccardSimilarity(expandedUserTokens, expandedFaqTokens);
+            if (jaccardScore > bestMatch.score) {
+                bestMatch = { score: jaccardScore, faq };
             }
-        });
 
-        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
-        faqs.forEach(faq => {
-            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
-            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+            // 3. Cosine Similarity Check
+            const cosineScore = cosineSimilarity(expandedUserTokens, expandedFaqTokens);
+            if (cosineScore > bestMatch.score) {
+                bestMatch = { score: cosineScore, faq };
             }
-        });
+
+            // 4. Jaro-Winkler Similarity Check
+            const jaroScore = jaroWinklerSimilarity(normalizedUserQuestion, faqText);
+            if (jaroScore > bestMatch.score) {
+                bestMatch = { score: jaroScore, faq };
+            }
+        }
 
         // Define threshold for similarity matching
         const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
