@@ -15,6 +15,10 @@ const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
+// Set up multer storage for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
     try {
         if (!req.file) {
