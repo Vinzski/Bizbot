@@ -40,14 +40,6 @@
                 </select>
             </div>
 
-            <div class="card">
-                <h2>Choose Data Type</h2>
-                <select id="dataSelector">
-                    <option value="ratings">Ratings</option>
-                    <option value="messages">Messages Interactions</option>
-                </select>
-            </div>
-
             <!-- Dropdown to choose chart type -->
             <div class="card">
                 <h2>Choose a Chart</h2>
@@ -83,18 +75,6 @@
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
-
-            <!-- Dropdown to choose the period (Daily, Weekly, Monthly) -->
-            <div class="card">
-                <h2>Choose Time Period</h2>
-                <select id="timePeriodSelector">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                </select>
-            </div>
-
-
         </main>
     </div>
     <script src="app.js"></script>
@@ -198,155 +178,42 @@ async function fetchRatings(chatbotId) {
     }
 }
 
-// Fetch messages sent by the user for a specific chatbot
-async function fetchMessages(chatbotId) {
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch(`/api/message/${chatbotId}`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-            return await response.json(); // Returns an array of messages
-        } else {
-            throw new Error('Failed to fetch messages');
+
+        // Update the charts with new ratings data
+async function updateCharts(chatbotId) {
+    const ratings = await fetchRatings(chatbotId);
+    const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
+
+    // Update the rating counts based on fetched data
+    ratings.forEach(rating => {
+        if (ratingCounts.hasOwnProperty(rating.rating)) {
+            ratingCounts[rating.rating]++;
         }
-    } catch (error) {
-        console.error('Error fetching messages:', error);
-        return [];
-    }
+    });
+
+    const data = Object.values(ratingCounts);
+
+    // Update bar chart
+    barChart.data.datasets[0].data = data;
+    barChart.update();
+
+    // Update line chart
+    lineChart.data.datasets[0].data = data;
+    lineChart.update();
+
+    // Update pie chart
+    pieChart.data.datasets[0].data = data;
+    pieChart.update();
 }
-
-
-
-// Event listener for time period selection (Daily, Weekly, Monthly)
-document.getElementById('timePeriodSelector').addEventListener('change', function () {
-    const selectedTimePeriod = this.value;
-    const selectedChatbotId = document.getElementById('chatbotSelector').value;
-    if (selectedChatbotId) {
-        updateCharts(selectedChatbotId, 'messages', selectedTimePeriod);
-    }
-});
-
-// Update the charts with new ratings or messages data
-async function updateCharts(chatbotId, dataType, timePeriod = 'daily') {
-    if (dataType === 'ratings') {
-        const ratings = await fetchRatings(chatbotId);
-        const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
-
-        // Update the rating counts based on fetched data
-        ratings.forEach(rating => {
-            if (ratingCounts.hasOwnProperty(rating.rating)) {
-                ratingCounts[rating.rating]++;
-            }
-        });
-
-        const data = Object.values(ratingCounts);
-
-        // Update charts for ratings
-        updateChart(barChart, data, ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']);
-        updateChart(lineChart, data, ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']);
-        updateChart(pieChart, data, ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']);
-
-        // Show rating charts and hide message charts
-        document.getElementById('messagesContainer').style.display = 'none';
-        document.getElementById('barChartContainer').style.display = 'block';
-        document.getElementById('lineChartContainer').style.display = 'block';
-        document.getElementById('pieChartContainer').style.display = 'block';
-    } else if (dataType === 'messages') {
-        const messages = await fetchMessages(chatbotId);
-
-        // Prepare data for different charts (group messages by date/week/month)
-        const trendMessages = { daily: {}, weekly: {}, monthly: {} };
-
-        messages.forEach(msg => {
-            const messageDate = new Date(msg.createdAt);
-
-            // Daily: Group by date (YYYY-MM-DD)
-            const dateKey = messageDate.toLocaleDateString();
-            trendMessages.daily[dateKey] = (trendMessages.daily[dateKey] || 0) + 1;
-
-            // Weekly: Group by week (YYYY-Www)
-            const weekKey = `${messageDate.getFullYear()}-W${Math.ceil((messageDate.getDate() + 1) / 7)}`;
-            trendMessages.weekly[weekKey] = (trendMessages.weekly[weekKey] || 0) + 1;
-
-            // Monthly: Group by month (YYYY-MM)
-            const monthKey = `${messageDate.getFullYear()}-${messageDate.getMonth() + 1}`;
-            trendMessages.monthly[monthKey] = (trendMessages.monthly[monthKey] || 0) + 1;
-        });
-
-        // Prepare data for line chart (trend over time)
-        const trendLabels = Object.keys(trendMessages[timePeriod]);
-        const trendData = Object.values(trendMessages[timePeriod]);
-
-        // Update line chart
-        updateChart(lineChart, trendData, trendLabels);
-
-        // Prepare data for bar and pie charts (user vs bot messages)
-        const categoryMessages = { user: 0, bot: 0 };
-
-        messages.forEach(msg => {
-            if (msg.sender === 'user') {
-                categoryMessages.user++;
-            } else if (msg.sender === 'bot') {
-                categoryMessages.bot++;
-            }
-        });
-
-        // Bar and Pie chart data for user vs bot messages
-        const barPieLabels = ['User Messages', 'Other Bots'];
-        const barPieData = [categoryMessages.user, categoryMessages.bot];
-
-        // Update bar chart for user vs bot messages
-        updateChart(barChart, barPieData, barPieLabels);
-
-        // Update pie chart for user vs bot messages
-        updateChart(pieChart, barPieData, barPieLabels);
-
-        // Show message charts and hide rating charts
-        document.getElementById('messagesContainer').style.display = 'block';
-        document.getElementById('barChartContainer').style.display = 'none';
-        document.getElementById('lineChartContainer').style.display = 'none';
-        document.getElementById('pieChartContainer').style.display = 'none';
-    }
-}
-
-// Helper function to update charts
-function updateChart(chart, data, labels) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = data;
-    chart.update();
-}
-
 
 
         // Event listener for chatbot selection
-document.getElementById('chatbotSelector').addEventListener('change', function () {
-    const selectedChatbotId = this.value;
-    const selectedDataType = document.getElementById('dataSelector').value;
-    if (selectedChatbotId) {
-        updateCharts(selectedChatbotId, selectedDataType);
-    }
-});
-
-// Event listener for data type selection (Ratings or Messages)
-document.getElementById('dataSelector').addEventListener('change', function () {
-    const selectedDataType = this.value;
-    const selectedChatbotId = document.getElementById('chatbotSelector').value;
-    if (selectedChatbotId) {
-        updateCharts(selectedChatbotId, selectedDataType);
-    }
-});
-
-// Initial setup to load data for the first chatbot and selected data type
-document.addEventListener('DOMContentLoaded', () => {
-    fetchChatbots();
-    const initialChatbotId = document.getElementById('chatbotSelector').value;
-    const initialDataType = document.getElementById('dataSelector').value;
-    if (initialChatbotId) {
-        updateCharts(initialChatbotId, initialDataType);
-    }
-});
+        document.getElementById('chatbotSelector').addEventListener('change', function () {
+            const selectedChatbotId = this.value;
+            if (selectedChatbotId) {
+                updateCharts(selectedChatbotId);
+            }
+        });
 
         // Event listener for chart type selection
         document.getElementById('chartSelector').addEventListener('change', function () {
@@ -443,4 +310,3 @@ document.getElementById('downloadPdf').addEventListener('click', () => {
 
     </script>
 </body>
-</html>
