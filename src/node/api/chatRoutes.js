@@ -123,11 +123,35 @@ router.post('/', authenticate, async (req, res) => {
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
         const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
+        // Handle short queries (1- or 2-word inputs)
+        if (tokenizedUserQuestion.length <= 2) {
+            console.log('Short query detected. Attempting keyword match...');
+            const keywordMatch = faqs.find(faq => 
+                tokenizedUserQuestion.some(token => faq.question.toLowerCase().includes(token))
+            );
+
+            if (keywordMatch) {
+                console.log(`Keyword Match Found: "${keywordMatch.question}"`);
+
+                // Save the bot response to the database
+                const botMessage = new Message({
+                    userId: userId,
+                    chatbotId: chatbotId,
+                    sender: 'bot',
+                    message: keywordMatch.answer,
+                });
+
+                await botMessage.save();
+                console.log('Bot response saved to database.');
+                return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
+            }
+        }
+
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-            // Save the bot response to the database
+
             const botMessage = new Message({
                 userId: userId,
                 chatbotId: chatbotId,
@@ -179,7 +203,6 @@ router.post('/', authenticate, async (req, res) => {
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
 
-            // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
                 chatbotId: chatbotId,
@@ -202,6 +225,7 @@ router.post('/', authenticate, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
+
 
 // Protected route for handling chat
 router.post('/test', authenticate, async (req, res) => {
@@ -226,6 +250,19 @@ router.post('/test', authenticate, async (req, res) => {
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
         const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+
+        // Short Query Handling
+        if (tokenizedUserQuestion.length <= 2) {
+            console.log('Short query detected. Attempting keyword match...');
+            const keywordMatch = faqs.find(faq =>
+                tokenizedUserQuestion.some(token => faq.question.toLowerCase().includes(token))
+            );
+
+            if (keywordMatch) {
+                console.log(`Keyword Match Found: "${keywordMatch.question}"`);
+                return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
+            }
+        }
 
         // 1. Exact Match Check
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
@@ -284,6 +321,7 @@ router.post('/test', authenticate, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
+
 
 // Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
 async function getRasaResponse(question) {
