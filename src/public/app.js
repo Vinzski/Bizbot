@@ -527,10 +527,18 @@ async function uploadPDF() {
     const form = document.getElementById('pdf-upload-form');
     const fileInput = document.getElementById('pdf-file');
     const statusDiv = document.getElementById('upload-status');
-    const chatbotId = document.querySelector('#bizbot-widget').getAttribute('data-chatbot-id');
+
+    // Extract chatbotId from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatbotId = urlParams.get('chatbotId'); // Assuming ?chatbotId=XYZ in the URL
 
     if (!fileInput.files.length) {
         statusDiv.textContent = 'Please select a file to upload.';
+        return;
+    }
+
+    if (!chatbotId) {
+        statusDiv.textContent = 'Chatbot ID not found in the URL.';
         return;
     }
 
@@ -560,6 +568,7 @@ async function uploadPDF() {
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
     }
 }
+
 
 
 
