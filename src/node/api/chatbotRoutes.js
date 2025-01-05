@@ -42,25 +42,27 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs } = req.body;  // Data from the client
-    const userId = req.user.id;  // Retrieved from authentication middleware
+    const { name, type, faqs, pdfs } = req.body; // Include `pdfs` in the request body
+    const userId = req.user.id;
 
     try {
         let chatbot = await Chatbot.findOne({ userId, name });
         if (chatbot) {
-            // Update existing chatbot if found
+            // Update existing chatbot
             chatbot.faqs = faqs;
+            chatbot.pdfs = pdfs; // Update PDFs
             chatbot.type = type;
             chatbot.name = name;
             await chatbot.save();
         } else {
-            // Create a new chatbot if not found
+            // Create a new chatbot
             chatbot = new Chatbot({
                 name,
                 type,
                 userId,
                 faqs,
-                creationDate: new Date()  // Set the creation date on creation
+                pdfs, // Include PDFs
+                creationDate: new Date()
             });
             await chatbot.save();
         }
@@ -70,6 +72,7 @@ router.post('/', authenticate, async (req, res) => {
         res.status(500).json({ message: "Failed to create or update chatbot", error: error.toString() });
     }
 });
+
 
 router.get('/count', authenticate, async (req, res) => {
     if (!req.user || !req.user.id) {
