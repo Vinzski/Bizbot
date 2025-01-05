@@ -574,7 +574,7 @@ function fetchPDFs() {
     const token = localStorage.getItem("token");
     const pdfList = document.getElementById("pdf-list");
 
-    fetch("/api/pdfs", {
+    fetch("/api/faqs/pdfs", {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -610,8 +610,3 @@ function fetchPDFs() {
 
 // Call fetchPDFs when the page loads
 document.addEventListener('DOMContentLoaded', fetchPDFs);
-
-
-
-
-
