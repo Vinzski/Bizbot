@@ -31,33 +31,6 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
     }
 });
 
-// Route to fetch PDFs for the logged-in user
-router.get('/pdfs', authenticate, async (req, res) => {
-    const userId = req.user.id;  // Get the logged-in user's ID
-
-    console.log("Fetching PDFs for user:", userId);
-
-    try {
-        const pdfs = await PDF.find({ userId });  // Find PDFs for this user
-
-        console.log("PDFs found for user:", pdfs);
-
-        if (!pdfs || pdfs.length === 0) {
-            console.log("No PDFs found for the user.");
-            return res.json({ pdfs: [] });
-        }
-
-        res.json({ pdfs });  // Return the list of PDFs
-    } catch (error) {
-        console.error('Failed to fetch PDFs:', error);
-        res.status(500).json({
-            message: 'Failed to fetch PDFs',
-            error: error.toString(),
-        });
-    }
-});
-
-
 // Fetch the count of FAQs for the current user
 router.get('/count', authenticate, async (req, res) => {
     try {
