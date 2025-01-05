@@ -10,6 +10,7 @@ const router = express.Router();
 const pdfParse = require('pdf-parse');
 const multer = require('multer');
 
+const pdfData = require('../models/PDF');
 const Message = require('../models/messageModel');
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
