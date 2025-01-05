@@ -42,27 +42,27 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs, pdfs } = req.body; // Include `pdfs` in the request body
-    const userId = req.user.id;
+    const { name, type, faqs, pdfs } = req.body;  // Include pdfs in the data sent from the frontend
+    const userId = req.user.id;  // Retrieved from authentication middleware
 
     try {
         let chatbot = await Chatbot.findOne({ userId, name });
         if (chatbot) {
-            // Update existing chatbot
+            // Update existing chatbot if found
             chatbot.faqs = faqs;
-            chatbot.pdfs = pdfs; // Update PDFs
             chatbot.type = type;
             chatbot.name = name;
+            chatbot.pdfs = pdfs;  // Update the PDFs array if new PDFs are added
             await chatbot.save();
         } else {
-            // Create a new chatbot
+            // Create a new chatbot if not found
             chatbot = new Chatbot({
                 name,
                 type,
                 userId,
                 faqs,
-                pdfs, // Include PDFs
-                creationDate: new Date()
+                pdfs,  // Save the PDF IDs with the new chatbot
+                creationDate: new Date()  // Set the creation date on creation
             });
             await chatbot.save();
         }
