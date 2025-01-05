@@ -78,8 +78,9 @@
                         <label for="pdf-file">Upload PDF:</label>
                         <input type="file" id="pdf-file" name="pdf" accept=".pdf" required>
                     </div>
-                    <button type="submit">Upload PDF</button>
+                    <button type="button" onclick="uploadPDF()">Upload PDF</button>
                 </form>
+                <div id="upload-status"></div>
             </div>
 
             <div class="card">
