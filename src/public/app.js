@@ -527,13 +527,16 @@ async function uploadPDF() {
     const form = document.getElementById('pdf-upload-form');
     const fileInput = document.getElementById('pdf-file');
     const statusDiv = document.getElementById('upload-status');
+    const chatbotId = document.querySelector('#bizbot-widget').getAttribute('data-chatbot-id');
 
     if (!fileInput.files.length) {
         statusDiv.textContent = 'Please select a file to upload.';
         return;
     }
 
-    const formData = new FormData(form);
+    const formData = new FormData();
+    formData.append('pdf', fileInput.files[0]); // Append the file
+    formData.append('chatbotId', chatbotId);   // Append chatbotId
 
     try {
         statusDiv.textContent = 'Uploading...';
@@ -557,5 +560,6 @@ async function uploadPDF() {
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
     }
 }
+
 
 
