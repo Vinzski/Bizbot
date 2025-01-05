@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const FAQ = require('../models/faqModel');
 const pdfParse = require('pdf-parse');
 const multer = require('multer');
-const authenticate = require('../signup/middleware/authMiddleware');  // Adjust the path as necessary
-const PDF = require('../models/PDFModel');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+const PDF = require('../models/PDFModel');
+const FAQ = require('../models/faqModel');
+const Chatbot = require('../models/chatbotModel');
+const authenticate = require('../signup/middleware/authMiddleware');
 
 router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
     try {
