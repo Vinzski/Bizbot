@@ -51,17 +51,6 @@ router.get('/count', authenticate, async (req, res) => {
     }
 });
 
-// Fetch uploaded PDFs
-router.get('/get-pdfs', authenticate, async (req, res) => {
-    try {
-        const pdfs = await PDF.find({ userId: req.user.id }); // Ensure PDFs are filtered by the logged-in user
-        res.status(200).json(pdfs);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching PDFs', error: error.toString() });
-    }
-});
-
-
 router.get('/', authenticate, async (req, res) => {
     try {
         // Ensure that you're correctly querying based on user ID
