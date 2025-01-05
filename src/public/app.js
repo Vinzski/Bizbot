@@ -560,10 +560,10 @@ async function uploadPDF() {
         if (response.ok) {
             const data = await response.json();
             statusDiv.textContent = data.message;
-
-            // Dynamically add the newly uploaded PDF to the list
+        
+            // Dynamically add the newly uploaded PDF to the list with an icon
             const pdfItem = document.createElement('li');
-            pdfItem.textContent = data.pdf.filename; // Display the filename of the uploaded PDF
+            pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${data.pdf.filename}</span>`;
             pdfList.appendChild(pdfItem);
         } else {
             const error = await response.json();
