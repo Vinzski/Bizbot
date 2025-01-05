@@ -569,6 +569,49 @@ async function uploadPDF() {
     }
 }
 
+// Fetch PDFs for the current user and display them
+function fetchPDFs() {
+    const token = localStorage.getItem("token");
+    const pdfList = document.getElementById("pdf-list");
+
+    fetch("/api/pdfs", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.pdfs) {
+            pdfList.innerHTML = '';  // Clear existing list
+
+            data.pdfs.forEach(pdf => {
+                const li = document.createElement("li");
+                li.textContent = pdf.filename;
+                const downloadLink = document.createElement("a");
+                downloadLink.href = `/uploads/${pdf.content}`;  // Assuming the file is saved under '/uploads'
+                downloadLink.textContent = "Download";
+                downloadLink.setAttribute('target', '_blank');
+                li.appendChild(downloadLink);
+                pdfList.appendChild(li);
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error fetching PDFs:", error);
+        Swal.fire({
+            title: "Error",
+            text: "Failed to fetch PDFs.",
+            icon: "error",
+            confirmButtonText: "Try Again",
+        });
+    });
+}
+
+// Call fetchPDFs when the page loads
+document.addEventListener('DOMContentLoaded', fetchPDFs);
+
+
 
 
 
