@@ -574,27 +574,47 @@ function fetchPDFs() {
     const token = localStorage.getItem("token");
     const pdfList = document.getElementById("pdf-list");
 
-    fetch("/api/faqs/pdfs", {
+    console.log("Fetching PDFs for the user...");
+
+    fetch("/api/pdfs", {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${token}`,
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log("Response received from /api/pdfs", response);
+        return response.json();
+    })
     .then(data => {
+        console.log("Data received from /api/pdfs:", data);
+
         if (data && data.pdfs) {
             pdfList.innerHTML = '';  // Clear existing list
 
+            // Check if PDFs are returned
+            if (data.pdfs.length === 0) {
+                console.log("No PDFs found for this user.");
+                pdfList.innerHTML = '<li>No PDFs found</li>';
+                return;
+            }
+
             data.pdfs.forEach(pdf => {
+                console.log("PDF found:", pdf);  // Log each PDF
+
                 const li = document.createElement("li");
                 li.textContent = pdf.filename;
+
                 const downloadLink = document.createElement("a");
                 downloadLink.href = `/uploads/${pdf.content}`;  // Assuming the file is saved under '/uploads'
                 downloadLink.textContent = "Download";
                 downloadLink.setAttribute('target', '_blank');
+                
                 li.appendChild(downloadLink);
                 pdfList.appendChild(li);
             });
+        } else {
+            console.log("No PDFs data in the response.");
         }
     })
     .catch(error => {
@@ -609,4 +629,8 @@ function fetchPDFs() {
 }
 
 // Call fetchPDFs when the page loads
-document.addEventListener('DOMContentLoaded', fetchPDFs);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Document loaded, calling fetchPDFs...");
+    fetchPDFs();
+});
+
