@@ -20,19 +20,23 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
+    console.log('Upload PDF endpoint hit');
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
+
     try {
         if (!req.file) {
+            console.log('No file uploaded');
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // Extract text from PDF
+        // Process the uploaded file
         const pdfText = await pdfParse(req.file.buffer);
         const extractedText = pdfText.text;
 
-        // Save extracted text and other data to MongoDB
         const pdfData = new PDF({
-            filename: req.file.originalname,  // Store the uploaded file's original name
-            chatbotId: req.body.chatbotId,  // Assuming the chatbotId is passed in the request body
+            filename: req.file.originalname,
+            chatbotId: req.body.chatbotId,
             userId: req.user.id,
             content: extractedText,
         });
@@ -45,6 +49,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
         res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
     }
 });
+
 
 
 // Route to send a simple message (unprotected)
