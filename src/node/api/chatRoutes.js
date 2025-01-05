@@ -21,17 +21,11 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
-    console.log('Upload PDF endpoint hit');
-    console.log('Request headers:', req.headers);
-    console.log('Request body:', req.body);
-
     try {
         if (!req.file) {
-            console.log('No file uploaded');
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        // Process the uploaded file
         const pdfText = await pdfParse(req.file.buffer);
         const extractedText = pdfText.text;
 
@@ -43,15 +37,11 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
         });
 
         await pdfData.save();
-
         res.status(200).json({ message: 'PDF uploaded and content saved successfully' });
     } catch (error) {
-        console.error('Error processing PDF:', error);
-        res.status(500).json({ message: 'Internal Server Error', error: error.toString() });
+        res.status(500).json({ message: 'Error processing PDF', error: error.toString() });
     }
 });
-
-
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', async (req, res) => {
