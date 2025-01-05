@@ -527,6 +527,7 @@ async function uploadPDF() {
     const form = document.getElementById('pdf-upload-form');
     const fileInput = document.getElementById('pdf-file');
     const statusDiv = document.getElementById('upload-status');
+    const pdfList = document.getElementById('pdf-list');
 
     // Extract chatbotId from the URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -559,6 +560,11 @@ async function uploadPDF() {
         if (response.ok) {
             const data = await response.json();
             statusDiv.textContent = data.message;
+
+            // Dynamically add the newly uploaded PDF to the list
+            const pdfItem = document.createElement('li');
+            pdfItem.textContent = data.pdf.filename; // Display the filename of the uploaded PDF
+            pdfList.appendChild(pdfItem);
         } else {
             const error = await response.json();
             statusDiv.textContent = `Error: ${error.message}`;
@@ -568,6 +574,7 @@ async function uploadPDF() {
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
     }
 }
+
 
 async function fetchPDFs() {
     const pdfList = document.getElementById('pdf-list');
