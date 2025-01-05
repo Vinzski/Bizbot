@@ -249,61 +249,62 @@ function testChatbot() {
     });
 }
 
-function saveChatbot() {
-  const chatbotTypeSelect = document.getElementById("chatbot-select");
-  const chatbotNameInput = document.getElementById("chatbot-name");
-  const token = localStorage.getItem("token");
+async function saveChatbot() {
+    const chatbotTypeSelect = document.getElementById("chatbot-select");
+    const chatbotNameInput = document.getElementById("chatbot-name");
+    const token = localStorage.getItem("token");
 
-  if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
-    Swal.fire({
-      title: "Error",
-      text: "Please fill out all chatbot fields before saving.",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+    // Validate chatbot name and type
+    if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
+        Swal.fire({
+            title: "Error",
+            text: "Please fill out all chatbot fields before saving.",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
+        return;
+    }
 
-  const faqs = Array.from(document.querySelectorAll("#faq-table tbody tr"))
-    .map((row) => row.getAttribute("data-faq-id"))
-    .filter(Boolean);
+    // Extract FAQs
+    const faqs = Array.from(document.querySelectorAll("#faq-table tbody tr")).map((row) => ({
+        question: row.cells[0].innerText,
+        answer: row.cells[1].innerText,
+    }));
 
-  fetch("/api/chatbots", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      name: chatbotNameInput.value,
-      type: chatbotTypeSelect.value,
-      faqs: faqs,
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok: " + response.statusText);
-      }
-      return response.json();
-    })
-    .then((data) => {
-      Swal.fire({
-        title: "Good job!",
-        text: "Chatbot saved successfully!",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
-    })
-    .catch((error) => {
-      console.error("Error saving chatbot:", error);
-      Swal.fire({
-        title: "Error",
-        text: `Failed to save chatbot: ${error.message}`,
-        icon: "error",
-        confirmButtonText: "Try Again",
-      });
-    });
+    // Extract PDFs (use dataset.pdfId if each list item has it)
+    const pdfs = Array.from(document.querySelectorAll("#pdf-list li")).map((li) => li.dataset.pdfId).filter(Boolean);
+
+    // Prepare the data
+    const chatbotData = {
+        name: chatbotNameInput.value,
+        type: chatbotTypeSelect.value,
+        faqs: faqs,
+        pdfs: pdfs,
+    };
+
+    try {
+        // Send the POST request to save the chatbot
+        const response = await fetch("/api/chatbots", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(chatbotData),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            Swal.fire('Success', data.message, 'success');
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error saving chatbot:', error);
+        Swal.fire('Error', 'Failed to save chatbot', 'error');
+    }
 }
+
 
 // Handling authentication and form submissions
 document
