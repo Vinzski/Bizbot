@@ -42,7 +42,7 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs, pdfs } = req.body;  // Include pdfs in the data sent from the frontend
+    const { name, type, faqs, pdfId } = req.body;  // Data from the client, including the PDF ID
     const userId = req.user.id;  // Retrieved from authentication middleware
 
     try {
@@ -52,7 +52,9 @@ router.post('/', authenticate, async (req, res) => {
             chatbot.faqs = faqs;
             chatbot.type = type;
             chatbot.name = name;
-            chatbot.pdfs = pdfs;  // Update the PDFs array if new PDFs are added
+            if (pdfId) {
+                chatbot.pdfId = pdfId;  // Save PDF ID if provided
+            }
             await chatbot.save();
         } else {
             // Create a new chatbot if not found
@@ -61,7 +63,7 @@ router.post('/', authenticate, async (req, res) => {
                 type,
                 userId,
                 faqs,
-                pdfs,  // Save the PDF IDs with the new chatbot
+                pdfId,  // Save PDF ID if provided
                 creationDate: new Date()  // Set the creation date on creation
             });
             await chatbot.save();
@@ -72,7 +74,6 @@ router.post('/', authenticate, async (req, res) => {
         res.status(500).json({ message: "Failed to create or update chatbot", error: error.toString() });
     }
 });
-
 
 router.get('/count', authenticate, async (req, res) => {
     if (!req.user || !req.user.id) {
