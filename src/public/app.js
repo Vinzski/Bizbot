@@ -561,17 +561,9 @@ async function uploadPDF() {
             const data = await response.json();
             statusDiv.textContent = data.message;
 
-            // Dynamically add the uploaded PDF to the list as an embed
+            // Dynamically add the newly uploaded PDF to the list
             const pdfItem = document.createElement('li');
-
-            // Create an embed to display the PDF inline
-            const pdfEmbed = document.createElement('embed');
-            pdfEmbed.src = data.pdf.filePath;  // Use the returned file path
-            pdfEmbed.type = 'application/pdf';
-            pdfEmbed.width = '600px';           // Set the width
-            pdfEmbed.height = '400px';          // Set the height
-            pdfItem.appendChild(pdfEmbed);
-
+            pdfItem.textContent = data.pdf.filename; // Display the filename of the uploaded PDF
             pdfList.appendChild(pdfItem);
         } else {
             const error = await response.json();
@@ -582,6 +574,7 @@ async function uploadPDF() {
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
     }
 }
+
 
 
 
