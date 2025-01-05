@@ -21,7 +21,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
 
         const pdfData = new PDF({
             filename: req.file.originalname,
-            chatbotId: req.body.chatbotId,  // Ensure chatbotId is included in the request body
+            chatbotId: req.body.chatbotId,
             userId: req.user.id,
             content: extractedText,
         });
@@ -34,7 +34,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             pdf: {
                 filename: pdfData.filename,
                 content: pdfData.content, // Or you could exclude content for privacy if not needed
-                _id: pdfData._id,  // Return the PDF ID
+                _id: pdfData._id  // Return the PDF ID to associate with chatbot
             },
         });
     } catch (error) {
