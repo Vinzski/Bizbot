@@ -25,11 +25,20 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
         });
 
         await pdfData.save();
-        res.status(200).json({ message: 'PDF uploaded and content saved successfully' });
+
+        // Send the newly uploaded PDF back in the response
+        res.status(200).json({
+            message: 'PDF uploaded and content saved successfully',
+            pdf: {
+                filename: pdfData.filename,
+                content: pdfData.content, // Or you could exclude content for privacy if not needed
+            },
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error processing PDF', error: error.toString() });
     }
 });
+
 
 // Fetch the count of FAQs for the current user
 router.get('/count', authenticate, async (req, res) => {
