@@ -7,41 +7,11 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
 const router = express.Router();
-const pdfParse = require('pdf-parse');
-const multer = require('multer');
 
-const PDF = require('../models/PDFModel');
 const Message = require('../models/messageModel');
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
-
-// Set up multer storage for file uploads
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
-        }
-
-        const pdfText = await pdfParse(req.file.buffer);
-        const extractedText = pdfText.text;
-
-        const pdfData = new PDF({
-            filename: req.file.originalname,
-            chatbotId: req.body.chatbotId,
-            userId: req.user.id,
-            content: extractedText,
-        });
-
-        await pdfData.save();
-        res.status(200).json({ message: 'PDF uploaded and content saved successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error processing PDF', error: error.toString() });
-    }
-});
 
 // Route to send a simple message (unprotected)
 router.post('/send_message', async (req, res) => {
