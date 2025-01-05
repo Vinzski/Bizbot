@@ -26,6 +26,13 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
 
         await pdfData.save();
 
+        // Find the chatbot and associate the PDF ID
+        const chatbot = await Chatbot.findById(req.body.chatbotId);
+        if (chatbot) {
+            chatbot.pdfs.push(pdfData._id);  // Add PDF ID to the chatbot's pdfs array
+            await chatbot.save();
+        }
+
         // Send the newly uploaded PDF back in the response
         res.status(200).json({
             message: 'PDF uploaded and content saved successfully',
@@ -38,7 +45,6 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
         res.status(500).json({ message: 'Error processing PDF', error: error.toString() });
     }
 });
-
 
 // Fetch the count of FAQs for the current user
 router.get('/count', authenticate, async (req, res) => {
