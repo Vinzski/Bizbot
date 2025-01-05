@@ -249,7 +249,7 @@ function testChatbot() {
     });
 }
 
-function saveChatbot() {
+async function saveChatbot() {
     const chatbotTypeSelect = document.getElementById("chatbot-select");
     const chatbotNameInput = document.getElementById("chatbot-name");
     const token = localStorage.getItem("token");
@@ -564,6 +564,7 @@ async function uploadPDF() {
             // Dynamically add the newly uploaded PDF to the list with an icon
             const pdfItem = document.createElement('li');
             pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${data.pdf.filename}</span>`;
+            pdfItem.dataset.pdfId = data.pdf._id;  // Add PDF ID to the list item
             pdfList.appendChild(pdfItem);
         } else {
             const error = await response.json();
@@ -574,6 +575,7 @@ async function uploadPDF() {
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
     }
 }
+
 
 
 
