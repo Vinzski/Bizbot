@@ -448,3 +448,31 @@ table button{
 .swal-confirm:focus {
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5) !important;
 }
+
+.pdf-display {
+    list-style-type: none;
+    padding: 0;
+}
+
+.pdf-display li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-display li i {
+    color: #ff6f61;
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.pdf-display li span {
+    font-size: 16px;
+    color: #333;
+}
+
