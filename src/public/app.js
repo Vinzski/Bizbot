@@ -523,45 +523,39 @@ function removeFaqRow(id) {
   }
 }
 
-   document.getElementById('pdf-upload-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-    
-        const formData = new FormData();
-        const pdfFile = document.getElementById('pdf-file').files[0];
-        
-        if (!pdfFile) {
-            alert('Please select a PDF file to upload.');
-            return;
+async function uploadPDF() {
+    const form = document.getElementById('pdf-upload-form');
+    const fileInput = document.getElementById('pdf-file');
+    const statusDiv = document.getElementById('upload-status');
+
+    if (!fileInput.files.length) {
+        statusDiv.textContent = 'Please select a file to upload.';
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    try {
+        statusDiv.textContent = 'Uploading...';
+        const response = await fetch('/api/faqs/upload-pdf', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`, // Include JWT if needed
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            statusDiv.textContent = data.message;
+        } else {
+            const error = await response.json();
+            statusDiv.textContent = `Error: ${error.message}`;
         }
-    
-        formData.append('pdf', pdfFile);
-        formData.append('filename', pdfFile.name);
-    
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                alert('Authentication token is missing. Please log in again.');
-                return;
-            }
-    
-            const response = await fetch('/api/faqs/upload-pdf', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-    
-            if (!response.ok) {
-                const errorMessage = await response.text();
-                throw new Error(`Error ${response.status}: ${errorMessage}`);
-            }
-    
-            const result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error('Error uploading PDF:', error);
-            alert(`Failed to upload PDF: ${error.message}`);
-        }
-    });
+    } catch (err) {
+        console.error('Upload error:', err);
+        statusDiv.textContent = 'An error occurred while uploading the PDF.';
+    }
+}
+
 
