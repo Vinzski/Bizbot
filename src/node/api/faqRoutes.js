@@ -21,19 +21,12 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
 
         const pdfData = new PDF({
             filename: req.file.originalname,
-            chatbotId: req.body.chatbotId,
+            chatbotId: req.body.chatbotId,  // Ensure chatbotId is included in the request body
             userId: req.user.id,
             content: extractedText,
         });
 
         await pdfData.save();
-
-        // Find the chatbot and associate the PDF ID
-        const chatbot = await Chatbot.findById(req.body.chatbotId);
-        if (chatbot) {
-            chatbot.pdfs.push(pdfData._id);  // Add PDF ID to the chatbot's pdfs array
-            await chatbot.save();
-        }
 
         // Send the newly uploaded PDF back in the response
         res.status(200).json({
@@ -41,6 +34,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             pdf: {
                 filename: pdfData.filename,
                 content: pdfData.content, // Or you could exclude content for privacy if not needed
+                _id: pdfData._id,  // Return the PDF ID
             },
         });
     } catch (error) {
