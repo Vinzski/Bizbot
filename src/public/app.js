@@ -279,7 +279,7 @@ async function saveChatbot() {
         name: chatbotNameInput.value,
         type: chatbotTypeSelect.value,
         faqs: faqs,
-        pdfs: pdfs,
+        pdfs: pdfs, // Include the extracted PDF IDs
     };
 
     try {
