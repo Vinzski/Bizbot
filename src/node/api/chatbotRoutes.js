@@ -2,7 +2,24 @@ const router = require('express').Router();
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
 const Feedback = require('../models/feedbackModel');
+const PDF = require('../models/PDFModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
+
+router.get('/pdfs', authenticate, async (req, res) => {
+    const userId = req.user.id;  // Get the logged-in user's ID
+
+    try {
+        const pdfs = await PDF.find({ userId });  // Find PDFs for this user
+        res.json({ pdfs });  // Return the list of PDFs
+    } catch (error) {
+        console.error('Failed to fetch PDFs:', error);
+        res.status(500).json({
+            message: 'Failed to fetch PDFs',
+            error: error.toString(),
+        });
+    }
+});
+
 
 router.get('/name/:chatbotId', authenticate, async (req, res) => {
     const { chatbotId } = req.params;
