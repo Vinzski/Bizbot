@@ -127,7 +127,7 @@
     
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch('/upload-pdf', {
+            const response = await fetch('api/faqs/upload-pdf', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`  // Include JWT token for authentication
