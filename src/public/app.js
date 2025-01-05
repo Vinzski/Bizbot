@@ -249,7 +249,7 @@ function testChatbot() {
     });
 }
 
-async function saveChatbot() {
+function saveChatbot() {
     const chatbotTypeSelect = document.getElementById("chatbot-select");
     const chatbotNameInput = document.getElementById("chatbot-name");
     const token = localStorage.getItem("token");
@@ -304,8 +304,6 @@ async function saveChatbot() {
         Swal.fire('Error', 'Failed to save chatbot', 'error');
     }
 }
-
-
 
 // Handling authentication and form submissions
 document
