@@ -42,7 +42,7 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs, pdfs } = req.body;  // Data from the client, including pdfs
+    const { name, type, faqs, pdfs } = req.body;  // Data from the client
     const userId = req.user.id;  // Retrieved from authentication middleware
 
     try {
@@ -52,7 +52,7 @@ router.post('/', authenticate, async (req, res) => {
             chatbot.faqs = faqs;
             chatbot.type = type;
             chatbot.name = name;
-            chatbot.pdfs = pdfs;  // Include PDFs
+            chatbot.pdfs = pdfs; // Add PDFs to the chatbot document
             await chatbot.save();
         } else {
             // Create a new chatbot if not found
@@ -61,7 +61,7 @@ router.post('/', authenticate, async (req, res) => {
                 type,
                 userId,
                 faqs,
-                pdfs,  // Include PDFs
+                pdfs, // Save PDFs references
                 creationDate: new Date()  // Set the creation date on creation
             });
             await chatbot.save();
