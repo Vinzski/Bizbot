@@ -372,6 +372,14 @@ router.post("/test", authenticate, async (req, res) => {
     } else {
       // If no FAQ match, check PDF content
       const chatbot = await Chatbot.findById(chatbotId);
+      if (!chatbot) {
+        console.log(`No chatbot found for chatbotId: ${chatbotId}`);
+        return res.json({
+          reply: "I could not find information for this chatbot.",
+          source: "None",
+        });
+      }
+
       if (chatbot.pdfId) {
         const pdfDoc = await PDF.findById(chatbot.pdfId);
         if (pdfDoc) {
@@ -389,7 +397,11 @@ router.post("/test", authenticate, async (req, res) => {
           if (pdfResponse) {
             return res.json({ reply: pdfResponse, source: "PDF" });
           }
+        } else {
+          console.log(`No PDF document found for pdfId: ${chatbot.pdfId}`);
         }
+      } else {
+        console.log("No PDF linked to this chatbot.");
       }
     }
 
