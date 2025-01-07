@@ -12,6 +12,7 @@ const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
 const FAQ = require("../models/faqModel");
 const PDF = require("../models/PDFModel");
+const PDFService = require('../shared/pdfService');
 const authenticate = require("../signup/middleware/authMiddleware"); 
 
 // Route to send a simple message (unprotected)
