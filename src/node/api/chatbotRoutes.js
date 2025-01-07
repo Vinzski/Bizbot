@@ -100,11 +100,8 @@ router.get('/:chatbotId', authenticate, async (req, res) => {
         // Fetch FAQs associated with this chatbot
         const faqs = await FAQ.find({ _id: { $in: chatbot.faqs } });
 
-        // Fetch PDFs associated with this chatbot
-        const pdfs = await PDF.find({ chatbotId: req.params.chatbotId });
-
-        // Send chatbot, FAQs, and PDFs data
-        res.json({ chatbot, faqs, pdfs });
+        // Send both chatbot and FAQs data
+        res.json({ chatbot, faqs });
     } catch (error) {
         console.error('Failed to fetch chatbot', error);
         res.status(500).json({ message: "Failed to fetch chatbot", error: error.toString() });
