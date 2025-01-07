@@ -77,6 +77,9 @@ function loadChatbotDetails(chatbotId) {
         document.getElementById("chatbot-name").value = chatbot.name || "";
         document.getElementById("chatbot-select").value = chatbot.type || "";
         loadFAQsForChatbot(data.faqs); // Pass the fetched FAQs data
+
+        // Load and display PDFs associated with the chatbot
+        loadPDFsForChatbot(data.pdfs); // Pass the PDFs data
       } else {
         console.error("Chatbot data is missing");
       }
@@ -84,6 +87,19 @@ function loadChatbotDetails(chatbotId) {
     .catch((error) => {
       console.error("Error loading chatbot details:", error);
     });
+}
+
+function loadPDFsForChatbot(pdfs) {
+  const pdfList = document.getElementById('pdf-list');
+  pdfList.innerHTML = ''; // Clear the list first
+
+  pdfs.forEach((pdf) => {
+    const pdfItem = document.createElement('li');
+    pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${pdf.filename}</span>`;
+    pdfList.appendChild(pdfItem);
+  });
+
+  console.log(`Loaded ${pdfs.length} PDFs for this chatbot`);
 }
 
 function loadFAQsForChatbot(faqIds) {
