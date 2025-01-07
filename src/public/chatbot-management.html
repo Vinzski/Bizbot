@@ -50,68 +50,88 @@
   
   <script src="app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      loadChatbots();
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const chatbotId = params.get('chatbotId');
+  const faqs = params.get('faqs') ? params.get('faqs').split(',') : [];
+  const pdfs = params.get('pdfs') ? params.get('pdfs').split(',') : [];
+
+  if (chatbotId) {
+    loadChatbotDetails(chatbotId, faqs, pdfs);
+  }
+});
+
+function loadChatbotDetails(chatbotId, faqs, pdfs) {
+  const token = localStorage.getItem('token');
+  fetch(`/api/chatbots/${chatbotId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(response => response.json())
+    .then(data => {
+      // Populate chatbot details
+      document.getElementById('chatbot-name').value = data.chatbot.name;
+      document.getElementById('chatbot-select').value = data.chatbot.type;
+
+      // Populate FAQs
+      const faqTable = document.getElementById('faq-table').querySelector('tbody');
+      faqTable.innerHTML = '';
+      data.faqs.forEach(faq => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${faq.question}</td>
+          <td>${faq.answer}</td>
+          <td>
+            <button onclick="editFAQ('${faq._id}')">Edit</button>
+            <button onclick="deleteFAQ('${faq._id}')">Delete</button>
+          </td>
+        `;
+        faqTable.appendChild(row);
+      });
+
+      // Populate PDFs
+      const pdfList = document.getElementById('pdf-list');
+      pdfList.innerHTML = '';
+      data.pdfs.forEach(pdf => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <span>${pdf.filename}</span>
+          <button onclick="deletePDF('${pdf._id}')">Delete</button>
+        `;
+        pdfList.appendChild(listItem);
+      });
+    })
+    .catch(error => {
+      console.error('Error loading chatbot details:', error);
+      alert('Failed to load chatbot details. Please try again.');
     });
-    function loadChatbots() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, redirecting to login.');
-        window.location.href = 'index.html';
-        return;
+}
+
+async function editChatbot(chatbotId) {
+  const token = localStorage.getItem('token');
+  try {
+    const response = await fetch(`/api/chatbots/${chatbotId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-      fetch('/api/chatbots', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to fetch chatbots');
-          }
-          return response.json();
-        })
-        .then(chatbots => {
-          const tbody = document.querySelector('table tbody');
-          tbody.innerHTML = ''; // Clear existing rows
-          chatbots.forEach(chatbot => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${chatbot.name}</td>
-              <td>${new Date(chatbot.createdAt).toLocaleString()}</td>
-              <td>${new Date(chatbot.updatedAt).toLocaleString()}</td>
-              <td><button onclick="editChatbot('${chatbot._id}')">Edit</button> 
-              <button onclick="deleteChatbot('${chatbot._id}')">Delete</button>
-            `;
-            tbody.appendChild(row);
-          });
-        })
-        .catch(error => {
-          console.error('Error loading chatbots:', error);
-          alert('Failed to load chatbots. Please try again.');
-        });
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch chatbot details');
     }
-    async function editChatbot(chatbotId) {
-      const token = localStorage.getItem('token');
-      try {
-        const response = await fetch(`/api/chatbots/${chatbotId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch chatbot details');
-        }
-        const data = await response.json();
-        // Navigate to training.html with chatbot and FAQ data in query parameters
-        const chatbot = data.chatbot;
-        const faqs = data.faqs.map(faq => faq._id).join(',');
-        window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}`;
-      } catch (error) {
-        console.error('Error fetching chatbot details:', error);
-        alert('Failed to fetch chatbot details. Please try again.');
-      }
-    }
+    const data = await response.json();
+
+    const chatbot = data.chatbot;
+    const faqs = data.faqs.map(faq => faq._id).join(',');
+    const pdfs = data.pdfs.map(pdf => pdf._id).join(','); // Assuming `data.pdfs` contains the list of PDFs
+
+    // Navigate to training.html with chatbot, FAQ, and PDF data in query parameters
+    window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}&pdfs=${pdfs}`;
+  } catch (error) {
+    console.error('Error fetching chatbot details:', error);
+    alert('Failed to fetch chatbot details. Please try again.');
+  }
+}
 function deleteChatbot(chatbotId) {
   const token = localStorage.getItem('token');
   console.log("Deleting chatbot with ID:", chatbotId);
