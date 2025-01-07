@@ -212,8 +212,21 @@ function testChatbot() {
     return;
   }
 
+  // Fetch chatbotId from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const chatbotId = urlParams.get("chatbotId");
+
+  // Log the fetched chatbotId
+  console.log("Fetched chatbotId from URL:", chatbotId);
+
+  if (!chatbotId) {
+    console.error("No chatbotId found in URL.");
+    alert("chatbotId is missing in the URL.");
+    return;
+  }
+
   // Prepare the payload
-  const payload = { question: query };
+  const payload = { question: query, chatbotId: chatbotId };
 
   // Log the payload being sent
   console.log("Payload to be sent:", payload);
@@ -264,6 +277,7 @@ function testChatbot() {
       resultDiv.textContent = "Error: " + error.message;
     });
 }
+
 
 function saveChatbot() {
     const chatbotTypeSelect = document.getElementById("chatbot-select");
