@@ -70,40 +70,45 @@ router.get("/user-interactions/:userId", authenticate, async (req, res) => {
   }
 });
 
-// Function to get response from PDFs using LangChain
-async function getPDFResponse(question, userId, chatbotId) {
-  try {
-    // Fetch PDFs for the given userId and chatbotId
-    const pdfs = await PDFModel.find({ userId: userId, chatbotId: chatbotId });
-
-    if (!pdfs || pdfs.length === 0) {
-      console.log("No PDFs found for the given userId and chatbotId.");
-      return null;
+// Function to fetch and process PDF documents for response
+async function getPdfResponse(question, userId) {
+    // Fetch PDFs uploaded by the user
+    const pdfs = await PDFModel.find({ userId: userId });
+    
+    // If no PDFs found, return an empty string
+    if (pdfs.length === 0) {
+        console.log("No PDFs found for the user.");
+        return null;
     }
 
-    // Load the content from all PDFs
-    let pdfTexts = [];
-    for (let pdf of pdfs) {
-      pdfTexts.push(pdf.content);
+    // Set up Hugging Face API using LangChain (Free tier usage)
+    const hf = new HuggingFaceInference({
+        model: 'distilbert-base-uncased-distilled-squad', // You can replace with a model of your choice
+    });
+
+    // Process each PDF and extract content to answer the question
+    for (const pdf of pdfs) {
+        const pdfText = pdf.content;
+        
+        // Query the PDF using LangChain or Hugging Face
+        try {
+            const response = await hf.call({
+                question: question,
+                context: pdfText, // Use the PDF content as context
+            });
+
+            // If a response is found, return it
+            if (response) {
+                console.log(`PDF Response Found: ${response}`);
+                return response;
+            }
+        } catch (error) {
+            console.error(`Error querying PDF: ${error}`);
+        }
     }
 
-    // Process the PDFs with LangChain
-    const loader = new PDFLoader(pdfTexts.join("\n")); // Combine the texts if multiple PDFs
-    const docs = await loader.load();
-
-    // Split text into chunks for processing
-    const splitter = new TextSplitter();
-    const chunks = await splitter.splitDocuments(docs);
-
-    // Query the documents with the user's question
-    const model = new OpenAI();
-    const response = await model.call(question, chunks);
-
-    return response;
-  } catch (error) {
-    console.error("Error processing PDF response:", error);
-    return "Sorry, I couldn't retrieve information from the PDFs at the moment.";
-  }
+    // If no response from PDFs, return null
+    return null;
 }
 
 // Jaccard Similarity function
@@ -411,10 +416,10 @@ router.post("/test", authenticate, async (req, res) => {
       console.log("No adequate FAQ match found.");
 
       // If no match in FAQs, forward the question to PDFs using LangChain
-      const pdfResponse = await getPDFResponse(question, userId, chatbotId);
+      const pdfResponse = await getPdfResponse(question, userId);
       if (pdfResponse) {
-        console.log("PDF Response Found");
-        return res.json({ reply: pdfResponse, source: "PDF" });
+          console.log(`PDF Response Found: "${pdfResponse}"`);
+          return res.json({ reply: pdfResponse, source: 'PDF' });
       }
 
       // If no match found in FAQ, forward the question to Rasa for response
