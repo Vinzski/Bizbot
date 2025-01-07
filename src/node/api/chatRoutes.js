@@ -7,10 +7,9 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require("fuzzy");
 const router = express.Router();
-const { PDFLoader } = require("langchain/document_loaders");
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 const fs = require("fs");
 const path = require("path");
-const { LangChainModule } = require('langchain');
 
 const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
