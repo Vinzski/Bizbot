@@ -7,10 +7,10 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require("fuzzy");
 const router = express.Router();
-const { TextSplitter, OpenAI } = require("langchain");
 const { PDFLoader } = require("langchain/document_loaders");
 const fs = require("fs");
 const path = require("path");
+const { LangChainModule } = require('langchain');
 
 const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
