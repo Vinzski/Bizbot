@@ -132,14 +132,14 @@ function loadPDFsForChatbot(pdfIds) {
     .then((response) => response.json())
     .then((allPdfs) => {
       const tbody = document.querySelector("#pdf-table tbody");
-      const filteredPdfs = allPdfs.filter((pdf) => pdfIds.includes(pdf._id));
+      const filteredPdfs = allPdfs.filter((pdf) => pdfIds.includes(pdfId._id));
       filteredPdfs.forEach((pdf) => {
         const row = document.createElement("tr");
-        row.setAttribute("data-pdf-id", pdf._id);
+        row.setAttribute("data-pdf-id", pdfId._id);
         row.innerHTML = `
             <td>${pdf.filename}</td>
             <td>
-                <button class="btn-view" onclick="viewPDF('${pdf._id}')">VIEW</button>
+                <button class="btn-view" onclick="viewPDF('${pdfId._id}')">VIEW</button>
             </td>
           `;
         tbody.appendChild(row);
