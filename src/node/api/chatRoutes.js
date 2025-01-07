@@ -11,6 +11,7 @@ const router = express.Router();
 const Message = require('../models/messageModel');
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
+const PDF = require('../models/PDFModel');
 const authenticate = require('../signup/middleware/authMiddleware'); // Add path to your auth middleware
 
 // Route to send a simple message (unprotected)
