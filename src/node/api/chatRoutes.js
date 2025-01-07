@@ -208,94 +208,157 @@ router.post('/', authenticate, async (req, res) => {
 router.post('/test', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
+
     console.log('--- Incoming Chat Request ---');
     console.log(`User ID: ${userId}`);
     console.log(`Chatbot ID: ${chatbotId}`);
     console.log(`Question: "${question}"`);
+
     try {
-        // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId });
-        console.log(`Number of FAQs found: ${faqs.length}`);
-        if (faqs.length === 0) {
-            console.log('No FAQs found for the given userId and chatbotId.');
+        // Fetch the chatbot with populated FAQs and PDFs
+        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId: userId })
+            .populate('faqs')
+            .populate('pdfId');
+
+        if (!chatbot) {
+            return res.status(404).json({ message: "Chatbot not found." });
         }
+
+        const faqs = chatbot.faqs;
+        const pdfId = chatbot.pdfId;
+
+        console.log(`Number of FAQs found: ${faqs.length}`);
+        console.log(`Number of PDFs found: ${pdfId.length}`);
+
+        if (faqs.length === 0 && pdfId.length === 0) {
+            console.log('No FAQs or PDFs found for the given userId and chatbotId.');
+        }
+
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
         const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+
         // Short Query Handling
         if (tokenizedUserQuestion.length <= 2) {
             console.log('Short query detected. Attempting keyword match...');
             const keywordMatch = faqs.find(faq =>
                 tokenizedUserQuestion.some(token => faq.question.toLowerCase().includes(token))
             );
+
             if (keywordMatch) {
                 console.log(`Keyword Match Found: "${keywordMatch.question}"`);
                 return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
             }
         }
-        // 1. Exact Match Check
+
+        // 1. Exact Match Check in FAQs
         const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
-        // 2. Jaccard Similarity Check
-        let bestMatch = { score: 0, faq: null };
+
+        // Initialize best matches
+        let bestFAQMatch = { score: 0, item: null };
+        let bestPDFMatch = { score: 0, item: null };
+
+        // Define a helper function to compute the best similarity score
+        function getBestSimilarityScore(userTokens, docTokens, userString, docString) {
+            const jaccardScore = jaccardSimilarity(userTokens, docTokens);
+            const cosineScore = cosineSimilarity(userTokens, docTokens);
+            const jaroWinklerScore = jaroWinklerSimilarity(userString, docString);
+            return Math.max(jaccardScore, cosineScore, jaroWinklerScore);
+        }
+
+        // --- FAQ SIMILARITY ---
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+            const similarity = getBestSimilarityScore(
+                tokenizedUserQuestion,
+                tokenizedFaq,
+                normalizedUserQuestion,
+                faqText
+            );
+
+            console.log(`FAQ Question: "${faq.question}" | Similarity: ${similarity.toFixed(2)}`);
+
+            if (similarity > bestFAQMatch.score) {
+                bestFAQMatch = { score: similarity, item: faq };
             }
         });
 
-        // 3. Cosine Similarity Check
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
-            }
-        });
+        // --- PDF SIMILARITY ---
+        pdfId.forEach(pdf => {
+            const pdfContent = pdf.content.toLowerCase().trim();
+            const tokenizedPdf = tokenizer.tokenize(pdfContent);
+            const similarity = getBestSimilarityScore(
+                tokenizedUserQuestion,
+                tokenizedPdf,
+                normalizedUserQuestion,
+                pdfContent
+            );
 
-        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
-        faqs.forEach(faq => {
-            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
-            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+            console.log(`PDF Filename: "${pdf.filename}" | Similarity: ${similarity.toFixed(2)}`);
+
+            if (similarity > bestPDFMatch.score) {
+                bestPDFMatch = { score: similarity, item: pdf };
             }
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
-        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
-            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+        const SIMILARITY_THRESHOLD = 0.3; // Adjust this threshold based on testing
+
+        // Compare best FAQ vs best PDF
+        if (bestFAQMatch.score >= SIMILARITY_THRESHOLD || bestPDFMatch.score >= SIMILARITY_THRESHOLD) {
+            if (bestFAQMatch.score >= bestPDFMatch.score) {
+                console.log(`FAQ Match Found: "${bestFAQMatch.item.question}" with similarity ${bestFAQMatch.score.toFixed(2)}`);
+                return res.json({ reply: bestFAQMatch.item.answer, source: 'FAQ' });
+            } else {
+                console.log(`PDF Match Found: "${bestPDFMatch.item.filename}" with similarity ${bestPDFMatch.score.toFixed(2)}`);
+                // Optionally, return a snippet instead of full content
+                const snippet = getRelevantSnippet(bestPDFMatch.item.content, normalizedUserQuestion);
+                return res.json({ 
+                    reply: snippet || "Refer to the PDF for more details.", 
+                    source: 'PDF', 
+                    filename: bestPDFMatch.item.filename 
+                });
+            }
         } else {
-            console.log('No adequate FAQ match found.');
-            // If no match found in FAQ, forward the question to Rasa for response
-            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+            console.log('No adequate FAQ or PDF match found. Forwarding to Rasa.');
+            // If no match found in FAQ or PDF, forward to Rasa
+            const rasaResponse = await getRasaResponse(question);
             return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
+
     } catch (error) {
         console.error('Error processing chat request:', error);
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
 
-// Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
+// Function to get a relevant snippet from PDF content
+function getRelevantSnippet(content, query) {
+    // Simple implementation: find the first sentence containing the query
+    const sentences = content.split(/(?<=[.?!])\s+/);
+    const lowerQuery = query.toLowerCase();
+    for (let sentence of sentences) {
+        if (sentence.toLowerCase().includes(lowerQuery)) {
+            return sentence;
+        }
+    }
+    // If no sentence matches, return the first few sentences
+    return sentences.slice(0, 2).join(' ');
+}
+
+// Function to get response from Rasa (replace with actual Rasa API call if necessary)
 async function getRasaResponse(question) {
-    // Assuming Rasa API is set up to accept a POST request with the user question
     try {
         const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
             message: question
         });
+
         if (response.data && response.data.length > 0) {
             return response.data[0].text;
         } else {
