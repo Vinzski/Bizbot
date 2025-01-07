@@ -7,9 +7,6 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require("fuzzy");
 const router = express.Router();
-const { Document } = require('langchain/document_loaders');
-const { HuggingFaceInference } = require('@huggingface/inference');
-const PDFModel = require('../models/PDFModel');
 
 const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
@@ -68,42 +65,6 @@ router.get("/user-interactions/:userId", authenticate, async (req, res) => {
       .json({ message: "Internal Server Error", error: error.toString() });
   }
 });
-
-// Function to fetch and process PDF documents for response
-async function getPdfResponse(question, userId) {
-    // Fetch PDFs uploaded by the user
-    const pdfs = await PDFModel.find({ userId: userId });
-    
-    if (pdfs.length === 0) {
-        console.log("No PDFs found for the user.");
-        return null;
-    }
-
-    // Set up Hugging Face API
-    const hf = new HuggingFaceInference({
-        model: 'distilbert-base-uncased-distilled-squad', // Your chosen model
-    });
-
-    for (const pdf of pdfs) {
-        const pdfText = pdf.content;
-
-        try {
-            const response = await hf.call({
-                question: question,
-                context: pdfText,
-            });
-
-            if (response) {
-                console.log(`PDF Response Found: ${response}`);
-                return response;
-            }
-        } catch (error) {
-            console.error(`Error querying PDF: ${error}`);
-        }
-    }
-
-    return null;
-}
 
 // Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
@@ -408,13 +369,6 @@ router.post("/test", authenticate, async (req, res) => {
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
       console.log("No adequate FAQ match found.");
-
-      // If no match in FAQs, forward the question to PDFs using LangChain
-      const pdfResponse = await getPdfResponse(question, userId);
-      if (pdfResponse) {
-          console.log(`PDF Response Found: "${pdfResponse}"`);
-          return res.json({ reply: pdfResponse, source: 'PDF' });
-      }
 
       // If no match found in FAQ, forward the question to Rasa for response
       const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
