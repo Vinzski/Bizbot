@@ -5,12 +5,13 @@ const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 const { FaissStore } = require('@langchain/community/vectorstores/faiss');
 const { HuggingFaceEmbeddings } = require('@langchain/community/embeddings/hf');
 const PDF = require('../models/PDFModel');
+require('dotenv').config();
 
 class PDFService {
     constructor() {
         this.model = new HuggingFaceInference({
             model: "google/flan-t5-small",
-            apiKey: process.env.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
+            apiKey: process.env.HUGGINGFACEHUB_API_KEY
         });
 
         this.embeddings = new HuggingFaceEmbeddings({
