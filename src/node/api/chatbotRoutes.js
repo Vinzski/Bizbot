@@ -3,7 +3,7 @@ const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
 const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware');
-const PDF = require('../models/PDFmodel');
+const PDF = require('../models/PDFModel');
 
 
 router.get('/name/:chatbotId', authenticate, async (req, res) => {
