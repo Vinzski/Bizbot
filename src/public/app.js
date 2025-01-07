@@ -250,60 +250,63 @@ function testChatbot() {
 }
 
 function saveChatbot() {
-  const chatbotTypeSelect = document.getElementById("chatbot-select");
-  const chatbotNameInput = document.getElementById("chatbot-name");
-  const token = localStorage.getItem("token");
+    const chatbotTypeSelect = document.getElementById("chatbot-select");
+    const chatbotNameInput = document.getElementById("chatbot-name");
+    const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID
+    const token = localStorage.getItem("token");
 
-  if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
-    Swal.fire({
-      title: "Error",
-      text: "Please fill out all chatbot fields before saving.",
-      icon: "error",
-      confirmButtonText: "OK",
-    });
-    return;
-  }
+    if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
+        Swal.fire({
+            title: "Error",
+            text: "Please fill out all chatbot fields before saving.",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
+        return;
+    }
 
-  const faqs = Array.from(document.querySelectorAll("#faq-table tbody tr"))
-    .map((row) => row.getAttribute("data-faq-id"))
-    .filter(Boolean);
+    const faqs = Array.from(document.querySelectorAll("#faq-table tbody tr"))
+        .map((row) => row.getAttribute("data-faq-id"))
+        .filter(Boolean);
 
-  fetch("/api/chatbots", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      name: chatbotNameInput.value,
-      type: chatbotTypeSelect.value,
-      faqs: faqs,
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok: " + response.statusText);
-      }
-      return response.json();
+    fetch("/api/chatbots", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            name: chatbotNameInput.value,
+            type: chatbotTypeSelect.value,
+            faqs: faqs,
+            pdfId: pdfIdInput.value, // Include the PDF ID
+        }),
     })
-    .then((data) => {
-      Swal.fire({
-        title: "Good job!",
-        text: "Chatbot saved successfully!",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
-    })
-    .catch((error) => {
-      console.error("Error saving chatbot:", error);
-      Swal.fire({
-        title: "Error",
-        text: `Failed to save chatbot: ${error.message}`,
-        icon: "error",
-        confirmButtonText: "Try Again",
-      });
-    });
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok: " + response.statusText);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            Swal.fire({
+                title: "Good job!",
+                text: "Chatbot saved successfully!",
+                icon: "success",
+                confirmButtonText: "OK",
+            });
+        })
+        .catch((error) => {
+            console.error("Error saving chatbot:", error);
+            Swal.fire({
+                title: "Error",
+                text: `Failed to save chatbot: ${error.message}`,
+                icon: "error",
+                confirmButtonText: "Try Again",
+            });
+        });
 }
+
 
 // Handling authentication and form submissions
 document
