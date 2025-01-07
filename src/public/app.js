@@ -124,7 +124,7 @@ function loadFAQsForChatbot(faqIds) {
 
 function loadPDFsForChatbot(pdfIds) {
   const token = localStorage.getItem("token");
-  fetch("/api/pdfs", {
+  fetch("/api/faqs", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
