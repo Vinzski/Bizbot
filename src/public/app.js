@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadPDFsForChatbot(pdfIds) {
   const token = localStorage.getItem("token");
-  fetch("/api/faqs", {
+  fetch("/api/pdfs", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -78,6 +78,7 @@ function loadPDFsForChatbot(pdfIds) {
 function viewPDF(pdfId) {
   // Handle viewing the PDF (e.g., open it in a new window or embed it in a viewer)
   console.log(`Viewing PDF with ID: ${pdfId}`);
+}
 
 function loadUserInfo() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
