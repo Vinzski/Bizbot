@@ -1,7 +1,7 @@
 // pdfService.js
 const { HuggingFaceInference } = require('@langchain/community/llms/hf');
 const { Document } = require('@langchain/core/documents');
-const { RecursiveCharacterTextSplitter } = require('@langchain/text/splitter');
+const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 const { FaissStore } = require('@langchain/community/vectorstores/faiss');
 const { HuggingFaceEmbeddings } = require('@langchain/community/embeddings/hf');
 const PDF = require('../models/PDFModel');
