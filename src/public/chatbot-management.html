@@ -47,65 +47,65 @@
       </div>
     </main>
   </div>
-  
+
   <script src="app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatbotId = urlParams.get('chatbotId');
-    const faqs = urlParams.get('faqs') ? urlParams.get('faqs').split(',') : [];
-    const pdfs = urlParams.get('pdfs') ? urlParams.get('pdfs').split(',') : [];
-
-    // Log the parsed data
-    console.log('Chatbot ID:', chatbotId);
-    console.log('FAQs:', faqs);
-    console.log('PDFs:', pdfs);
-
-    // Call APIs to fetch additional details if needed
-    if (pdfs.length) {
-        loadPDFDetails(pdfs);
-    }
-});
-
-function loadPDFDetails(pdfIds) {
-    const token = localStorage.getItem('token');
-    Promise.all(
-        pdfIds.map(pdfId =>
-            fetch(`/api/pdfs/${pdfId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            }).then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch PDF details');
-                }
-                return response.json();
-            })
-        )
-    )
-        .then(pdfs => {
-            console.log('Fetched PDF details:', pdfs);
-            displayPDFs(pdfs);
-        })
-        .catch(error => {
-            console.error('Error fetching PDF details:', error);
-        });
-}
-
-function displayPDFs(pdfs) {
-    const pdfContainer = document.getElementById('pdf-container');
-    pdfs.forEach(pdf => {
-        const pdfElement = document.createElement('div');
-        pdfElement.classList.add('pdf-item');
-        pdfElement.innerHTML = `
-            <h3>${pdf.filename}</h3>
-            <p>Uploaded on: ${new Date(pdf.timestamp).toLocaleString()}</p>
-            <p>${pdf.content.slice(0, 100)}...</p>
-        `;
-        pdfContainer.appendChild(pdfElement);
-    });
-}
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatbotId = urlParams.get('chatbotId');
+        const faqs = urlParams.get('faqs') ? urlParams.get('faqs').split(',') : [];
+        const pdfs = urlParams.get('pdfs') ? urlParams.get('pdfs').split(',') : [];
     
+        // Log the parsed data
+        console.log('Chatbot ID:', chatbotId);
+        console.log('FAQs:', faqs);
+        console.log('PDFs:', pdfs);
+    
+        // Call APIs to fetch additional details if needed
+        if (pdfs.length) {
+            loadPDFDetails(pdfs);
+        }
+    });
+    
+    function loadPDFDetails(pdfIds) {
+        const token = localStorage.getItem('token');
+        Promise.all(
+            pdfIds.map(pdfId =>
+                fetch(`/api/pdfs/${pdfId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch PDF details');
+                    }
+                    return response.json();
+                })
+            )
+        )
+            .then(pdfs => {
+                console.log('Fetched PDF details:', pdfs);
+                displayPDFs(pdfs);
+            })
+            .catch(error => {
+                console.error('Error fetching PDF details:', error);
+            });
+    }
+    
+    function displayPDFs(pdfs) {
+        const pdfContainer = document.getElementById('pdf-container');
+        pdfs.forEach(pdf => {
+            const pdfElement = document.createElement('div');
+            pdfElement.classList.add('pdf-item');
+            pdfElement.innerHTML = `
+                <h3>${pdf.filename}</h3>
+                <p>Uploaded on: ${new Date(pdf.timestamp).toLocaleString()}</p>
+                <p>${pdf.content.slice(0, 100)}...</p>
+            `;
+            pdfContainer.appendChild(pdfElement);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       loadChatbots();
     });
@@ -118,7 +118,7 @@ function displayPDFs(pdfs) {
       }
       fetch('/api/chatbots', {
         headers: {
-          'Authorization': Bearer ${token}
+          'Authorization': `Bearer ${token}`
         }
       })
         .then(response => {
@@ -132,13 +132,13 @@ function displayPDFs(pdfs) {
           tbody.innerHTML = ''; // Clear existing rows
           chatbots.forEach(chatbot => {
             const row = document.createElement('tr');
-            row.innerHTML = 
+            row.innerHTML = `
               <td>${chatbot.name}</td>
               <td>${new Date(chatbot.createdAt).toLocaleString()}</td>
               <td>${new Date(chatbot.updatedAt).toLocaleString()}</td>
               <td><button onclick="editChatbot('${chatbot._id}')">Edit</button> 
               <button onclick="deleteChatbot('${chatbot._id}')">Delete</button>
-            ;
+            `;
             tbody.appendChild(row);
           });
         })
@@ -147,29 +147,27 @@ function displayPDFs(pdfs) {
           alert('Failed to load chatbots. Please try again.');
         });
     }
-async function editChatbot(chatbotId) {
-    const token = localStorage.getItem('token');
-    try {
+    async function editChatbot(chatbotId) {
+      const token = localStorage.getItem('token');
+      try {
         const response = await fetch(`/api/chatbots/${chatbotId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
         if (!response.ok) {
-            throw new Error('Failed to fetch chatbot details');
+          throw new Error('Failed to fetch chatbot details');
         }
         const data = await response.json();
+        // Navigate to training.html with chatbot and FAQ data in query parameters
         const chatbot = data.chatbot;
         const faqs = data.faqs.map(faq => faq._id).join(',');
-        const pdfs = data.pdfs.map(pdf => pdf._id).join(',');
-
-        // Navigate to training.html with chatbot, FAQs, and PDFs in query parameters
-        window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}&pdfs=${pdfs}`;
-    } catch (error) {
+        window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}`;
+      } catch (error) {
         console.error('Error fetching chatbot details:', error);
         alert('Failed to fetch chatbot details. Please try again.');
+      }
     }
-}
 function deleteChatbot(chatbotId) {
   const token = localStorage.getItem('token');
   console.log("Deleting chatbot with ID:", chatbotId);
@@ -187,10 +185,10 @@ function deleteChatbot(chatbotId) {
   }).then((result) => {
     if (result.isConfirmed) {
       // Proceed with the delete request if confirmed
-      fetch(/api/chatbots/${chatbotId}, {
+      fetch(`/api/chatbots/${chatbotId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': Bearer ${token}
+          'Authorization': `Bearer ${token}`
         }
       })
       .then(response => {
@@ -219,7 +217,7 @@ function deleteChatbot(chatbotId) {
   });
 }
 
-  
+
   </script>
 </body>
 </html>
