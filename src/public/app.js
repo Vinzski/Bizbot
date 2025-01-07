@@ -560,18 +560,22 @@ async function uploadPDF() {
             body: formData,
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            statusDiv.textContent = data.message;
-        
-            // Dynamically add the newly uploaded PDF to the list with an icon
-            const pdfItem = document.createElement('li');
-            pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${data.pdf.filename}</span>`;
-            pdfList.appendChild(pdfItem);
-        } else {
-            const error = await response.json();
-            statusDiv.textContent = `Error: ${error.message}`;
-        }
+      if (response.ok) {
+          const data = await response.json();
+          statusDiv.textContent = data.message;
+      
+          // Set the PDF ID in the hidden input field
+          const pdfIdInput = document.getElementById("pdf-id");
+          pdfIdInput.value = data.pdf._id; // Use the ID from the uploaded PDF
+      
+          // Dynamically add the newly uploaded PDF to the list with an icon
+          const pdfItem = document.createElement('li');
+          pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${data.pdf.filename}</span>`;
+          pdfList.appendChild(pdfItem);
+      } else {
+          const error = await response.json();
+          statusDiv.textContent = `Error: ${error.message}`;
+      }
     } catch (err) {
         console.error('Upload error:', err);
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
