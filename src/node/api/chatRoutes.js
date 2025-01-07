@@ -12,8 +12,8 @@ const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
 const FAQ = require("../models/faqModel");
 const PDF = require("../models/PDFModel");
-const PDFService = require('../shared/pdfService');
-const authenticate = require("../signup/middleware/authMiddleware"); 
+const PDFService = require("../shared/pdfService");
+const authenticate = require("../signup/middleware/authMiddleware");
 
 // Route to send a simple message (unprotected)
 router.post("/send_message", async (req, res) => {
@@ -370,51 +370,64 @@ router.post("/test", authenticate, async (req, res) => {
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
+      // If no FAQ match, check PDF content
+      const chatbot = await Chatbot.findById(chatbotId);
+      if (chatbot.pdfId) {
+        const pdfDoc = await PDF.findById(chatbot.pdfId);
+        if (pdfDoc) {
+          // Create vector store from PDF content
+          const vectorStore = await PDFService.createVectorStore(
+            pdfDoc.content
+          );
 
-        // If no FAQ match, check PDF content
-        const chatbot = await Chatbot.findById(chatbotId);
-        if (chatbot.pdfId) {
-            const pdfDoc = await PDF.findById(chatbot.pdfId);
-            if (pdfDoc) {
-                // Create vector store from PDF content
-                const vectorStore = await PDFService.createVectorStore(pdfDoc.content);
-                
-                // Search for similar content and generate response
-                const pdfResponse = await PDFService.findSimilarContent(question, vectorStore);
-                
-                if (pdfResponse) {
-                    return res.json({ reply: pdfResponse, source: 'PDF' });
-                }
-            }
+          // Search for similar content and generate response
+          const pdfResponse = await PDFService.findSimilarContent(
+            question,
+            vectorStore
+          );
+
+          if (pdfResponse) {
+            return res.json({ reply: pdfResponse, source: "PDF" });
+          }
         }
-
-        // If no PDF match, fall back to Rasa
-        const rasaResponse = await getRasaResponse(question);
-        return res.json({ reply: rasaResponse, source: 'Rasa' });
-    } catch (error) {
-        console.error('Error processing chat request:', error);
-        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+      }
     }
+
+    // If no PDF match, fall back to Rasa
+    const rasaResponse = await getRasaResponse(question);
+    return res.json({ reply: rasaResponse, source: "Rasa" });
+  } catch (error) {
+    console.error("Error processing chat request:", error);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.toString() });
+  }
 });
 
 // Function to get response from Rasa
 async function getRasaResponse(question) {
-    try {
-        const response = await axios.post(
-            "http://13.55.82.197:5005/webhooks/rest/webhook",
-            { message: question }
-        );
+  try {
+    const response = await axios.post(
+      "http://13.55.82.197:5005/webhooks/rest/webhook",
+      { message: question }
+    );
 
-        if (response.data && response.data.length > 0) {
-            console.log("Response from Rasa:", response.data[0].text);
-            return { reply: response.data[0].text, source: "Rasa" };
-        } else {
-            return { reply: "Sorry, I couldn't find an answer to that question.", source: "Rasa" };
-        }
-    } catch (error) {
-        console.error("Error fetching response from Rasa:", error);
-        return { reply: "Sorry, I couldn't fetch an answer from Rasa at the moment.", source: "Error" };
+    if (response.data && response.data.length > 0) {
+      console.log("Response from Rasa:", response.data[0].text);
+      return { reply: response.data[0].text, source: "Rasa" };
+    } else {
+      return {
+        reply: "Sorry, I couldn't find an answer to that question.",
+        source: "Rasa",
+      };
     }
+  } catch (error) {
+    console.error("Error fetching response from Rasa:", error);
+    return {
+      reply: "Sorry, I couldn't fetch an answer from Rasa at the moment.",
+      source: "Error",
+    };
+  }
 }
 
 router.get("/user-interactions/:userId", authenticate, async (req, res) => {
