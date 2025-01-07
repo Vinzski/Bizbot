@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadPDFsForChatbot(pdfIds) {
   const token = localStorage.getItem("token");
-  fetch("/api/api", {
+  fetch("/api/faqs", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
