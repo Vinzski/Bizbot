@@ -369,14 +369,7 @@ router.post("/test", authenticate, async (req, res) => {
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
-        console.log("No adequate FAQ match found. Checking PDFs...");
-        // Check PDF Database
-        const pdfResponse = await searchPDFContent(chatbotId, question);
-        if (pdfResponse) {
-            return res.json({ reply: pdfResponse, source: "PDF" });
-        }
-
-        console.log("No match found in PDFs. Forwarding to Rasa...");
+        console.log("No match found in FAQs. Forwarding to Rasa...");
         // Call Rasa for a response
         const rasaResponse = await getRasaResponse(question);
         return res.json(rasaResponse);
@@ -388,47 +381,6 @@ router.post("/test", authenticate, async (req, res) => {
       .json({ message: "Internal Server Error", error: error.toString() });
   }
 });
-
-// Function to search PDF content
-async function searchPDFContent() {
-  const { question, chatbotId } = req.body;
-  const userId = req.user.id;
-    try {
-        const pdfs = await PDF.find({ userId: userId });
-
-        if (!pdfs || pdfs.length === 0) {
-            console.log("No PDFs found for the given chatbot.");
-            return null;
-        }
-
-        const normalizedQuery = query.toLowerCase().trim();
-        const tokenizedQuery = tokenizer.tokenize(normalizedQuery);
-        const stemmedQuery = tokenizedQuery.map((token) => stemmer.stem(token));
-
-        let bestMatch = { score: 0, content: null };
-        pdfs.forEach((pdf) => {
-            const tokenizedContent = tokenizer.tokenize(pdf.content.toLowerCase());
-            const stemmedContent = tokenizedContent.map((token) => stemmer.stem(token));
-            const jaccardScore = jaccardSimilarity(stemmedQuery, stemmedContent);
-
-            if (jaccardScore > bestMatch.score) {
-                bestMatch = { score: jaccardScore, content: pdf.content };
-            }
-        });
-
-        const SIMILARITY_THRESHOLD = 0.2;
-        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`Best PDF Match Found: Similarity Score ${bestMatch.score.toFixed(2)}`);
-            return bestMatch.content;
-        } else {
-            console.log("No adequate PDF match found.");
-            return null;
-        }
-    } catch (error) {
-        console.error("Error searching PDF content:", error);
-        return null;
-    }
-}
 
 // Function to get response from Rasa
 async function getRasaResponse(question) {
