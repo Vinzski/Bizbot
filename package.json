@@ -27,7 +27,11 @@
     "cosine-similarity": "^1.0.0",
     "fuzzy": "^0.1.3",
     "pdf-parse": "^1.1.1",
-    "langchain": "^0.3.10",
-    "@huggingface/inference": "^2.8.1"
+    "langchain": "^0.1.9",
+    "@langchain/community": "^0.0.10",
+    "@langchain/core": "^0.1.10",
+    "@huggingface/inference": "^2.8.1",
+    "faiss-node": "^0.5.1",
+    "compute-cosine-similarity": "^1.1.0"
   }
 }
