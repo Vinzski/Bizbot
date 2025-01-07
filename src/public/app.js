@@ -31,7 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   const chatbotId = urlParams.get("chatbotId");
   const faqs = urlParams.get("faqs")?.split(",") || []; // Fetch FAQ IDs from the URL
-  const pdfs = urlParams.get("pdfs")?.split(",") || []; // Fetch PDF IDs from the URL
 
   if (chatbotId) {
     loadChatbotDetails(chatbotId);
@@ -39,10 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (faqs.length) {
     loadFAQsForChatbot(faqs); // Load FAQ IDs passed in the URL
-  }
-
-  if (pdfs.length) {
-    loadPDFsForChatbot(pdfs); // Load PDF IDs passed in the URL
   }
 });
 
@@ -120,40 +115,6 @@ function loadFAQsForChatbot(faqIds) {
     .catch((error) => {
       console.error("Error loading FAQs:", error);
     });
-}
-
-function loadPDFsForChatbot(pdfIds) {
-  const token = localStorage.getItem("token");
-  fetch("/api/faqs", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((response) => response.json())
-    .then((allPdfs) => {
-      const tbody = document.querySelector("#pdf-table tbody");
-      const filteredPdfs = allPdfs.filter((pdfId) => pdfIds.includes(pdfId._id));
-      filteredPdfs.forEach((pdfId) => {
-        const row = document.createElement("tr");
-        row.setAttribute("data-pdf-id", pdfId._id);
-        row.innerHTML = `
-            <td>${pdfId.filename}</td>
-            <td>
-                <button class="btn-view" onclick="viewPDF('${pdfId._id}')">VIEW</button>
-            </td>
-          `;
-        tbody.appendChild(row);
-      });
-      console.log(`Loaded ${filteredPdfs.length} PDFs for this chatbot`);
-    })
-    .catch((error) => {
-      console.error("Error loading PDFs:", error);
-    });
-}
-
-function viewPDF(pdfId) {
-  // Handle viewing the PDF (e.g., open it in a new window or embed it in a viewer)
-  console.log(`Viewing PDF with ID: ${pdfId}`);
 }
 
 function addOrUpdateFAQ() {
@@ -602,11 +563,11 @@ async function uploadPDF() {
       if (response.ok) {
           const data = await response.json();
           statusDiv.textContent = data.message;
-      
+
           // Set the PDF ID in the hidden input field
           const pdfIdInput = document.getElementById("pdf-id");
           pdfIdInput.value = data.pdf._id; // Use the ID from the uploaded PDF
-      
+
           // Dynamically add the newly uploaded PDF to the list with an icon
           const pdfItem = document.createElement('li');
           pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${data.pdf.filename}</span>`;
@@ -620,8 +581,3 @@ async function uploadPDF() {
         statusDiv.textContent = 'An error occurred while uploading the PDF.';
     }
 }
-
-
-
-
-
