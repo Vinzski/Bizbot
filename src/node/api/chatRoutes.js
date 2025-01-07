@@ -370,17 +370,31 @@ router.post("/test", authenticate, async (req, res) => {
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
-        console.log("No match found in FAQs. Forwarding to Rasa...");
-        // Call Rasa for a response
+
+        // If no FAQ match, check PDF content
+        const chatbot = await Chatbot.findById(chatbotId);
+        if (chatbot.pdfId) {
+            const pdfDoc = await PDF.findById(chatbot.pdfId);
+            if (pdfDoc) {
+                // Create vector store from PDF content
+                const vectorStore = await PDFService.createVectorStore(pdfDoc.content);
+                
+                // Search for similar content and generate response
+                const pdfResponse = await PDFService.findSimilarContent(question, vectorStore);
+                
+                if (pdfResponse) {
+                    return res.json({ reply: pdfResponse, source: 'PDF' });
+                }
+            }
+        }
+
+        // If no PDF match, fall back to Rasa
         const rasaResponse = await getRasaResponse(question);
-        return res.json(rasaResponse);
+        return res.json({ reply: rasaResponse, source: 'Rasa' });
+    } catch (error) {
+        console.error('Error processing chat request:', error);
+        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
-  } catch (error) {
-    console.error("Error processing chat request:", error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.toString() });
-  }
 });
 
 // Function to get response from Rasa
