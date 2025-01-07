@@ -2,7 +2,8 @@ const router = require('express').Router();
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
 const Feedback = require('../models/feedbackModel');
-const authenticate = require('../signup/middleware/authMiddleware'); // Path to your auth middleware
+const authenticate = require('../signup/middleware/authMiddleware');
+const PDF = require('../models/PDFmodel');
 
 
 router.get('/name/:chatbotId', authenticate, async (req, res) => {
@@ -99,8 +100,11 @@ router.get('/:chatbotId', authenticate, async (req, res) => {
         // Fetch FAQs associated with this chatbot
         const faqs = await FAQ.find({ _id: { $in: chatbot.faqs } });
 
-        // Send both chatbot and FAQs data
-        res.json({ chatbot, faqs });
+        // Fetch PDFs associated with this chatbot
+        const pdfs = await PDF.find({ chatbotId: chatbot._id });
+
+        // Send chatbot, FAQs, and PDFs data
+        res.json({ chatbot, faqs, pdfs });
     } catch (error) {
         console.error('Failed to fetch chatbot', error);
         res.status(500).json({ message: "Failed to fetch chatbot", error: error.toString() });
