@@ -29,6 +29,6 @@
     "pdf-parse": "^1.1.1",
     "langchain": "^0.3.10",
     "@huggingface/transformers": "^3.2.4",
-    "@huggingface/inference": "^0.27.1"
+    "@huggingface/inference": "^2.8.1"
   }
 }
