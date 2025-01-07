@@ -66,55 +66,6 @@ router.get("/user-interactions/:userId", authenticate, async (req, res) => {
   }
 });
 
-async function searchPDFContent(chatbotId, query) {
-    try {
-        // Fetch PDFs related to the chatbot
-        const pdfs = await PDF.find({ chatbotId });
-
-        if (!pdfs || pdfs.length === 0) {
-            console.log('No PDFs found for the given chatbot.');
-            return null;
-        }
-
-        // Normalize the query
-        const normalizedQuery = query.toLowerCase().trim();
-        const tokenizedQuery = tokenizer.tokenize(normalizedQuery);
-        const stemmedQuery = tokenizedQuery.map(token => stemmer.stem(token));
-
-        let bestMatch = { score: 0, content: null };
-
-        // Iterate over PDFs to find the best matching content
-        pdfs.forEach(pdf => {
-            // Tokenize and stem the PDF content
-            const tokenizedContent = tokenizer.tokenize(pdf.content.toLowerCase());
-            const stemmedContent = tokenizedContent.map(token => stemmer.stem(token));
-
-            // Calculate Jaccard similarity
-            const jaccardScore = jaccardSimilarity(stemmedQuery, stemmedContent);
-            console.log(`PDF Filename: "${pdf.filename}" | Jaccard Similarity: ${jaccardScore.toFixed(2)}`);
-
-            // Update best match if score is higher
-            if (jaccardScore > bestMatch.score) {
-                bestMatch = { score: jaccardScore, content: pdf.content };
-            }
-        });
-
-        // Define a similarity threshold
-        const SIMILARITY_THRESHOLD = 0.2; // Adjust based on testing
-
-        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`Best PDF Match Found: Similarity Score ${bestMatch.score.toFixed(2)}`);
-            return bestMatch.content;
-        } else {
-            console.log('No adequate PDF match found.');
-            return null;
-        }
-    } catch (error) {
-        console.error('Error searching PDF content:', error);
-        return null;
-    }
-}
-
 // Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
   const intersection = setA.filter((x) => setB.includes(x));
@@ -419,12 +370,6 @@ router.post("/test", authenticate, async (req, res) => {
     } else {
       console.log("No adequate FAQ match found.");
 
-      // Check PDF Database
-      const pdfResponse = await searchPDFContent(chatbotId, question);
-      if (pdfResponse) {
-          return res.json({ reply: pdfResponse, source: 'PDF' });
-      }
-
       // If no match found in FAQ, forward the question to Rasa for response
       const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
       return res.json({ reply: rasaResponse, source: "Rasa" });
@@ -437,26 +382,70 @@ router.post("/test", authenticate, async (req, res) => {
   }
 });
 
-// Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
-async function getRasaResponse(question) {
-  // Assuming Rasa API is set up to accept a POST request with the user question
-  try {
-    const response = await axios.post(
-      "http://13.55.82.197:5005/webhooks/rest/webhook",
-      {
-        message: question,
-      }
-    );
+// Function to get response from Rasa
+async function getRasaResponse(question, chatbotId) {
+    try {
+        const response = await axios.post(
+            "http://13.55.82.197:5005/webhooks/rest/webhook",
+            { message: question }
+        );
 
-    if (response.data && response.data.length > 0) {
-      return response.data[0].text;
-    } else {
-      return "Sorry, I couldn't find an answer to that question.";
+        if (response.data && response.data.length > 0) {
+            console.log("Response from Rasa:", response.data[0].text);
+            return { reply: response.data[0].text, source: "Rasa" };
+        } else {
+            console.log("No adequate response from Rasa. Checking PDFs...");
+            const pdfResponse = await searchPDFContent(chatbotId, question);
+            if (pdfResponse) {
+                return { reply: pdfResponse, source: "PDF" };
+            } else {
+                console.log("No match found in PDFs.");
+                return { reply: "Sorry, I couldn't find an answer.", source: "None" };
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching response from Rasa:", error);
+        return { reply: "Sorry, I couldn't fetch an answer from Rasa.", source: "Error" };
     }
-  } catch (error) {
-    console.error("Error fetching response from Rasa:", error);
-    return "Sorry, I couldn't fetch an answer from Rasa at the moment.";
-  }
+}
+
+// Function to search PDF content
+async function searchPDFContent(chatbotId, query) {
+    try {
+        const pdfs = await PDF.find({ chatbotId });
+
+        if (!pdfs || pdfs.length === 0) {
+            console.log('No PDFs found for the given chatbot.');
+            return null;
+        }
+
+        const normalizedQuery = query.toLowerCase().trim();
+        const tokenizedQuery = tokenizer.tokenize(normalizedQuery);
+        const stemmedQuery = tokenizedQuery.map(token => stemmer.stem(token));
+
+        let bestMatch = { score: 0, content: null };
+        pdfs.forEach(pdf => {
+            const tokenizedContent = tokenizer.tokenize(pdf.content.toLowerCase());
+            const stemmedContent = tokenizedContent.map(token => stemmer.stem(token));
+            const jaccardScore = jaccardSimilarity(stemmedQuery, stemmedContent);
+
+            if (jaccardScore > bestMatch.score) {
+                bestMatch = { score: jaccardScore, content: pdf.content };
+            }
+        });
+
+        const SIMILARITY_THRESHOLD = 0.2;
+        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+            console.log(`Best PDF Match Found: Similarity Score ${bestMatch.score.toFixed(2)}`);
+            return bestMatch.content;
+        } else {
+            console.log('No adequate PDF match found.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error searching PDF content:', error);
+        return null;
+    }
 }
 
 router.get("/user-interactions/:userId", authenticate, async (req, res) => {
