@@ -1,21 +1,20 @@
 const express = require("express");
 const axios = require("axios");
 const natural = require("natural");
-const JaroWinklerDistance = natural.JaroWinklerDistance; // Correct function import
+const JaroWinklerDistance = natural.JaroWinklerDistance;
 const TfIdf = require("natural").TfIdf;
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require("fuzzy");
 const router = express.Router();
-const { OpenAI } = require('langchain/openai');
 const { Document } = require('langchain/document_loaders');
 const { HuggingFaceInference } = require('@huggingface/inference');
-const PDFModel = require('../models/PDFModel'); // Import your PDF model
+const PDFModel = require('../models/PDFModel');
 
 const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
 const FAQ = require("../models/faqModel");
-const authenticate = require("../signup/middleware/authMiddleware"); // Add path to your auth middleware
+const authenticate = require("../signup/middleware/authMiddleware"); 
 
 // Route to send a simple message (unprotected)
 router.post("/send_message", async (req, res) => {
