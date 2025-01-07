@@ -390,7 +390,8 @@ router.post("/test", authenticate, async (req, res) => {
 });
 
 // Function to search PDF content
-async function searchPDFContent(query) {
+async function searchPDFContent() {
+  const { question, chatbotId } = req.body;
   const userId = req.user.id;
     try {
         const pdfs = await PDF.find({ userId: userId });
