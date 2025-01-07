@@ -30,6 +30,6 @@
     "@langchain/community": "^0.0.10",
     "@langchain/core": "^0.1.10",
     "langchain": "^0.0.110",
-    "@huggingface/inference": "^2.8.1"
+    "@huggingface/inference": "^1.8.0"
   }
 }
