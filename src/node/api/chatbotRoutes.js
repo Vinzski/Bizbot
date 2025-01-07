@@ -42,8 +42,8 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs } = req.body;  // Data from the client
-    const userId = req.user.id;  // Retrieved from authentication middleware
+    const { name, type, faqs, pdfId } = req.body; // Include pdfId from the client
+    const userId = req.user.id; // Retrieved from authentication middleware
 
     try {
         let chatbot = await Chatbot.findOne({ userId, name });
@@ -52,6 +52,9 @@ router.post('/', authenticate, async (req, res) => {
             chatbot.faqs = faqs;
             chatbot.type = type;
             chatbot.name = name;
+            if (pdfId) {
+                chatbot.pdfId = pdfId; // Update the PDF reference
+            }
             await chatbot.save();
         } else {
             // Create a new chatbot if not found
@@ -60,7 +63,8 @@ router.post('/', authenticate, async (req, res) => {
                 type,
                 userId,
                 faqs,
-                creationDate: new Date()  // Set the creation date on creation
+                pdfId, // Add the PDF reference on creation
+                creationDate: new Date(), // Set the creation date on creation
             });
             await chatbot.save();
         }
