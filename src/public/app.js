@@ -48,24 +48,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function loadPDFsForChatbot(pdfIds) {
   const token = localStorage.getItem("token");
-  fetch(`/api/pdfs?ids=${pdfIds.join(',')}`, {
+  fetch("/api/pdfs", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
     .then((response) => response.json())
-    .then((pdfs) => {
-      const pdfContainer = document.getElementById("pdf-list");
-      pdfs.forEach(pdf => {
-        const listItem = document.createElement("li");
-        listItem.textContent = pdf.filename;
-        pdfContainer.appendChild(listItem);
+    .then((allPdfs) => {
+      const tbody = document.querySelector("#pdf-table tbody");
+      const filteredPdfs = allPdfs.filter((pdf) => pdfIds.includes(pdf._id));
+      filteredPdfs.forEach((pdf) => {
+        const row = document.createElement("tr");
+        row.setAttribute("data-pdf-id", pdf._id);
+        row.innerHTML = `
+            <td>${pdf.filename}</td>
+            <td>
+                <button class="btn-view" onclick="viewPDF('${pdf._id}')">VIEW</button>
+            </td>
+          `;
+        tbody.appendChild(row);
       });
+      console.log(`Loaded ${filteredPdfs.length} PDFs for this chatbot`);
     })
     .catch((error) => {
       console.error("Error loading PDFs:", error);
     });
 }
+
+function viewPDF(pdfId) {
+  // Handle viewing the PDF (e.g., open it in a new window or embed it in a viewer)
+  console.log(`Viewing PDF with ID: ${pdfId}`);
 
 function loadUserInfo() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
