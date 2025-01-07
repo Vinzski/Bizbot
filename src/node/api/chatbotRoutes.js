@@ -101,7 +101,7 @@ router.get('/:chatbotId', authenticate, async (req, res) => {
         const faqs = await FAQ.find({ _id: { $in: chatbot.faqs } });
 
         // Fetch PDFs associated with this chatbot
-        const pdfs = await PDF.find({ chatbotId: chatbot._id });
+        const pdfs = await PDF.find({ chatbotId: req.params.chatbotId });
 
         // Send chatbot, FAQs, and PDFs data
         res.json({ chatbot, faqs, pdfs });
