@@ -3,7 +3,7 @@ const { HuggingFaceInference } = require('@langchain/community/llms/hf');
 const { Document } = require('@langchain/core/documents');
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 const { FaissStore } = require('@langchain/community/vectorstores/faiss');
-const { HuggingFaceEmbeddings } = require('@langchain/community/embeddings/hf');
+const { HuggingFaceInferenceEmbeddings } = require('@langchain/community/embeddings/hf');
 const PDF = require('../models/PDFModel');
 require('dotenv').config();
 
@@ -14,8 +14,9 @@ class PDFService {
             apiKey: process.env.HUGGINGFACEHUB_API_KEY
         });
 
-        this.embeddings = new HuggingFaceEmbeddings({
-            model: "sentence-transformers/all-MiniLM-L6-v2"
+        this.embeddings = new HuggingFaceInferenceEmbeddings({
+            model: "sentence-transformers/all-MiniLM-L6-v2",
+            apiKey: process.env.HUGGINGFACEHUB_API_KEY
         });
     }
 
