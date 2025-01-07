@@ -368,11 +368,17 @@ router.post("/test", authenticate, async (req, res) => {
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
-      console.log("No adequate FAQ match found.");
+        console.log("No adequate FAQ match found. Checking PDFs...");
+        // Check PDF Database
+        const pdfResponse = await searchPDFContent(chatbotId, question);
+        if (pdfResponse) {
+            return res.json({ reply: pdfResponse, source: "PDF" });
+        }
 
-      // If no match found in FAQ, forward the question to Rasa for response
-      const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
-      return res.json({ reply: rasaResponse, source: "Rasa" });
+        console.log("No match found in PDFs. Forwarding to Rasa...");
+        // Call Rasa for a response
+        const rasaResponse = await getRasaResponse(question);
+        return res.json(rasaResponse);
     }
   } catch (error) {
     console.error("Error processing chat request:", error);
@@ -382,51 +388,24 @@ router.post("/test", authenticate, async (req, res) => {
   }
 });
 
-// Function to get response from Rasa
-async function getRasaResponse(question, chatbotId) {
-    try {
-        const response = await axios.post(
-            "http://13.55.82.197:5005/webhooks/rest/webhook",
-            { message: question }
-        );
-
-        if (response.data && response.data.length > 0) {
-            console.log("Response from Rasa:", response.data[0].text);
-            return { reply: response.data[0].text, source: "Rasa" };
-        } else {
-            console.log("No adequate response from Rasa. Checking PDFs...");
-            const pdfResponse = await searchPDFContent(chatbotId, question);
-            if (pdfResponse) {
-                return { reply: pdfResponse, source: "PDF" };
-            } else {
-                console.log("No match found in PDFs.");
-                return { reply: "Sorry, I couldn't find an answer.", source: "None" };
-            }
-        }
-    } catch (error) {
-        console.error("Error fetching response from Rasa:", error);
-        return { reply: "Sorry, I couldn't fetch an answer from Rasa.", source: "Error" };
-    }
-}
-
 // Function to search PDF content
 async function searchPDFContent(chatbotId, query) {
     try {
         const pdfs = await PDF.find({ chatbotId });
 
         if (!pdfs || pdfs.length === 0) {
-            console.log('No PDFs found for the given chatbot.');
+            console.log("No PDFs found for the given chatbot.");
             return null;
         }
 
         const normalizedQuery = query.toLowerCase().trim();
         const tokenizedQuery = tokenizer.tokenize(normalizedQuery);
-        const stemmedQuery = tokenizedQuery.map(token => stemmer.stem(token));
+        const stemmedQuery = tokenizedQuery.map((token) => stemmer.stem(token));
 
         let bestMatch = { score: 0, content: null };
-        pdfs.forEach(pdf => {
+        pdfs.forEach((pdf) => {
             const tokenizedContent = tokenizer.tokenize(pdf.content.toLowerCase());
-            const stemmedContent = tokenizedContent.map(token => stemmer.stem(token));
+            const stemmedContent = tokenizedContent.map((token) => stemmer.stem(token));
             const jaccardScore = jaccardSimilarity(stemmedQuery, stemmedContent);
 
             if (jaccardScore > bestMatch.score) {
@@ -439,12 +418,32 @@ async function searchPDFContent(chatbotId, query) {
             console.log(`Best PDF Match Found: Similarity Score ${bestMatch.score.toFixed(2)}`);
             return bestMatch.content;
         } else {
-            console.log('No adequate PDF match found.');
+            console.log("No adequate PDF match found.");
             return null;
         }
     } catch (error) {
-        console.error('Error searching PDF content:', error);
+        console.error("Error searching PDF content:", error);
         return null;
+    }
+}
+
+// Function to get response from Rasa
+async function getRasaResponse(question) {
+    try {
+        const response = await axios.post(
+            "http://13.55.82.197:5005/webhooks/rest/webhook",
+            { message: question }
+        );
+
+        if (response.data && response.data.length > 0) {
+            console.log("Response from Rasa:", response.data[0].text);
+            return { reply: response.data[0].text, source: "Rasa" };
+        } else {
+            return { reply: "Sorry, I couldn't find an answer to that question.", source: "Rasa" };
+        }
+    } catch (error) {
+        console.error("Error fetching response from Rasa:", error);
+        return { reply: "Sorry, I couldn't fetch an answer from Rasa at the moment.", source: "Error" };
     }
 }
 
