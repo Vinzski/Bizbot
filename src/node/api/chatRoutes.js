@@ -390,9 +390,9 @@ router.post("/test", authenticate, async (req, res) => {
 });
 
 // Function to search PDF content
-async function searchPDFContent(chatbotId, query) {
+async function searchPDFContent(query) {
     try {
-        const pdfs = await PDF.find({ chatbotId });
+        const pdfs = await PDF.find({ userId: userId });
 
         if (!pdfs || pdfs.length === 0) {
             console.log("No PDFs found for the given chatbot.");
