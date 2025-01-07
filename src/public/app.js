@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   const chatbotId = urlParams.get("chatbotId");
   const faqs = urlParams.get("faqs")?.split(",") || []; // Fetch FAQ IDs from the URL
+  const pdfs = urlParams.get("pdfs")?.split(",") || []; // Fetch PDF IDs from the URL
 
   if (chatbotId) {
     loadChatbotDetails(chatbotId);
@@ -39,7 +40,32 @@ document.addEventListener("DOMContentLoaded", function () {
   if (faqs.length) {
     loadFAQsForChatbot(faqs); // Load FAQ IDs passed in the URL
   }
+
+  if (pdfs.length) {
+    loadPDFsForChatbot(pdfs); // Load PDF IDs passed in the URL
+  }
 });
+
+function loadPDFsForChatbot(pdfIds) {
+  const token = localStorage.getItem("token");
+  fetch(`/api/pdfs?ids=${pdfIds.join(',')}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((pdfs) => {
+      const pdfContainer = document.getElementById("pdf-list");
+      pdfs.forEach(pdf => {
+        const listItem = document.createElement("li");
+        listItem.textContent = pdf.filename;
+        pdfContainer.appendChild(listItem);
+      });
+    })
+    .catch((error) => {
+      console.error("Error loading PDFs:", error);
+    });
+}
 
 function loadUserInfo() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
