@@ -62,15 +62,24 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
 function jaccardSimilarity(setA, setB) {
     const intersection = setA.filter(x => setB.includes(x));
     const union = [...new Set([...setA, ...setB])];
-    return intersection.length / union.length;
+    return union.length === 0 ? 0 : intersection.length / union.length;
 }
 
 // Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
+    const tfidfModel = new TfIdf();
     tfidfModel.addDocument(tokensA);
     tfidfModel.addDocument(tokensB);
-    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
+    const terms = tfidfModel.listTerms(0).map(term => term.term);
+    const vectorA = terms.map(term => tfidfModel.tfidf(term, 0));
+    const vectorB = terms.map(term => tfidfModel.tfidf(term, 1));
+
+    const dotProduct = vectorA.reduce((sum, a, idx) => sum + a * (vectorB[idx] || 0), 0);
+    const magnitudeA = Math.sqrt(vectorA.reduce((sum, a) => sum + a * a, 0));
+    const magnitudeB = Math.sqrt(vectorB.reduce((sum, b) => sum + b * b, 0));
+
+    if (magnitudeA === 0 || magnitudeB === 0) return 0;
+    return dotProduct / (magnitudeA * magnitudeB);
 }
 
 // Jaro-Winkler Similarity
@@ -79,8 +88,47 @@ function jaroWinklerSimilarity(str1, str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
         return 0; // Return a default similarity score if inputs are invalid
     }
-    // Use the JaroWinklerDistance function directly as it is not a method of a class
-    return JaroWinklerDistance(str1, str2); // Correctly using the function now
+    return JaroWinklerDistance(str1, str2);
+}
+
+// Helper function to get the best similarity score
+function getBestSimilarityScore(userTokens, docTokens, userString, docString) {
+    const jaccardScore = jaccardSimilarity(userTokens, docTokens);
+    const cosineScore = cosineSimilarity(userTokens, docTokens);
+    const jaroWinklerScore = jaroWinklerSimilarity(userString, docString);
+    return Math.max(jaccardScore, cosineScore, jaroWinklerScore);
+}
+
+// Helper function to get a relevant snippet from PDF content
+function getRelevantSnippet(content, query) {
+    // Simple implementation: find the first sentence containing the query
+    const sentences = content.split(/(?<=[.?!])\s+/);
+    const lowerQuery = query.toLowerCase();
+    for (let sentence of sentences) {
+        if (sentence.toLowerCase().includes(lowerQuery)) {
+            return sentence;
+        }
+    }
+    // If no sentence matches, return the first few sentences
+    return sentences.slice(0, 2).join(' ');
+}
+
+// Function to get response from Rasa (replace with actual Rasa API call if necessary)
+async function getRasaResponse(question) {
+    try {
+        const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
+            message: question
+        });
+
+        if (response.data && response.data.length > 0) {
+            return response.data[0].text;
+        } else {
+            return "Sorry, I couldn't find an answer to that question.";
+        }
+    } catch (error) {
+        console.error('Error fetching response from Rasa:', error);
+        return "Sorry, I couldn't fetch an answer from Rasa at the moment.";
+    }
 }
 
 // Protected route for handling chat
@@ -215,22 +263,23 @@ router.post('/test', authenticate, async (req, res) => {
     console.log(`Question: "${question}"`);
 
     try {
-        // Fetch the chatbot with populated FAQs and PDFs
+        // Fetch the chatbot
         const chatbot = await Chatbot.findOne({ _id: chatbotId, userId: userId })
-            .populate('faqs')
-            .populate('pdfId');
+            .populate('faqs');
 
         if (!chatbot) {
             return res.status(404).json({ message: "Chatbot not found." });
         }
 
         const faqs = chatbot.faqs;
-        const pdfId = chatbot.pdfId;
+
+        // Fetch PDFs associated with this chatbot and user
+        const pdfs = await PDF.find({ chatbotId: chatbotId, userId: userId });
 
         console.log(`Number of FAQs found: ${faqs.length}`);
-        console.log(`Number of PDFs found: ${pdfId.length}`);
+        console.log(`Number of PDFs found: ${pdfs.length}`);
 
-        if (faqs.length === 0 && pdfId.length === 0) {
+        if (faqs.length === 0 && pdfs.length === 0) {
             console.log('No FAQs or PDFs found for the given userId and chatbotId.');
         }
 
@@ -263,14 +312,6 @@ router.post('/test', authenticate, async (req, res) => {
         let bestFAQMatch = { score: 0, item: null };
         let bestPDFMatch = { score: 0, item: null };
 
-        // Define a helper function to compute the best similarity score
-        function getBestSimilarityScore(userTokens, docTokens, userString, docString) {
-            const jaccardScore = jaccardSimilarity(userTokens, docTokens);
-            const cosineScore = cosineSimilarity(userTokens, docTokens);
-            const jaroWinklerScore = jaroWinklerSimilarity(userString, docString);
-            return Math.max(jaccardScore, cosineScore, jaroWinklerScore);
-        }
-
         // --- FAQ SIMILARITY ---
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
@@ -290,7 +331,7 @@ router.post('/test', authenticate, async (req, res) => {
         });
 
         // --- PDF SIMILARITY ---
-        pdfId.forEach(pdf => {
+        pdfs.forEach(pdf => {
             const pdfContent = pdf.content.toLowerCase().trim();
             const tokenizedPdf = tokenizer.tokenize(pdfContent);
             const similarity = getBestSimilarityScore(
@@ -310,14 +351,14 @@ router.post('/test', authenticate, async (req, res) => {
         // Define threshold for similarity matching
         const SIMILARITY_THRESHOLD = 0.3; // Adjust this threshold based on testing
 
-        // Compare best FAQ vs best PDF
+        // Determine the best match
         if (bestFAQMatch.score >= SIMILARITY_THRESHOLD || bestPDFMatch.score >= SIMILARITY_THRESHOLD) {
             if (bestFAQMatch.score >= bestPDFMatch.score) {
                 console.log(`FAQ Match Found: "${bestFAQMatch.item.question}" with similarity ${bestFAQMatch.score.toFixed(2)}`);
                 return res.json({ reply: bestFAQMatch.item.answer, source: 'FAQ' });
             } else {
                 console.log(`PDF Match Found: "${bestPDFMatch.item.filename}" with similarity ${bestPDFMatch.score.toFixed(2)}`);
-                // Optionally, return a snippet instead of full content
+                // Extract a relevant snippet from the PDF content
                 const snippet = getRelevantSnippet(bestPDFMatch.item.content, normalizedUserQuestion);
                 return res.json({ 
                     reply: snippet || "Refer to the PDF for more details.", 
@@ -337,38 +378,6 @@ router.post('/test', authenticate, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
-
-// Function to get a relevant snippet from PDF content
-function getRelevantSnippet(content, query) {
-    // Simple implementation: find the first sentence containing the query
-    const sentences = content.split(/(?<=[.?!])\s+/);
-    const lowerQuery = query.toLowerCase();
-    for (let sentence of sentences) {
-        if (sentence.toLowerCase().includes(lowerQuery)) {
-            return sentence;
-        }
-    }
-    // If no sentence matches, return the first few sentences
-    return sentences.slice(0, 2).join(' ');
-}
-
-// Function to get response from Rasa (replace with actual Rasa API call if necessary)
-async function getRasaResponse(question) {
-    try {
-        const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
-            message: question
-        });
-
-        if (response.data && response.data.length > 0) {
-            return response.data[0].text;
-        } else {
-            return "Sorry, I couldn't find an answer to that question.";
-        }
-    } catch (error) {
-        console.error('Error fetching response from Rasa:', error);
-        return "Sorry, I couldn't fetch an answer from Rasa at the moment.";
-    }
-}
 
 router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
