@@ -74,29 +74,25 @@ async function getPdfResponse(question, userId) {
     // Fetch PDFs uploaded by the user
     const pdfs = await PDFModel.find({ userId: userId });
     
-    // If no PDFs found, return an empty string
     if (pdfs.length === 0) {
         console.log("No PDFs found for the user.");
         return null;
     }
 
-    // Set up Hugging Face API using LangChain (Free tier usage)
+    // Set up Hugging Face API
     const hf = new HuggingFaceInference({
-        model: 'distilbert-base-uncased-distilled-squad', // You can replace with a model of your choice
+        model: 'distilbert-base-uncased-distilled-squad', // Your chosen model
     });
 
-    // Process each PDF and extract content to answer the question
     for (const pdf of pdfs) {
         const pdfText = pdf.content;
-        
-        // Query the PDF using LangChain or Hugging Face
+
         try {
             const response = await hf.call({
                 question: question,
-                context: pdfText, // Use the PDF content as context
+                context: pdfText,
             });
 
-            // If a response is found, return it
             if (response) {
                 console.log(`PDF Response Found: ${response}`);
                 return response;
@@ -106,7 +102,6 @@ async function getPdfResponse(question, userId) {
         }
     }
 
-    // If no response from PDFs, return null
     return null;
 }
 
