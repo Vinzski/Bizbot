@@ -10,7 +10,7 @@ class PDFService {
         // Initialize HuggingFace model - using a free model
         this.model = new HuggingFaceInference({
             model: "google/flan-t5-small", // Free to use, general-purpose model
-            apiKey: process.env.HUGGINGFACE_API_KEY // Get a free key from HuggingFace
+            apiKey: process.env.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 // Get a free key from HuggingFace
         });
 
         // Initialize embeddings with a free model
