@@ -7,9 +7,10 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require("fuzzy");
 const router = express.Router();
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
-const fs = require("fs");
-const path = require("path");
+const { OpenAI } = require('langchain/openai');
+const { Document } = require('langchain/document_loaders');
+const { HuggingFaceInference } = require('@huggingface/inference');
+const PDFModel = require('../models/PDFModel'); // Import your PDF model
 
 const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
