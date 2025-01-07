@@ -350,7 +350,7 @@ router.post('/test', authenticate, async (req, res) => {
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 0.3; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
 
         // Determine the best match
         if (bestFAQMatch.score >= SIMILARITY_THRESHOLD || bestPDFMatch.score >= SIMILARITY_THRESHOLD) {
