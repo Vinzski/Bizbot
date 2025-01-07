@@ -1,223 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot Management - BizBot Admin</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Management - BizBot Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-  <div class="container">
-    <aside class="sidebar">
-    <h2>BizBot Admin</h2>
-    <nav>
-        <ul>
-            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="chatbot-management.html" class="active"><i class="fas fa-robot"></i> Chatbot Management</a></li>
-            <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
-            <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
-            <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
-            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
-        </ul>
-    </nav>
-</aside>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="chatbot-management.html" class="active"><i class="fas fa-robot"></i> Chatbot
+                            Management</a></li>
+                    <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
+                    <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
+                    <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i>
+                            Logout</button></li>
+                </ul>
+            </nav>
+        </aside>
 
-    <main class="main-content">
-      <header class="dashboard-header">
-        <h1>Chatbot Management</h1>
-      </header>
-      <div class="card">
-        <h2>Existing Chatbots</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Chatbot Name</th>
-              <th>Creation Date</th>
-              <th>Modified Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Dynamically added rows should appear here -->
-          </tbody>
-        </table>
-      </div>
-    </main>
-  </div>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>Chatbot Management</h1>
+            </header>
+            <div class="card">
+                <h2>Existing Chatbots</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Chatbot Name</th>
+                            <th>Creation Date</th>
+                            <th>Modified Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically added rows should appear here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
 
-  <script src="app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const chatbotId = urlParams.get('chatbotId');
-        const faqs = urlParams.get('faqs') ? urlParams.get('faqs').split(',') : [];
-        const pdfs = urlParams.get('pdfs') ? urlParams.get('pdfs').split(',') : [];
-    
-        // Log the parsed data
-        console.log('Chatbot ID:', chatbotId);
-        console.log('FAQs:', faqs);
-        console.log('PDFs:', pdfs);
-    
-        // Call APIs to fetch additional details if needed
-        if (pdfs.length) {
-            loadPDFDetails(pdfs);
-        }
-    });
-    
-    function loadPDFDetails(pdfIds) {
-        const token = localStorage.getItem('token');
-        Promise.all(
-            pdfIds.map(pdfId =>
-                fetch(`/api/pdfs/${pdfId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }).then(response => {
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadChatbots();
+        });
+        function loadChatbots() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('No token found, redirecting to login.');
+                window.location.href = 'index.html';
+                return;
+            }
+            fetch('/api/chatbots', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
                     if (!response.ok) {
-                        throw new Error('Failed to fetch PDF details');
+                        throw new Error('Failed to fetch chatbots');
                     }
                     return response.json();
                 })
-            )
-        )
-            .then(pdfs => {
-                console.log('Fetched PDF details:', pdfs);
-                displayPDFs(pdfs);
-            })
-            .catch(error => {
-                console.error('Error fetching PDF details:', error);
-            });
-    }
-    
-    function displayPDFs(pdfs) {
-        const pdfContainer = document.getElementById('pdf-container');
-        pdfs.forEach(pdf => {
-            const pdfElement = document.createElement('div');
-            pdfElement.classList.add('pdf-item');
-            pdfElement.innerHTML = `
-                <h3>${pdf.filename}</h3>
-                <p>Uploaded on: ${new Date(pdf.timestamp).toLocaleString()}</p>
-                <p>${pdf.content.slice(0, 100)}...</p>
-            `;
-            pdfContainer.appendChild(pdfElement);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadChatbots();
-    });
-    function loadChatbots() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, redirecting to login.');
-        window.location.href = 'index.html';
-        return;
-      }
-      fetch('/api/chatbots', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to fetch chatbots');
-          }
-          return response.json();
-        })
-        .then(chatbots => {
-          const tbody = document.querySelector('table tbody');
-          tbody.innerHTML = ''; // Clear existing rows
-          chatbots.forEach(chatbot => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
+                .then(chatbots => {
+                    const tbody = document.querySelector('table tbody');
+                    tbody.innerHTML = ''; // Clear existing rows
+                    chatbots.forEach(chatbot => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
               <td>${chatbot.name}</td>
               <td>${new Date(chatbot.createdAt).toLocaleString()}</td>
               <td>${new Date(chatbot.updatedAt).toLocaleString()}</td>
               <td><button onclick="editChatbot('${chatbot._id}')">Edit</button> 
               <button onclick="deleteChatbot('${chatbot._id}')">Delete</button>
             `;
-            tbody.appendChild(row);
-          });
-        })
-        .catch(error => {
-          console.error('Error loading chatbots:', error);
-          alert('Failed to load chatbots. Please try again.');
-        });
-    }
-    async function editChatbot(chatbotId) {
-      const token = localStorage.getItem('token');
-      try {
-        const response = await fetch(`/api/chatbots/${chatbotId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch chatbot details');
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading chatbots:', error);
+                    alert('Failed to load chatbots. Please try again.');
+                });
         }
-        const data = await response.json();
-        // Navigate to training.html with chatbot and FAQ data in query parameters
-        const chatbot = data.chatbot;
-        const faqs = data.faqs.map(faq => faq._id).join(',');
-        window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}`;
-      } catch (error) {
-        console.error('Error fetching chatbot details:', error);
-        alert('Failed to fetch chatbot details. Please try again.');
-      }
-    }
-function deleteChatbot(chatbotId) {
-  const token = localStorage.getItem('token');
-  console.log("Deleting chatbot with ID:", chatbotId);
-
-  // Using SweetAlert to ask for user confirmation before deleting
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "This action will delete the chatbot and its FAQs, and it cannot be undone.",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#FF0000',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    cancelButtonText: 'Cancel'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Proceed with the delete request if confirmed
-      fetch(`/api/chatbots/${chatbotId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
+        async function editChatbot(chatbotId) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/chatbots/${chatbotId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch chatbot details');
+                }
+                const data = await response.json();
+                const chatbot = data.chatbot;
+                const faqs = data.faqs.map(faq => faq._id).join(',');
+                const pdfs = data.pdfs.map(pdf => pdf._id).join(','); // Fetch PDFs data
+                window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}&pdfs=${pdfs}`; // Include PDFs in URL
+            } catch (error) {
+                console.error('Error fetching chatbot details:', error);
+                alert('Failed to fetch chatbot details. Please try again.');
+            }
         }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to delete chatbot');
+
+        function deleteChatbot(chatbotId) {
+            const token = localStorage.getItem('token');
+            console.log("Deleting chatbot with ID:", chatbotId);
+
+            // Using SweetAlert to ask for user confirmation before deleting
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action will delete the chatbot and its FAQs, and it cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#FF0000',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Proceed with the delete request if confirmed
+                    fetch(`/api/chatbots/${chatbotId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to delete chatbot');
+                            }
+                            return response.json();
+                        })
+                        .then(() => {
+                            Swal.fire(
+                                'Deleted!',
+                                'The chatbot has been deleted.',
+                                'success'
+                            );
+                            loadChatbots(); // Reload the chatbot list after deletion
+                        })
+                        .catch(error => {
+                            console.error('Error deleting chatbot:', error);
+                            Swal.fire(
+                                'Error!',
+                                'Failed to delete chatbot. Please try again.',
+                                'error'
+                            );
+                        });
+                }
+            });
         }
-        return response.json();
-      })
-      .then(() => {
-        Swal.fire(
-          'Deleted!',
-          'The chatbot has been deleted.',
-          'success'
-        );
-        loadChatbots(); // Reload the chatbot list after deletion
-      })
-      .catch(error => {
-        console.error('Error deleting chatbot:', error);
-        Swal.fire(
-          'Error!',
-          'Failed to delete chatbot. Please try again.',
-          'error'
-        );
-      });
-    }
-  });
-}
 
 
-  </script>
+    </script>
 </body>
+
 </html>
