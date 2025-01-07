@@ -66,6 +66,55 @@ router.get("/user-interactions/:userId", authenticate, async (req, res) => {
   }
 });
 
+async function searchPDFContent(chatbotId, query) {
+    try {
+        // Fetch PDFs related to the chatbot
+        const pdfs = await PDF.find({ chatbotId });
+
+        if (!pdfs || pdfs.length === 0) {
+            console.log('No PDFs found for the given chatbot.');
+            return null;
+        }
+
+        // Normalize the query
+        const normalizedQuery = query.toLowerCase().trim();
+        const tokenizedQuery = tokenizer.tokenize(normalizedQuery);
+        const stemmedQuery = tokenizedQuery.map(token => stemmer.stem(token));
+
+        let bestMatch = { score: 0, content: null };
+
+        // Iterate over PDFs to find the best matching content
+        pdfs.forEach(pdf => {
+            // Tokenize and stem the PDF content
+            const tokenizedContent = tokenizer.tokenize(pdf.content.toLowerCase());
+            const stemmedContent = tokenizedContent.map(token => stemmer.stem(token));
+
+            // Calculate Jaccard similarity
+            const jaccardScore = jaccardSimilarity(stemmedQuery, stemmedContent);
+            console.log(`PDF Filename: "${pdf.filename}" | Jaccard Similarity: ${jaccardScore.toFixed(2)}`);
+
+            // Update best match if score is higher
+            if (jaccardScore > bestMatch.score) {
+                bestMatch = { score: jaccardScore, content: pdf.content };
+            }
+        });
+
+        // Define a similarity threshold
+        const SIMILARITY_THRESHOLD = 0.2; // Adjust based on testing
+
+        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+            console.log(`Best PDF Match Found: Similarity Score ${bestMatch.score.toFixed(2)}`);
+            return bestMatch.content;
+        } else {
+            console.log('No adequate PDF match found.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error searching PDF content:', error);
+        return null;
+    }
+}
+
 // Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
   const intersection = setA.filter((x) => setB.includes(x));
@@ -369,6 +418,12 @@ router.post("/test", authenticate, async (req, res) => {
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
       console.log("No adequate FAQ match found.");
+
+      // Check PDF Database
+      const pdfResponse = await searchPDFContent(chatbotId, question);
+      if (pdfResponse) {
+          return res.json({ reply: pdfResponse, source: 'PDF' });
+      }
 
       // If no match found in FAQ, forward the question to Rasa for response
       const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
