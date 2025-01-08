@@ -282,121 +282,125 @@ router.post('/', authenticate, async (req, res) => {
     }
 });
 
-
 // Protected route for handling chat
 router.post('/test', authenticate, async (req, res) => {
-    const { question, chatbotId } = req.body;
-    const userId = req.user.id;
+  const { question, chatbotId } = req.body;
+  const userId = req.user.id;
 
-    console.log('--- Incoming Chat Request ---');
-    console.log(`User ID: ${userId}`);
-    console.log(`Chatbot ID: ${chatbotId}`);
-    console.log(`Question: "${question}"`);
+  console.log('--- Incoming Chat Request ---');
+  console.log(`User ID: ${userId}`);
+  console.log(`Chatbot ID: ${chatbotId}`);
+  console.log(`Question: "${question}"`);
 
-    try {
-        // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
-        console.log(`Number of FAQs found: ${faqs.length}`);
+  try {
+      // Fetch FAQs specific to the chatbot and user
+      const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+      console.log(`Number of FAQs found: ${faqs.length}`);
 
-        if (faqs.length === 0) {
-            console.log('No FAQs found for the given userId and chatbotId.');
-        }
+      if (faqs.length === 0) {
+          console.log('No FAQs found for the given userId and chatbotId.');
+      }
 
-        // Fetch PDFs specific to the chatbot and user
-        const pdfs = await PDF.find({ userId: userId, chatbotId: chatbotId });
-        console.log(`Number of PDFs found: ${pdfs.length}`);
+      // Fetch PDFs specific to the chatbot and user
+      const pdfs = await PDF.find({ userId: userId, chatbotId: chatbotId });
+      console.log(`Number of PDFs found: ${pdfs.length}`);
 
-        // Normalize the user question
-        const normalizedUserQuestion = question.toLowerCase().trim();
-        const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+      // Normalize the user question
+      const normalizedUserQuestion = question.toLowerCase().trim();
+      const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+      const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
 
-        // Short Query Handling
-        if (tokenizedUserQuestion.length <= 2) {
-            console.log('Short query detected. Attempting keyword match...');
-            const keywordMatch = faqs.find(faq =>
-                tokenizedUserQuestion.some(token => faq.question.toLowerCase().includes(token))
-            );
+      // Short Query Handling
+      if (tokenizedUserQuestion.length <= 2) {
+          console.log('Short query detected. Attempting keyword match...');
+          const keywordMatch = faqs.find(faq =>
+              tokenizedUserQuestion.some(token => faq.question.toLowerCase().includes(token))
+          );
 
-            if (keywordMatch) {
-                console.log(`Keyword Match Found: "${keywordMatch.question}"`);
-                return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
-            }
-        }
+          if (keywordMatch) {
+              console.log(`Keyword Match Found: "${keywordMatch.question}"`);
+              return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
+          }
+      }
 
-        // 1. Exact Match Check
-        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
-        if (exactMatch) {
-            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
-        }
+      // 1. Exact Match Check
+      const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
+      if (exactMatch) {
+          console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+          return res.json({ reply: exactMatch.answer, source: 'FAQ' });
+      }
 
-        // Initialize bestMatch object
-        let bestMatch = { score: 0, answer: null, source: null };
+      // Initialize bestMatch object
+      let bestMatch = { score: 0, answer: null, source: null };
 
-        // 2. Jaccard Similarity Check for FAQs
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
-            }
-        });
+      // 2. Jaccard Similarity Check for FAQs
+      faqs.forEach(faq => {
+          const faqText = faq.question.toLowerCase().trim();
+          const tokenizedFaq = tokenizer.tokenize(faqText);
+          const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
+          console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
+          if (similarity > bestMatch.score) {
+              bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
+          }
+      });
 
-        // 3. Cosine Similarity Check for FAQs
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
-            }
-        });
+      // 3. Cosine Similarity Check for FAQs
+      faqs.forEach(faq => {
+          const faqText = faq.question.toLowerCase().trim();
+          const tokenizedFaq = tokenizer.tokenize(faqText);
+          const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+          console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
+          if (similarity > bestMatch.score) {
+              bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
+          }
+      });
 
-        // 4. Jaro-Winkler Similarity Check for FAQs (fuzzy matching)
-        faqs.forEach(faq => {
-            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
-            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
-            }
-        });
+      // 4. Jaro-Winkler Similarity Check for FAQs (fuzzy matching)
+      faqs.forEach(faq => {
+          const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
+          console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
+          if (similarity > bestMatch.score) {
+              bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
+          }
+      });
 
-        // Define threshold for FAQ similarity matching
-        const FAQ_SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
+      // Define threshold for FAQ similarity matching
+      const FAQ_SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
-        if (bestMatch.score >= FAQ_SIMILARITY_THRESHOLD && bestMatch.source === 'FAQ') {
-            console.log(`FAQ Match Found: "${bestMatch.answer}" with similarity ${bestMatch.score.toFixed(2)}`);
-            return res.json({ reply: bestMatch.answer, source: 'FAQ' });
-        } else {
-            console.log('No adequate FAQ match found. Proceeding to search PDFs.');
-            
-            // Check if there are any PDFs to process
-            if (pdfs.length > 0) {
-                // Extract the content from all PDFs
-                const pdfContents = pdfs.map(pdf => pdf.content);
+      if (bestMatch.score >= FAQ_SIMILARITY_THRESHOLD && bestMatch.source === 'FAQ') {
+          console.log(`FAQ Match Found: "${bestMatch.answer}" with similarity ${bestMatch.score.toFixed(2)}`);
+          return res.json({ reply: bestMatch.answer, source: 'FAQ' });
+      } else {
+          console.log('No adequate FAQ match found. Proceeding to search PDFs.');
+          
+          // Check if there are any PDFs to process
+          if (pdfs.length > 0) {
+              // Extract the content from all PDFs
+              const pdfContents = pdfs.map(pdf => pdf.content);
 
-                // Get response from Cohere
-                const cohereResponse = await getCohereResponse(question, pdfContents);
+              // Get response from Cohere
+              const cohereResponse = await getCohereResponse(question, pdfContents);
 
-                if (cohereResponse) {
-                    console.log('Cohere provided a response based on PDF content.');
-                    return res.json({ reply: cohereResponse, source: 'PDF via Cohere' });
-                } else {
-                    console.log('Cohere failed to generate a response. Proceeding to Rasa.');
-                }
-            } else {
-                console.log('No PDFs available to search.');
-            }
+              if (cohereResponse) {
+                  console.log('Cohere provided a response based on PDF content.');
+                  return res.json({ reply: cohereResponse, source: 'PDF via Cohere' });
+              } else {
+                  console.log('Cohere failed to generate a response. Proceeding to Rasa.');
+              }
+          } else {
+              console.log('No PDFs available to search.');
+          }
 
-            // If no response from Cohere or no PDFs, forward the question to Rasa for response
-            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
-            return res.json({ reply: rasaResponse, source: 'Rasa' });
-        }
-    });
+          // If no response from Cohere or no PDFs, forward the question to Rasa for response
+          const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+          return res.json({ reply: rasaResponse, source: 'Rasa' });
+      }
+  } catch (error) {
+      console.error('Error processing chat request:', error);
+      res.status(500).json({ message: "Internal Server Error", error: error.toString() });
+  }
+});
+  
 
 router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
