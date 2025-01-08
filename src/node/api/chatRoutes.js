@@ -174,9 +174,10 @@ Answer:
 
         console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
 
-        if (response.body && response.body.generations && response.body.generations.length > 0) {
+        // Update the response handling here
+        if (response.generations && response.generations.length > 0) {
             // Extract the generated text
-            const cohereAnswer = response.body.generations[0].text.trim();
+            const cohereAnswer = response.generations[0].text.trim();
             console.log('Cohere Generated Answer:', cohereAnswer);
 
             // Ensure the answer is meaningful
