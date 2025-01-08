@@ -140,10 +140,12 @@ function computeCompositeScore(questionTokens, faq) {
     return maxScore === 0 ? 0 : score / maxScore;
 }
 
-// Function to get response from Rasa
+// Function to get response from Rasa with a default 'sender'
 async function getRasaResponse(question) {
     try {
+        const defaultSender = "default_sender"; // Provide a default sender value
         const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
+            sender: defaultSender, // Use default sender
             message: question
         });
 
@@ -155,7 +157,7 @@ async function getRasaResponse(question) {
             return { text: "Sorry, I couldn't find an answer to that question.", confidence: 0 };
         }
     } catch (error) {
-        console.error('Error fetching response from Rasa:', error);
+        console.error('Error fetching response from Rasa:', error.response ? error.response.data : error.message);
         return { text: "Sorry, I couldn't fetch an answer from Rasa at the moment.", confidence: 0 };
     }
 }
@@ -286,6 +288,9 @@ router.post('/test', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
+    // Provide a default sender value to satisfy the Message model's requirement
+    const defaultSender = "default_sender"; // Replace with a meaningful default if possible
+
     console.log('--- Incoming Chat Request ---');
     console.log(`User ID: ${userId}`);
     console.log(`Chatbot ID: ${chatbotId}`);
@@ -314,13 +319,14 @@ router.post('/test', authenticate, async (req, res) => {
 
             if (keywordMatch) {
                 console.log(`Keyword Match Found: "${keywordMatch.question}"`);
-                // Log the message
+                // Log the message with default sender
                 await Message.create({
                     userId,
                     chatbotId,
                     message: question,
                     response: keywordMatch.answer,
-                    source: 'Keyword Match'
+                    source: 'Keyword Match',
+                    sender: defaultSender, // Use default sender
                 });
                 return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
             }
@@ -339,28 +345,30 @@ router.post('/test', authenticate, async (req, res) => {
         // Define threshold for similarity matching
         const SIMILARITY_THRESHOLD = 0.75; // Adjust this threshold based on testing
 
-        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+        if (bestMatch.score >= SIMILARITY_THRESHOLD && bestMatch.faq) {
             console.log(`FAQ Match Found: "${bestMatch.faq.question}" with composite similarity ${bestMatch.score.toFixed(2)}`);
-            // Log the message
+            // Log the message with default sender
             await Message.create({
                 userId,
                 chatbotId,
                 message: question,
                 response: bestMatch.faq.answer,
-                source: 'FAQ'
+                source: 'FAQ',
+                sender: defaultSender, // Use default sender
             });
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
             console.log('No adequate FAQ match found. Forwarding to Rasa.');
             // Forward the question to Rasa for response
             const rasaResponseObj = await getRasaResponse(question);
-            // Log the message
+            // Log the message with default sender
             await Message.create({
                 userId,
                 chatbotId,
                 message: question,
                 response: rasaResponseObj.text,
-                source: 'Rasa'
+                source: 'Rasa',
+                sender: defaultSender, // Use default sender
             });
             return res.json({ reply: rasaResponseObj.text, source: 'Rasa' });
         }
@@ -369,7 +377,6 @@ router.post('/test', authenticate, async (req, res) => {
         res.status(500).json({ message: "Internal Server Error", error: error.toString() });
     }
 });
-
 
 router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
