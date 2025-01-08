@@ -141,22 +141,27 @@ async function getRasaResponse(question) {
   }
 }
 
+// Function to get response from Cohere
 async function getCohereResponse(question, pdfContents) {
-  try {
-    if (!pdfContents || pdfContents.length === 0) {
-      console.log("No PDF content available for Cohere response.");
-      return null;
-    }
+    try {
+        // Check if PDF contents are available
+        if (!pdfContents || pdfContents.length === 0) {
+            console.log('No PDF content available for Cohere response.');
+            return null;
+        }
 
-    let combinedPDFContent = pdfContents.join("\n\n");
-    const MAX_CONTENT_LENGTH = 3000;
+        // Combine all PDF contents into a single string. Consider chunking for very large texts.
+        let combinedPDFContent = pdfContents.join('\n\n');
 
-    if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
-      combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
-      console.log("Combined PDF content truncated to fit token limits.");
-    }
+        // Optionally, limit the size of the combined content to avoid exceeding token limits
+        const MAX_CONTENT_LENGTH = 3000; // Adjust as per Cohere's token limit
+        if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
+            combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
+            console.log('Combined PDF content truncated to fit token limits.');
+        }
 
-    const prompt = `
+        // Construct the prompt for simplicity and informality
+        const prompt = `
 You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
 
 Question: ${question}
@@ -167,48 +172,47 @@ ${combinedPDFContent}
 Answer:
 `;
 
-    console.log("Cohere Prompt:", prompt);
+        console.log('Cohere Prompt:', prompt);
 
-    const generateOptions = {
-      model: "command-light", // Updated model
-      prompt: prompt,
-      max_tokens: 150,
-      temperature: 0.5,
-      stop_sequences: ["\n"],
-      return_likelihoods: "NONE",
-    };
+        // Call Cohere's generate API with a free/smaller model
+        const response = await cohere.generate({
+            model: 'command-xsmall', // Use a smaller/free model
+            prompt: prompt,
+            max_tokens: 150, // Adjust based on desired response length
+            temperature: 0.5, // Lower temperature for more deterministic responses
+            k: 0,
+            p: 0.75,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+            stop_sequences: ['\n'],
+            return_likelihoods: 'NONE'
+        });
 
-    console.log("Cohere Generate Options:", generateOptions);
+        console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
 
-    const response = await cohere.generate(generateOptions);
+        // Check if the response and its properties exist before accessing them
+        if (response && response.body && response.body.generations && response.body.generations.length > 0) {
+            // Extract the generated text
+            const cohereAnswer = response.body.generations[0].text.trim();
+            console.log('Cohere Generated Answer:', cohereAnswer);
 
-    console.log("Cohere Raw Response:", JSON.stringify(response, null, 2));
-
-    if (
-      response &&
-      response.body &&
-      response.body.generations &&
-      response.body.generations.length > 0
-    ) {
-      const cohereAnswer = response.body.generations[0].text.trim();
-      console.log("Cohere Generated Answer:", cohereAnswer);
-
-      if (cohereAnswer.length > 10) {
-        // Example condition
-        return cohereAnswer;
-      } else {
-        console.log("Cohere response is too short.");
-        return null;
-      }
-    } else {
-      console.log("Cohere response does not contain generations.");
-      return null;
+            // Ensure the answer is meaningful
+            if (cohereAnswer.length > 10) { // Example condition
+                return cohereAnswer;
+            } else {
+                console.log('Cohere response is too short.');
+                return null;
+            }
+        } else {
+            console.log('Cohere response does not contain expected data structure.');
+            return null; // Indicate that Cohere didn't return a valid response
+        }
+    } catch (error) {
+        console.error('Error fetching response from Cohere:', error);
+        return null; // Indicate failure
     }
-  } catch (error) {
-    console.error("Error fetching response from Cohere:", error);
-    return null;
-  }
 }
+
 
 // Protected route for handling chat
 router.post("/", authenticate, async (req, res) => {
