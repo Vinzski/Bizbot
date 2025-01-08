@@ -6,7 +6,6 @@ const TfIdf = require('natural').TfIdf;
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
-const cosine = require('compute-cosine-similarity');
 const router = express.Router();
 
 const Message = require('../models/messageModel');
