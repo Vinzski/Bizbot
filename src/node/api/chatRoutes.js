@@ -59,106 +59,46 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-// Define weights for each similarity metric
-const SIMILARITY_WEIGHTS = {
-    exactMatch: 3,
-    jaccard: 1,
-    cosine: 2,
-    jaroWinkler: 1.5
-};
-
 // Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
     const intersection = setA.filter(x => setB.includes(x));
     const union = [...new Set([...setA, ...setB])];
-    return union.length === 0 ? 0 : intersection.length / union.length;
+    return intersection.length / union.length;
 }
 
-// Cosine Similarity function using TfIdf
+// Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidfModel = new TfIdf();
+    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
     tfidfModel.addDocument(tokensA);
     tfidfModel.addDocument(tokensB);
-
-    const vectorA = [];
-    const vectorB = [];
-
-    const terms = tfidfModel.listTerms(0).map(item => item.term);
-    terms.forEach(term => {
-        vectorA.push(tfidfModel.tfidf(term, 0));
-        vectorB.push(tfidfModel.tfidf(term, 1));
-    });
-
-    // Calculate dot product and magnitudes
-    const dotProduct = vectorA.reduce((sum, val, idx) => sum + (val * (vectorB[idx] || 0)), 0);
-    const magnitudeA = Math.sqrt(vectorA.reduce((sum, val) => sum + val * val, 0));
-    const magnitudeB = Math.sqrt(vectorB.reduce((sum, val) => sum + val * val, 0));
-
-    if (magnitudeA === 0 || magnitudeB === 0) return 0;
-    return dotProduct / (magnitudeA * magnitudeB);
+    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
 }
 
 // Jaro-Winkler Similarity
 function jaroWinklerSimilarity(str1, str2) {
     if (!str1 || !str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
-        return 0;
+        return 0; // Return a default similarity score if inputs are invalid
     }
-    return JaroWinklerDistance(str1, str2);
+    // Use the JaroWinklerDistance function directly as it is not a method of a class
+    return JaroWinklerDistance(str1, str2); // Correctly using the function now
 }
 
-// Define a composite similarity score
-function computeCompositeScore(questionTokens, faq) {
-    let score = 0;
-    let maxScore = 0;
-
-    const normalizedFAQQuestion = faq.question.toLowerCase().trim();
-    const tokenizedFaq = tokenizer.tokenize(normalizedFAQQuestion);
-
-    // Exact Match
-    if (normalizedFAQQuestion === questionTokens.join(' ')) {
-        score += SIMILARITY_WEIGHTS.exactMatch;
-    }
-    maxScore += SIMILARITY_WEIGHTS.exactMatch;
-
-    // Jaccard Similarity
-    const jaccard = jaccardSimilarity(questionTokens, tokenizedFaq);
-    score += jaccard * SIMILARITY_WEIGHTS.jaccard;
-    maxScore += 1 * SIMILARITY_WEIGHTS.jaccard; // Jaccard similarity ranges from 0 to 1
-
-    // Cosine Similarity
-    const cosine = cosineSimilarity(questionTokens, tokenizedFaq);
-    score += cosine * SIMILARITY_WEIGHTS.cosine;
-    maxScore += 1 * SIMILARITY_WEIGHTS.cosine; // Assuming cosine similarity normalized between 0 and 1
-
-    // Jaro-Winkler Similarity
-    const jaroWinkler = jaroWinklerSimilarity(questionTokens.join(' '), normalizedFAQQuestion);
-    score += jaroWinkler * SIMILARITY_WEIGHTS.jaroWinkler;
-    maxScore += 1 * SIMILARITY_WEIGHTS.jaroWinkler; // Assuming Jaro-Winkler similarity normalized between 0 and 1
-
-    // Normalize the composite score between 0 and 1
-    return maxScore === 0 ? 0 : score / maxScore;
-}
-
-// Function to get response from Rasa with a default 'sender'
+// Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
 async function getRasaResponse(question) {
     try {
-        const defaultSender = "default_sender"; // Provide a default sender value
         const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
-            sender: defaultSender, // Use default sender
             message: question
         });
 
         if (response.data && response.data.length > 0) {
-            const rasaMessage = response.data[0].text;
-            const confidence = response.data[0].confidence || 1; // Adjust based on your Rasa response structure
-            return { text: rasaMessage, confidence };
+            return response.data[0].text;
         } else {
-            return { text: "Sorry, I couldn't find an answer to that question.", confidence: 0 };
+            return "Sorry, I couldn't find an answer to that question.";
         }
     } catch (error) {
-        console.error('Error fetching response from Rasa:', error.response ? error.response.data : error.message);
-        return { text: "Sorry, I couldn't fetch an answer from Rasa at the moment.", confidence: 0 };
+        console.error('Error fetching response from Rasa:', error);
+        return "Sorry, I couldn't fetch an answer from Rasa at the moment.";
     }
 }
 
@@ -288,9 +228,6 @@ router.post('/test', authenticate, async (req, res) => {
     const { question, chatbotId } = req.body;
     const userId = req.user.id;
 
-    // Provide a default sender value to satisfy the Message model's requirement
-    const defaultSender = "default_sender"; // Replace with a meaningful default if possible
-
     console.log('--- Incoming Chat Request ---');
     console.log(`User ID: ${userId}`);
     console.log(`Chatbot ID: ${chatbotId}`);
@@ -298,7 +235,7 @@ router.post('/test', authenticate, async (req, res) => {
 
     try {
         // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+        const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
 
         if (faqs.length === 0) {
@@ -319,58 +256,61 @@ router.post('/test', authenticate, async (req, res) => {
 
             if (keywordMatch) {
                 console.log(`Keyword Match Found: "${keywordMatch.question}"`);
-                // Log the message with default sender
-                await Message.create({
-                    userId,
-                    chatbotId,
-                    message: question,
-                    response: keywordMatch.answer,
-                    source: 'Keyword Match',
-                    sender: defaultSender, // Use default sender
-                });
                 return res.json({ reply: keywordMatch.answer, source: 'Keyword Match' });
             }
         }
 
-        // Compute composite similarity scores
+        // 1. Exact Match Check
+        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
+        if (exactMatch) {
+            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
+        }
+
+        // 2. Jaccard Similarity Check
         let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
-            const compositeScore = computeCompositeScore(tokenizedUserQuestion, faq);
-            console.log(`FAQ Question: "${faq.question}" | Composite Similarity: ${compositeScore.toFixed(2)}`);
-            if (compositeScore > bestMatch.score) {
-                bestMatch = { score: compositeScore, faq };
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // 3. Cosine Similarity Check
+        faqs.forEach(faq => {
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
+
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
+        faqs.forEach(faq => {
+            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
+            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
             }
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 0.75; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
 
-        if (bestMatch.score >= SIMILARITY_THRESHOLD && bestMatch.faq) {
-            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with composite similarity ${bestMatch.score.toFixed(2)}`);
-            // Log the message with default sender
-            await Message.create({
-                userId,
-                chatbotId,
-                message: question,
-                response: bestMatch.faq.answer,
-                source: 'FAQ',
-                sender: defaultSender, // Use default sender
-            });
+        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            console.log('No adequate FAQ match found. Forwarding to Rasa.');
-            // Forward the question to Rasa for response
-            const rasaResponseObj = await getRasaResponse(question);
-            // Log the message with default sender
-            await Message.create({
-                userId,
-                chatbotId,
-                message: question,
-                response: rasaResponseObj.text,
-                source: 'Rasa',
-                sender: defaultSender, // Use default sender
-            });
-            return res.json({ reply: rasaResponseObj.text, source: 'Rasa' });
+            console.log('No adequate FAQ match found.');
+
+            // If no match found in FAQ, forward the question to Rasa for response
+            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+            return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
     } catch (error) {
         console.error('Error processing chat request:', error);
