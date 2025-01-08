@@ -142,21 +142,21 @@ async function getRasaResponse(question) {
 }
 
 async function getCohereResponse(question, pdfContents) {
-    try {
-        if (!pdfContents || pdfContents.length === 0) {
-            console.log('No PDF content available for Cohere response.');
-            return null;
-        }
+  try {
+    if (!pdfContents || pdfContents.length === 0) {
+      console.log("No PDF content available for Cohere response.");
+      return null;
+    }
 
-        let combinedPDFContent = pdfContents.join('\n\n');
-        // const MAX_CONTENT_LENGTH = 3000;
+    let combinedPDFContent = pdfContents.join("\n\n");
+    const MAX_CONTENT_LENGTH = 3000;
 
-        if (!combinedPDFContent?.length) {
-            combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
-            console.log('Combined PDF content truncated to fit token limits.');
-        }
+    if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
+      combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
+      console.log("Combined PDF content truncated to fit token limits.");
+    }
 
-        const prompt = `
+    const prompt = `
 You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
 
 Question: ${question}
@@ -167,41 +167,47 @@ ${combinedPDFContent}
 Answer:
 `;
 
-        console.log('Cohere Prompt:', prompt);
+    console.log("Cohere Prompt:", prompt);
 
-        const generateOptions = {
-            model: 'command-light', // Updated model
-            prompt: prompt,
-            max_tokens: 150,
-            temperature: 0.5,
-            stop_sequences: ['\n'],
-            return_likelihoods: 'NONE'
-        };
+    const generateOptions = {
+      model: "command-light", // Updated model
+      prompt: prompt,
+      max_tokens: 150,
+      temperature: 0.5,
+      stop_sequences: ["\n"],
+      return_likelihoods: "NONE",
+    };
 
-        console.log('Cohere Generate Options:', generateOptions);
+    console.log("Cohere Generate Options:", generateOptions);
 
-        const response = await cohere.generate(generateOptions);
+    const response = await cohere.generate(generateOptions);
 
-        console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
+    console.log("Cohere Raw Response:", JSON.stringify(response, null, 2));
 
-        if (response && response.body && response.body.generations && response.body.generations.length > 0) {
-            const cohereAnswer = response.body.generations[0].text.trim();
-            console.log('Cohere Generated Answer:', cohereAnswer);
+    if (
+      response &&
+      response.body &&
+      response.body.generations &&
+      response.body.generations.length > 0
+    ) {
+      const cohereAnswer = response.body.generations[0].text.trim();
+      console.log("Cohere Generated Answer:", cohereAnswer);
 
-            if (cohereAnswer.length > 10) { // Example condition
-                return cohereAnswer;
-            } else {
-                console.log('Cohere response is too short.');
-                return null;
-            }
-        } else {
-            console.log('Cohere response does not contain generations.');
-            return null;
-        }
-    } catch (error) {
-        console.error('Error fetching response from Cohere:', error);
+      if (cohereAnswer.length > 10) {
+        // Example condition
+        return cohereAnswer;
+      } else {
+        console.log("Cohere response is too short.");
         return null;
+      }
+    } else {
+      console.log("Cohere response does not contain generations.");
+      return null;
     }
+  } catch (error) {
+    console.error("Error fetching response from Cohere:", error);
+    return null;
+  }
 }
 
 // Protected route for handling chat
