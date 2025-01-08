@@ -8,10 +8,12 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require("fuzzy");
 const router = express.Router();
-const cohere = require("cohere-ai"); // Import Cohere
+const { CohereClient } = require('cohere-ai'); // Import Cohere
 
 // Initialize Cohere with your API key from environment variables
-cohere.init(process.env.COHERE_API_KEY);
+const cohere = new CohereClient({ 
+  token: process.env.COHERE_API_KEY 
+});
 
 const Message = require("../models/messageModel");
 const Chatbot = require("../models/chatbotModel");
@@ -141,26 +143,21 @@ async function getRasaResponse(question) {
   }
 }
 
-// Function to get response from Cohere
+// Update the getCohereResponse function
 async function getCohereResponse(question, pdfContents) {
     try {
-        // Check if PDF contents are available
         if (!pdfContents || pdfContents.length === 0) {
             console.log('No PDF content available for Cohere response.');
             return null;
         }
 
-        // Combine all PDF contents into a single string. Consider chunking for very large texts.
         let combinedPDFContent = pdfContents.join('\n\n');
-
-        // Optionally, limit the size of the combined content to avoid exceeding token limits
-        const MAX_CONTENT_LENGTH = 3000; // Adjust as per Cohere's token limit
+        const MAX_CONTENT_LENGTH = 3000;
         if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
             combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
             console.log('Combined PDF content truncated to fit token limits.');
         }
 
-        // Construct the prompt for simplicity and informality
         const prompt = `
 You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
 
@@ -174,12 +171,11 @@ Answer:
 
         console.log('Cohere Prompt:', prompt);
 
-        // Call Cohere's generate API with a free/smaller model
         const response = await cohere.generate({
-            model: 'command-nightly', // Use a smaller/free model
+            model: 'command-nightly',
             prompt: prompt,
-            max_tokens: 150, // Adjust based on desired response length
-            temperature: 0.5, // Lower temperature for more deterministic responses
+            max_tokens: 150,
+            temperature: 0.5,
             k: 0,
             p: 0.75,
             frequency_penalty: 0,
@@ -190,14 +186,11 @@ Answer:
 
         console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
 
-        // Check if the response and its properties exist before accessing them
-        if (response && response.body && response.body.generations && response.body.generations.length > 0) {
-            // Extract the generated text
-            const cohereAnswer = response.body.generations[0].text.trim();
+        if (response && response.generations && response.generations.length > 0) {
+            const cohereAnswer = response.generations[0].text.trim();
             console.log('Cohere Generated Answer:', cohereAnswer);
 
-            // Ensure the answer is meaningful
-            if (cohereAnswer.length > 10) { // Example condition
+            if (cohereAnswer.length > 10) {
                 return cohereAnswer;
             } else {
                 console.log('Cohere response is too short.');
@@ -205,14 +198,13 @@ Answer:
             }
         } else {
             console.log('Cohere response does not contain expected data structure.');
-            return null; // Indicate that Cohere didn't return a valid response
+            return null;
         }
     } catch (error) {
         console.error('Error fetching response from Cohere:', error);
-        return null; // Indicate failure
+        return null;
     }
 }
-
 
 // Protected route for handling chat
 router.post("/", authenticate, async (req, res) => {
