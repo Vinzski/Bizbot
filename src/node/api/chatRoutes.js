@@ -208,150 +208,208 @@ Answer:
 
 // Protected route for handling chat
 router.post("/", authenticate, async (req, res) => {
-  const { question, chatbotId } = req.body;
-  const userId = req.user.id;
-  console.log("--- Incoming Chat Request ---");
-  console.log(`User ID: ${userId}`);
-  console.log(`Chatbot ID: ${chatbotId}`);
-  console.log(`Question: "${question}"`);
-  try {
-    // Save the user question to the database
-    const userMessage = new Message({
-      userId: userId,
-      chatbotId: chatbotId,
-      sender: "user",
-      message: question,
-    });
+    const { question, chatbotId } = req.body;
+    const userId = req.user.id;
 
-    await userMessage.save();
-    console.log("User message saved to database.");
-    // Fetch FAQs specific to the chatbot and user
-    const faqs = await FAQ.find({ userId: userId });
-    console.log(`Number of FAQs found: ${faqs.length}`);
-    if (faqs.length === 0) {
-      console.log("No FAQs found for the given userId and chatbotId.");
-    }
-    // Normalize the user question
-    const normalizedUserQuestion = question.toLowerCase().trim();
-    const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-    const stemmedUserQuestion = tokenizedUserQuestion
-      .map((token) => stemmer.stem(token))
-      .join(" ");
-    // Handle short queries (1- or 2-word inputs)
-    if (tokenizedUserQuestion.length <= 2) {
-      console.log("Short query detected. Attempting keyword match...");
-      const keywordMatch = faqs.find((faq) =>
-        tokenizedUserQuestion.some((token) =>
-          faq.question.toLowerCase().includes(token)
-        )
-      );
-      if (keywordMatch) {
-        console.log(`Keyword Match Found: "${keywordMatch.question}"`);
-        // Save the bot response to the database
-        const botMessage = new Message({
-          userId: userId,
-          chatbotId: chatbotId,
-          sender: "bot",
-          message: keywordMatch.answer,
+    console.log("--- Incoming Chat Request ---");
+    console.log(`User ID: ${userId}`);
+    console.log(`Chatbot ID: ${chatbotId}`);
+    console.log(`Question: "${question}"`);
+
+    try {
+        // Save the user question to the database
+        const userMessage = new Message({
+            userId: userId,
+            chatbotId: chatbotId,
+            sender: "user",
+            message: question,
         });
-        await botMessage.save();
-        console.log("Bot response saved to database.");
-        return res.json({
-          reply: keywordMatch.answer,
-          source: "Keyword Match",
+
+        await userMessage.save();
+        console.log("User message saved to database.");
+
+        // Fetch FAQs specific to the chatbot and user
+        const faqs = await FAQ.find({ userId: userId });
+        console.log(`Number of FAQs found: ${faqs.length}`);
+
+        if (faqs.length === 0) {
+            console.log("No FAQs found for the given userId and chatbotId.");
+        }
+
+        // Normalize the user question
+        const normalizedUserQuestion = question.toLowerCase().trim();
+        const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
+        const stemmedUserQuestion = tokenizedUserQuestion
+            .map((token) => stemmer.stem(token))
+            .join(" ");
+
+        // Handle short queries (1- or 2-word inputs)
+        if (tokenizedUserQuestion.length <= 2) {
+            console.log("Short query detected. Attempting keyword match...");
+            const keywordMatch = faqs.find((faq) =>
+                tokenizedUserQuestion.some((token) =>
+                    faq.question.toLowerCase().includes(token)
+                )
+            );
+            if (keywordMatch) {
+                console.log(`Keyword Match Found: "${keywordMatch.question}"`);
+                
+                // Save the bot response to the database
+                const botMessage = new Message({
+                    userId: userId,
+                    chatbotId: chatbotId,
+                    sender: "bot",
+                    message: keywordMatch.answer,
+                });
+                await botMessage.save();
+                console.log("Bot response saved to database.");
+
+                return res.json({
+                    reply: keywordMatch.answer,
+                    source: "Keyword Match",
+                });
+            }
+        }
+
+        // 1. Exact Match Check
+        const exactMatch = faqs.find(
+            (faq) => faq.question.toLowerCase().trim() === normalizedUserQuestion
+        );
+        if (exactMatch) {
+            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
+            
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: "bot",
+                message: exactMatch.answer,
+            });
+            await botMessage.save();
+            console.log("Bot response saved to database.");
+
+            return res.json({ reply: exactMatch.answer, source: "FAQ" });
+        }
+
+        // 2. Jaccard Similarity Check
+        let bestMatch = { score: 0, faq: null };
+        faqs.forEach((faq) => {
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(
+                `FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`
+            );
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
         });
-      }
-    }
-    // 1. Exact Match Check
-    const exactMatch = faqs.find(
-      (faq) => faq.question.toLowerCase().trim() === normalizedUserQuestion
-    );
-    if (exactMatch) {
-      console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-      const botMessage = new Message({
-        userId: userId,
-        chatbotId: chatbotId,
-        sender: "bot",
-        message: exactMatch.answer,
-      });
-      await botMessage.save();
-      console.log("Bot response saved to database.");
-      return res.json({ reply: exactMatch.answer, source: "FAQ" });
-    }
-    // 2. Jaccard Similarity Check
-    let bestMatch = { score: 0, faq: null };
-    faqs.forEach((faq) => {
-      const faqText = faq.question.toLowerCase().trim();
-      const tokenizedFaq = tokenizer.tokenize(faqText);
-      const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
-      console.log(
-        `FAQ Question: "${
-          faq.question
-        }" | Jaccard Similarity: ${similarity.toFixed(2)}`
-      );
-      if (similarity > bestMatch.score) {
-        bestMatch = { score: similarity, faq };
-      }
-    });
 
-    // 3. Cosine Similarity Check
-    faqs.forEach((faq) => {
-      const faqText = faq.question.toLowerCase().trim();
-      const tokenizedFaq = tokenizer.tokenize(faqText);
-      const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
-      console.log(
-        `FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`
-      );
-      if (similarity > bestMatch.score) {
-        bestMatch = { score: similarity, faq };
-      }
-    });
+        // 3. Cosine Similarity Check
+        faqs.forEach((faq) => {
+            const faqText = faq.question.toLowerCase().trim();
+            const tokenizedFaq = tokenizer.tokenize(faqText);
+            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+            console.log(
+                `FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`
+            );
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
 
-    // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
-    faqs.forEach((faq) => {
-      const similarity = jaroWinklerSimilarity(
-        normalizedUserQuestion,
-        faq.question.toLowerCase().trim()
-      );
-      console.log(
-        `FAQ Question: "${
-          faq.question
-        }" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
-      );
-      if (similarity > bestMatch.score) {
-        bestMatch = { score: similarity, faq };
-      }
-    });
+        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
+        faqs.forEach((faq) => {
+            const similarity = jaroWinklerSimilarity(
+                normalizedUserQuestion,
+                faq.question.toLowerCase().trim()
+            );
+            console.log(
+                `FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
+            );
+            if (similarity > bestMatch.score) {
+                bestMatch = { score: similarity, faq };
+            }
+        });
 
-    // Define threshold for similarity matching
-    const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
-    if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-      console.log(
-        `FAQ Match Found: "${
-          bestMatch.faq.question
-        }" with similarity ${bestMatch.score.toFixed(2)}`
-      );
-      const botMessage = new Message({
-        userId: userId,
-        chatbotId: chatbotId,
-        sender: "bot",
-        message: bestMatch.faq.answer,
-      });
-      await botMessage.save();
-      console.log("Bot response saved to database.");
-      return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
-    } else {
-      console.log("No adequate FAQ match found.");
-      // If no match found in FAQ, forward the question to Rasa for response
-      const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
-      return res.json({ reply: rasaResponse, source: "Rasa" });
+        // Define threshold for similarity matching
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
+
+        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+            console.log(
+                `FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`
+            );
+            
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: "bot",
+                message: bestMatch.faq.answer,
+            });
+            await botMessage.save();
+            console.log("Bot response saved to database.");
+
+            return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
+        } else {
+            console.log("No adequate FAQ match found.");
+            // Proceed to Cohere Integration
+            // Fetch PDFs specific to the chatbot and user
+            const pdfs = await PDF.find({ userId: userId, chatbotId: chatbotId });
+            console.log(`Number of PDFs found: ${pdfs.length}`);
+
+            if (pdfs.length > 0) {
+                console.log("Proceeding to search PDFs with Cohere.");
+                // Extract the content from all PDFs
+                const pdfContents = pdfs.map((pdf) => pdf.content);
+
+                // Get response from Cohere
+                const cohereResponse = await getCohereResponse(question, pdfContents);
+
+                if (cohereResponse) {
+                    console.log("Cohere provided a response based on PDF content.");
+                    
+                    // Save the bot response to the database
+                    const botMessage = new Message({
+                        userId: userId,
+                        chatbotId: chatbotId,
+                        sender: "bot",
+                        message: cohereResponse,
+                    });
+                    await botMessage.save();
+                    console.log("Bot response saved to database.");
+
+                    return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
+                } else {
+                    console.log(
+                        "Cohere failed to generate a response. Proceeding to Rasa."
+                    );
+                }
+            } else {
+                console.log("No PDFs available to search.");
+            }
+
+            // If Cohere fails or no PDFs, fallback to Rasa
+            const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
+            
+            // Save the bot response to the database
+            const botMessage = new Message({
+                userId: userId,
+                chatbotId: chatbotId,
+                sender: "bot",
+                message: rasaResponse,
+            });
+            await botMessage.save();
+            console.log("Bot response saved to database.");
+
+            return res.json({ reply: rasaResponse, source: "Rasa" });
+        }
+    } catch (error) {
+        console.error("Error processing chat request:", error);
+        res
+            .status(500)
+            .json({ message: "Internal Server Error", error: error.toString() });
     }
-  } catch (error) {
-    console.error("Error processing chat request:", error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.toString() });
-  }
 });
 
 // Protected route for handling chat
