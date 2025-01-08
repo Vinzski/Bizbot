@@ -81,18 +81,25 @@ function cosineSimilarity(tokensA, tokensB) {
     const tfidfModel = new TfIdf();
     tfidfModel.addDocument(tokensA);
     tfidfModel.addDocument(tokensB);
-    // Calculate cosine similarity using tf-idf vectors
-    const vectorA = [];
-    const vectorB = [];
-    const terms = tfidfModel.documents[0].terms;
-    terms.forEach(term => {
-        vectorA.push(tfidfModel.tfidf(term, 0));
-        vectorB.push(tfidfModel.tfidf(term, 1));
-    });
+    
+    // Retrieve all unique terms from both documents
+    const termsA = tfidfModel.listTerms(0).map(item => item.term);
+    const termsB = tfidfModel.listTerms(1).map(item => item.term);
+    const allTerms = Array.from(new Set([...termsA, ...termsB]));
+    
+    const vectorA = allTerms.map(term => tfidfModel.tfidf(term, 0));
+    const vectorB = allTerms.map(term => tfidfModel.tfidf(term, 1));
+    
     // Compute dot product and magnitudes
     const dotProduct = vectorA.reduce((acc, val, idx) => acc + val * vectorB[idx], 0);
     const magnitudeA = Math.sqrt(vectorA.reduce((acc, val) => acc + val * val, 0));
     const magnitudeB = Math.sqrt(vectorB.reduce((acc, val) => acc + val * val, 0));
+    
+    // Prevent division by zero
+    if (magnitudeA === 0 || magnitudeB === 0) {
+        return 0;
+    }
+    
     return dotProduct / (magnitudeA * magnitudeB);
 }
 
