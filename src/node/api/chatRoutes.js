@@ -160,7 +160,7 @@ Answer:
 
         // Call Cohere's generate API with a free/smaller model
         const response = await cohere.generate({
-            model: 'command-xsmall', // Use a smaller/free model
+            model: 'command', // Use a smaller/free model
             prompt: prompt,
             max_tokens: 150, // Adjust based on desired response length
             temperature: 0.5, // Lower temperature for more deterministic responses
