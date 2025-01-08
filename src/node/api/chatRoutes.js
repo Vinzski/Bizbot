@@ -6,6 +6,7 @@ const TfIdf = require('natural').TfIdf;
 const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
+const cosine = require('compute-cosine-similarity');
 const router = express.Router();
 
 const Message = require('../models/messageModel');
@@ -59,29 +60,57 @@ router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     }
 });
 
-// Jaccard Similarity function
+// Improved Jaccard Similarity function
 function jaccardSimilarity(setA, setB) {
-    const intersection = setA.filter(x => setB.includes(x));
-    const union = [...new Set([...setA, ...setB])];
-    return intersection.length / union.length;
+    const uniqueA = new Set(setA);
+    const uniqueB = new Set(setB);
+    
+    const intersection = [...uniqueA].filter(token => uniqueB.has(token));
+    const union = new Set([...uniqueA, ...uniqueB]);
+    
+    return union.size === 0 ? 0 : intersection.length / union.size;
 }
 
-// Cosine Similarity function
+// Improved Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
-    tfidfModel.addDocument(tokensA);
-    tfidfModel.addDocument(tokensB);
-    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
+    const tfidf = new TfIdf();
+    
+    tfidf.addDocument(tokensA.map(token => stemmer.stem(token)).join(' '));
+    tfidf.addDocument(tokensB.map(token => stemmer.stem(token)).join(' '));
+    
+    const vecA = [];
+    const vecB = [];
+    tfidf.listTerms(0).forEach(item => {
+        vecA.push(item.tfidf);
+    });
+    tfidf.listTerms(1).forEach(item => {
+        vecB.push(item.tfidf);
+    });
+    
+    const length = Math.max(vecA.length, vecB.length);
+    for (let i = vecA.length; i < length; i++) vecA.push(0);
+    for (let i = vecB.length; i < length; i++) vecB.push(0);
+    
+    return cosine(vecA, vecB);
 }
 
-// Jaro-Winkler Similarity
+
+// Improved Jaro-Winkler Similarity function
 function jaroWinklerSimilarity(str1, str2) {
-    if (!str1 || !str2) {
-        console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
-        return 0; // Return a default similarity score if inputs are invalid
+    if (typeof str1 !== 'string' || typeof str2 !== 'string') {
+        console.error("Invalid input to JaroWinkler: one of the inputs is not a string.");
+        return 0;
     }
-    // Use the JaroWinklerDistance function directly as it is not a method of a class
-    return JaroWinklerDistance(str1, str2); // Correctly using the function now
+    
+    const normalizedStr1 = str1.toLowerCase().trim();
+    const normalizedStr2 = str2.toLowerCase().trim();
+    
+    if (normalizedStr1.length === 0 || normalizedStr2.length === 0) {
+        console.error("Invalid input to JaroWinkler: one of the strings is empty.");
+        return 0;
+    }
+    
+    return JaroWinklerDistance(normalizedStr1, normalizedStr2);
 }
 
 // Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
@@ -235,17 +264,17 @@ router.post('/test', authenticate, async (req, res) => {
 
     try {
         // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId });
+        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId }).populate('chatbotId');
         console.log(`Number of FAQs found: ${faqs.length}`);
 
         if (faqs.length === 0) {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
 
-        // Normalize the user question
+        // Normalize and tokenize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
         const tokenizedUserQuestion = tokenizer.tokenize(normalizedUserQuestion);
-        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token)).join(' ');
+        const stemmedUserQuestion = tokenizedUserQuestion.map(token => stemmer.stem(token));
 
         // Short Query Handling
         if (tokenizedUserQuestion.length <= 2) {
@@ -260,56 +289,48 @@ router.post('/test', authenticate, async (req, res) => {
             }
         }
 
-        // 1. Exact Match Check
-        const exactMatch = faqs.find(faq => faq.question.toLowerCase().trim() === normalizedUserQuestion);
-        if (exactMatch) {
-            console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-            return res.json({ reply: exactMatch.answer, source: 'FAQ' });
-        }
+        // Initialize best match
+        let bestMatch = { score: 0, faq: null, source: '' };
 
-        // 2. Jaccard Similarity Check
-        let bestMatch = { score: 0, faq: null };
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
-            }
-        });
+            const stemmedFaq = tokenizedFaq.map(token => stemmer.stem(token));
 
-        // 3. Cosine Similarity Check
-        faqs.forEach(faq => {
-            const faqText = faq.question.toLowerCase().trim();
-            const tokenizedFaq = tokenizer.tokenize(faqText);
-            const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
-            console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
-            }
-        });
+            // Calculate similarities
+            const jaccard = jaccardSimilarity(stemmedUserQuestion, stemmedFaq);
+            const cosineSim = cosineSimilarity(stemmedUserQuestion, stemmedFaq);
+            const jaroWinkler = jaroWinklerSimilarity(normalizedUserQuestion, faqText);
 
-        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
-        faqs.forEach(faq => {
-            const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
-            console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
-            if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+            // Define weights for each similarity measure
+            const weights = {
+                jaccard: 0.3,
+                cosine: 0.5,
+                jaroWinkler: 0.2
+            };
+
+            // Compute a composite score
+            const compositeScore = (jaccard * weights.jaccard) +
+                                   (cosineSim * weights.cosine) +
+                                   (jaroWinkler * weights.jaroWinkler);
+
+            console.log(`FAQ Question: "${faq.question}" | Jaccard: ${jaccard.toFixed(2)}, Cosine: ${cosineSim.toFixed(2)}, Jaro-Winkler: ${jaroWinkler.toFixed(2)} | Composite Score: ${compositeScore.toFixed(2)}`);
+
+            if (compositeScore > bestMatch.score) {
+                bestMatch = { score: compositeScore, faq, source: 'Composite' };
             }
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 0.7; // Adjust based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
+            console.log(`Best Match Found: "${bestMatch.faq.question}" with score ${bestMatch.score.toFixed(2)}`);
             return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
         } else {
-            console.log('No adequate FAQ match found.');
-
-            // If no match found in FAQ, forward the question to Rasa for response
-            const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
+            console.log('No adequate FAQ match found. Forwarding to Rasa...');
+            // Forward the question to Rasa for response
+            const rasaResponse = await getRasaResponse(question);
             return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
     } catch (error) {
