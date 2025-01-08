@@ -8,6 +8,8 @@ const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
 const router = express.Router();
 
+cohere.init(process.env.COHERE_API_KEY);
+
 const Message = require('../models/messageModel');
 const Chatbot = require('../models/chatbotModel');
 const FAQ = require('../models/faqModel');
@@ -68,10 +70,22 @@ function jaccardSimilarity(setA, setB) {
 
 // Cosine Similarity function
 function cosineSimilarity(tokensA, tokensB) {
-    const tfidfModel = new TfIdf(); // Corrected: instantiate TfIdf here
+    const tfidfModel = new TfIdf();
     tfidfModel.addDocument(tokensA);
     tfidfModel.addDocument(tokensB);
-    return tfidfModel.tfidfs(tokensA)[1]; // Get cosine similarity between the two documents
+    // Calculate cosine similarity using tf-idf vectors
+    const vectorA = [];
+    const vectorB = [];
+    const terms = tfidfModel.documents[0].terms;
+    terms.forEach(term => {
+        vectorA.push(tfidfModel.tfidf(term, 0));
+        vectorB.push(tfidfModel.tfidf(term, 1));
+    });
+    // Compute dot product and magnitudes
+    const dotProduct = vectorA.reduce((acc, val, idx) => acc + val * vectorB[idx], 0);
+    const magnitudeA = Math.sqrt(vectorA.reduce((acc, val) => acc + val * val, 0));
+    const magnitudeB = Math.sqrt(vectorB.reduce((acc, val) => acc + val * val, 0));
+    return dotProduct / (magnitudeA * magnitudeB);
 }
 
 // Jaro-Winkler Similarity
@@ -80,11 +94,10 @@ function jaroWinklerSimilarity(str1, str2) {
         console.error("Invalid input to JaroWinkler: one of the strings is undefined or empty.");
         return 0; // Return a default similarity score if inputs are invalid
     }
-    // Use the JaroWinklerDistance function directly as it is not a method of a class
-    return JaroWinklerDistance(str1, str2); // Correctly using the function now
+    return JaroWinklerDistance(str1, str2);
 }
 
-// Function to get response from Rasa (this is just a placeholder, replace with actual Rasa API call)
+// Function to get response from Rasa (replace with actual Rasa API call)
 async function getRasaResponse(question) {
     try {
         const response = await axios.post('http://13.55.82.197:5005/webhooks/rest/webhook', {
@@ -99,6 +112,53 @@ async function getRasaResponse(question) {
     } catch (error) {
         console.error('Error fetching response from Rasa:', error);
         return "Sorry, I couldn't fetch an answer from Rasa at the moment.";
+    }
+}
+
+// Function to get response from Cohere
+async function getCohereResponse(question, pdfContents) {
+    try {
+        // Combine all PDF contents into a single string. Consider chunking for very large texts.
+        const combinedPDFContent = pdfContents.join('\n\n');
+
+        // Construct the prompt for simplicity and informality
+        const prompt = `
+You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
+
+Question: ${question}
+
+Information:
+${combinedPDFContent}
+
+Answer:
+`;
+
+        // Call Cohere's generate API with a free/smaller model
+        const response = await cohere.generate({
+            model: 'command-xsmall', // Use a smaller/free model
+            prompt: prompt,
+            max_tokens: 150, // Adjust based on desired response length
+            temperature: 0.5, // Lower temperature for more deterministic responses
+            k: 0,
+            p: 0.75,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+            stop_sequences: ['\n'],
+            return_likelihoods: 'NONE'
+        });
+
+        if (response.body.generations && response.body.generations.length > 0) {
+            // Extract the generated text
+            const cohereAnswer = response.body.generations[0].text.trim();
+            // Ensure the answer is meaningful
+            if (cohereAnswer.length > 10) { // Example condition
+                return cohereAnswer;
+            }
+        }
+        return null; // Indicate that Cohere didn't return a valid response
+    } catch (error) {
+        console.error('Error fetching response from Cohere:', error);
+        return null; // Indicate failure
     }
 }
 
@@ -235,12 +295,16 @@ router.post('/test', authenticate, async (req, res) => {
 
     try {
         // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId });
+        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
         console.log(`Number of FAQs found: ${faqs.length}`);
 
         if (faqs.length === 0) {
             console.log('No FAQs found for the given userId and chatbotId.');
         }
+
+        // Fetch PDFs specific to the chatbot and user
+        const pdfs = await PDF.find({ userId: userId, chatbotId: chatbotId });
+        console.log(`Number of PDFs found: ${pdfs.length}`);
 
         // Normalize the user question
         const normalizedUserQuestion = question.toLowerCase().trim();
@@ -267,56 +331,72 @@ router.post('/test', authenticate, async (req, res) => {
             return res.json({ reply: exactMatch.answer, source: 'FAQ' });
         }
 
-        // 2. Jaccard Similarity Check
-        let bestMatch = { score: 0, faq: null };
+        // Initialize bestMatch object
+        let bestMatch = { score: 0, answer: null, source: null };
+
+        // 2. Jaccard Similarity Check for FAQs
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
             const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+                bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
             }
         });
 
-        // 3. Cosine Similarity Check
+        // 3. Cosine Similarity Check for FAQs
         faqs.forEach(faq => {
             const faqText = faq.question.toLowerCase().trim();
             const tokenizedFaq = tokenizer.tokenize(faqText);
             const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
             console.log(`FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`);
             if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+                bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
             }
         });
 
-        // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
+        // 4. Jaro-Winkler Similarity Check for FAQs (fuzzy matching)
         faqs.forEach(faq => {
             const similarity = jaroWinklerSimilarity(normalizedUserQuestion, faq.question.toLowerCase().trim());
             console.log(`FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`);
             if (similarity > bestMatch.score) {
-                bestMatch = { score: similarity, faq };
+                bestMatch = { score: similarity, answer: faq.answer, source: 'FAQ' };
             }
         });
 
-        // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
+        // Define threshold for FAQ similarity matching
+        const FAQ_SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
-        if (bestMatch.score >= SIMILARITY_THRESHOLD) {
-            console.log(`FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`);
-            return res.json({ reply: bestMatch.faq.answer, source: 'FAQ' });
+        if (bestMatch.score >= FAQ_SIMILARITY_THRESHOLD && bestMatch.source === 'FAQ') {
+            console.log(`FAQ Match Found: "${bestMatch.answer}" with similarity ${bestMatch.score.toFixed(2)}`);
+            return res.json({ reply: bestMatch.answer, source: 'FAQ' });
         } else {
-            console.log('No adequate FAQ match found.');
+            console.log('No adequate FAQ match found. Proceeding to search PDFs.');
+            
+            // Check if there are any PDFs to process
+            if (pdfs.length > 0) {
+                // Extract the content from all PDFs
+                const pdfContents = pdfs.map(pdf => pdf.content);
 
-            // If no match found in FAQ, forward the question to Rasa for response
+                // Get response from Cohere
+                const cohereResponse = await getCohereResponse(question, pdfContents);
+
+                if (cohereResponse) {
+                    console.log('Cohere provided a response based on PDF content.');
+                    return res.json({ reply: cohereResponse, source: 'PDF via Cohere' });
+                } else {
+                    console.log('Cohere failed to generate a response. Proceeding to Rasa.');
+                }
+            } else {
+                console.log('No PDFs available to search.');
+            }
+
+            // If no response from Cohere or no PDFs, forward the question to Rasa for response
             const rasaResponse = await getRasaResponse(question);  // Function to call Rasa API
             return res.json({ reply: rasaResponse, source: 'Rasa' });
         }
-    } catch (error) {
-        console.error('Error processing chat request:', error);
-        res.status(500).json({ message: "Internal Server Error", error: error.toString() });
-    }
-});
+    });
 
 router.get('/user-interactions/:userId', authenticate, async (req, res) => {
     const { userId } = req.params;
