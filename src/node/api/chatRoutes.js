@@ -175,17 +175,27 @@ Answer:
     console.log("Cohere Prompt:", prompt);
 
     // Call Cohere's generate API with a free/smaller model
-    const response = await cohere.generate({
-      model: "command-light", // Use a valid model name from the free tier
-      prompt: prompt,
-      max_tokens: 150,
-      temperature: 0.5,
-      p: 0.75,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-      stop_sequences: ["\n"],
-      return_likelihoods: "NONE",
-    });
+    let response;
+    try {
+      response = await cohere.generate({
+        model: "command-light", // Ensure this is a valid model name
+        prompt: prompt,
+        max_tokens: 150,
+        temperature: 0.5,
+        p: 0.75,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        stop_sequences: ["\n"],
+        return_likelihoods: "NONE",
+      });
+      if (!response || !response.tokens) {
+        console.error("No response or missing 'tokens' in the response.");
+      } else {
+        // Continue with your logic, now that you have confirmed response is valid
+      }
+    } catch (error) {
+      console.error("Error fetching response from Cohere:", error);
+    }
 
     console.log("Cohere Raw Response:", JSON.stringify(response, null, 2));
 
