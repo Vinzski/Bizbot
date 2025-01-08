@@ -143,6 +143,7 @@ async function getRasaResponse(question) {
   }
 }
 
+// Update the getCohereResponse function
 async function getCohereResponse(question, pdfContents) {
     try {
         if (!pdfContents || pdfContents.length === 0) {
@@ -151,7 +152,7 @@ async function getCohereResponse(question, pdfContents) {
         }
 
         let combinedPDFContent = pdfContents.join('\n\n');
-        const MAX_CONTENT_LENGTH = 10000;
+        const MAX_CONTENT_LENGTH = 3000;
         if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
             combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
             console.log('Combined PDF content truncated to fit token limits.');
@@ -162,20 +163,20 @@ You are a friendly and helpful assistant. Answer the question based on the infor
 Question: ${question}
 Information:
 ${combinedPDFContent}
-Answer with a detailed list of endangered species and their primary threats:
+Answer:
 `;
 
         console.log('Cohere Prompt:', prompt);
         const response = await cohere.generate({
             model: 'command-nightly',
             prompt: prompt,
-            max_tokens: 300, // Increased from 150 to 300
+            max_tokens: 150,
             temperature: 0.5,
             k: 0,
             p: 0.75,
             frequency_penalty: 0,
             presence_penalty: 0,
-            stop_sequences: ['\n\n'], // Adjusted stop_sequences
+            stop_sequences: ['\n'],
             return_likelihoods: 'NONE'
         });
 
