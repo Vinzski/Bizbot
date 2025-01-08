@@ -11,13 +11,7 @@ const router = express.Router();
 const cohere = require('cohere-ai'); // Import Cohere
 
 // Initialize Cohere with your API key from environment variables
-if (process.env.COHERE_API_KEY) {
-  cohere.init(process.env.COHERE_API_KEY);
-  console.log('Cohere API Key Loaded Successfully.');
-} else {
-  console.error('Cohere API Key is missing. Please set COHERE_API_KEY in your .env file.');
-  process.exit(1); // Exit the application if the API key is missing
-}
+cohere.init(process.env.COHERE_API_KEY);
 
 const Message = require('../models/messageModel');
 const Chatbot = require('../models/chatbotModel');
