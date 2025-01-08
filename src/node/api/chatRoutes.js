@@ -143,98 +143,63 @@ async function getRasaResponse(question) {
   }
 }
 
-// Function to compute similarity between Cohere answer and PDF contents
-function computeRelevance(cohereAnswer, pdfContents) {
-  const normalizedAnswer = cohereAnswer.toLowerCase();
-  let maxSimilarity = 0;
-
-  pdfContents.forEach((content) => {
-    const similarity = cosineSimilarity(
-      tokenizer.tokenize(normalizedAnswer),
-      tokenizer.tokenize(content.toLowerCase())
-    );
-    if (similarity > maxSimilarity) {
-      maxSimilarity = similarity;
-    }
-  });
-
-  return maxSimilarity;
-}
-
-
 // Update the getCohereResponse function
 async function getCohereResponse(question, pdfContents) {
-  try {
-    if (!pdfContents || pdfContents.length === 0) {
-      console.log('No PDF content available for Cohere response.');
-      return null;
-    }
+    try {
+        if (!pdfContents || pdfContents.length === 0) {
+            console.log('No PDF content available for Cohere response.');
+            return null;
+        }
 
-    let combinedPDFContent = pdfContents.join('\n\n');
-    const MAX_CONTENT_LENGTH = 3000;
-    if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
-      combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
-      console.log('Combined PDF content truncated to fit token limits.');
-    }
+        let combinedPDFContent = pdfContents.join('\n\n');
+        const MAX_CONTENT_LENGTH = 3000;
+        if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
+            combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
+            console.log('Combined PDF content truncated to fit token limits.');
+        }
 
-    const prompt = `
+        const prompt = `
 You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
-
 Question: ${question}
-
 Information:
 ${combinedPDFContent}
-
 Answer:
 `;
 
-    console.log('Cohere Prompt:', prompt);
+        console.log('Cohere Prompt:', prompt);
+        const response = await cohere.generate({
+            model: 'command-nightly',
+            prompt: prompt,
+            max_tokens: 150,
+            temperature: 0.5,
+            k: 0,
+            p: 0.75,
+            frequency_penalty: 0,
+            presence_penalty: 0,
+            stop_sequences: ['\n'],
+            return_likelihoods: 'NONE'
+        });
 
-    const response = await cohere.generate({
-      model: 'command-nightly',
-      prompt: prompt,
-      max_tokens: 150,
-      temperature: 0.5,
-      k: 0,
-      p: 0.75,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-      stop_sequences: ['\n'],
-      return_likelihoods: 'NONE'
-    });
+        console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
 
-    console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
+        if (response && response.generations && response.generations.length > 0) {
+            const cohereAnswer = response.generations[0].text.trim();
+            console.log('Cohere Generated Answer:', cohereAnswer);
 
-    if (response && response.generations && response.generations.length > 0) {
-      const cohereAnswer = response.generations[0].text.trim();
-      console.log('Cohere Generated Answer:', cohereAnswer);
-
-      if (cohereAnswer.length > 10) {
-        // Compute relevance between Cohere's answer and PDF contents
-        const relevanceScore = computeRelevance(cohereAnswer, pdfContents);
-        console.log(`Relevance Score: ${relevanceScore.toFixed(2)}`);
-
-        const RELEVANCE_THRESHOLD = 0.3; // Adjust based on testing
-
-        if (relevanceScore >= RELEVANCE_THRESHOLD) {
-          console.log('Cohere response is relevant.');
-          return cohereAnswer;
+            if (cohereAnswer.length > 10) {
+                return cohereAnswer;
+            } else {
+                console.log('Cohere response is too short.');
+                return null;
+            }
         } else {
-          console.log('Cohere response is not relevant enough.');
-          return null;
+            console.log('Cohere response does not contain expected data structure.');
+            return null;
         }
-      } else {
-        console.log('Cohere response is too short.');
+    } catch (error) {
+        console.error('Error fetching response from Cohere:', error);
         return null;
-      }
-    } else {
-      console.log('Cohere response does not contain expected data structure.');
-      return null;
     }
-  } catch (error) {
-    console.error('Error fetching response from Cohere:', error);
-    return null;
-  }
 }
 
 // Protected route for handling chat
@@ -284,7 +249,7 @@ router.post("/", authenticate, async (req, res) => {
             );
             if (keywordMatch) {
                 console.log(`Keyword Match Found: "${keywordMatch.question}"`);
-                
+
                 // Save the bot response to the database
                 const botMessage = new Message({
                     userId: userId,
@@ -308,7 +273,7 @@ router.post("/", authenticate, async (req, res) => {
         );
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-            
+
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -370,7 +335,7 @@ router.post("/", authenticate, async (req, res) => {
             console.log(
                 `FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`
             );
-            
+
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -399,7 +364,7 @@ router.post("/", authenticate, async (req, res) => {
 
                 if (cohereResponse) {
                     console.log("Cohere provided a response based on PDF content.");
-                    
+
                     // Save the bot response to the database
                     const botMessage = new Message({
                         userId: userId,
@@ -422,7 +387,7 @@ router.post("/", authenticate, async (req, res) => {
 
             // If Cohere fails or no PDFs, fallback to Rasa
             const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
-            
+
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -542,7 +507,7 @@ router.post("/test", authenticate, async (req, res) => {
     });
 
     // Define threshold for similarity matching
-    const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
+    const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
 
     if (bestMatch.score >= SIMILARITY_THRESHOLD) {
       console.log(
@@ -568,11 +533,11 @@ router.post("/test", authenticate, async (req, res) => {
         const cohereResponse = await getCohereResponse(question, pdfContents);
 
         if (cohereResponse) {
-          console.log("Cohere provided a relevant response based on PDF content.");
+          console.log("Cohere provided a response based on PDF content.");
           return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
         } else {
           console.log(
-            "Cohere failed to generate a relevant response. Proceeding to Rasa."
+            "Cohere failed to generate a response. Proceeding to Rasa."
           );
         }
       } else {
