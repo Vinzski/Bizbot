@@ -326,8 +326,11 @@ router.post('/test', authenticate, async (req, res) => {
 
     try {
         // Fetch FAQs specific to the chatbot and user
-        const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId });
+        const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
+        if (faqs.length === 0) {
+            console.log('No FAQs found for the given userId.');
+        }
 
         if (faqs.length === 0) {
             console.log('No FAQs found for the given userId and chatbotId.');
