@@ -158,19 +158,15 @@ async function getCohereResponse(question, pdfContents) {
             console.log('Combined PDF content truncated to fit token limits.');
         }
 
-        const prompt = 
-`You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone, if possible return the response as a sentence or paragraph only.
-
+        const prompt = `
+You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
 Question: ${question}
-
 Information:
 ${combinedPDFContent}
-
 Answer:
-;`;
+`;
 
         console.log('Cohere Prompt:', prompt);
-
         const response = await cohere.generate({
             model: 'command-nightly',
             prompt: prompt,
@@ -191,15 +187,6 @@ Answer:
             console.log('Cohere Generated Answer:', cohereAnswer);
 
             if (cohereAnswer.length > 10) {
-                // Strict condition check: ensure answer derived from provided info
-                const answerTokens = tokenizer.tokenize(cohereAnswer.toLowerCase());
-                const relevantTokens = answerTokens.filter(token => 
-                    combinedPDFContent.toLowerCase().includes(token)
-                );
-                if (relevantTokens.length === 0) {
-                    console.log('Cohere response not based on provided information.');
-                    return null;
-                }
                 return cohereAnswer;
             } else {
                 console.log('Cohere response is too short.');
@@ -214,7 +201,6 @@ Answer:
         return null;
     }
 }
-
 
 // Protected route for handling chat
 router.post("/", authenticate, async (req, res) => {
@@ -263,7 +249,6 @@ router.post("/", authenticate, async (req, res) => {
             );
             if (keywordMatch) {
                 console.log(`Keyword Match Found: "${keywordMatch.question}"`);
-
                 // Save the bot response to the database
                 const botMessage = new Message({
                     userId: userId,
@@ -287,7 +272,6 @@ router.post("/", authenticate, async (req, res) => {
         );
         if (exactMatch) {
             console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -349,7 +333,6 @@ router.post("/", authenticate, async (req, res) => {
             console.log(
                 `FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`
             );
-
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
@@ -378,7 +361,6 @@ router.post("/", authenticate, async (req, res) => {
 
                 if (cohereResponse) {
                     console.log("Cohere provided a response based on PDF content.");
-
                     // Save the bot response to the database
                     const botMessage = new Message({
                         userId: userId,
@@ -401,7 +383,6 @@ router.post("/", authenticate, async (req, res) => {
 
             // If Cohere fails or no PDFs, fallback to Rasa
             const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
-
             // Save the bot response to the database
             const botMessage = new Message({
                 userId: userId,
