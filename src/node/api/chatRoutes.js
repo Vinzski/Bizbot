@@ -149,9 +149,9 @@ async function getCohereResponse(question, pdfContents) {
         }
 
         let combinedPDFContent = pdfContents.join('\n\n');
-        const MAX_CONTENT_LENGTH = 3000;
+        // const MAX_CONTENT_LENGTH = 3000;
 
-        if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
+        if (!combinedPDFContent?.length) {
             combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
             console.log('Combined PDF content truncated to fit token limits.');
         }
