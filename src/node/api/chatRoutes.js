@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const natural = require('natural');
@@ -7,6 +8,7 @@ const tokenizer = new natural.WordTokenizer();
 const stemmer = natural.PorterStemmer;
 const fuzzy = require('fuzzy');
 const router = express.Router();
+const cohere = require('cohere-ai'); // Import Cohere
 
 cohere.init(process.env.COHERE_API_KEY);
 
