@@ -143,7 +143,6 @@ async function getRasaResponse(question) {
   }
 }
 
-// Update the getCohereResponse function
 async function getCohereResponse(question, pdfContents) {
     try {
         if (!pdfContents || pdfContents.length === 0) {
@@ -163,20 +162,20 @@ You are a friendly and helpful assistant. Answer the question based on the infor
 Question: ${question}
 Information:
 ${combinedPDFContent}
-Answer:
+Answer with a detailed list of endangered species and their primary threats:
 `;
 
         console.log('Cohere Prompt:', prompt);
         const response = await cohere.generate({
             model: 'command-nightly',
             prompt: prompt,
-            max_tokens: 150,
+            max_tokens: 300, // Increased from 150 to 300
             temperature: 0.5,
             k: 0,
             p: 0.75,
             frequency_penalty: 0,
             presence_penalty: 0,
-            stop_sequences: ['\n'],
+            stop_sequences: ['\n\n'], // Adjusted stop_sequences
             return_likelihoods: 'NONE'
         });
 
