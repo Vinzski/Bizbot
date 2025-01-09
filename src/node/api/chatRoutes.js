@@ -154,7 +154,7 @@ async function getCohereResponse(question, pdfContents) {
         let combinedPDFContent = pdfContents.join('\n\n');
 
         // Define maximum content length based on model's token limit
-        const MAX_CONTENT_LENGTH = 3000; // Adjust as per model's token limit
+        const MAX_CONTENT_LENGTH = 7500; // Adjust as per model's token limit
         if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
             combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
             console.log('Combined PDF content truncated to fit token limits.');
