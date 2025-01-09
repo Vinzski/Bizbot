@@ -162,7 +162,7 @@ async function getCohereResponse(question, pdfContents) {
 
         // Construct the prompt with clear sections
         const prompt = `
-You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone. Do not make the response long.
+You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
 
 **Question:** ${question}
 
