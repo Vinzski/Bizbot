@@ -337,7 +337,7 @@ router.post("/", authenticate, async (req, res) => {
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(
@@ -512,7 +512,7 @@ router.post("/test", authenticate, async (req, res) => {
     });
 
     // Define threshold for similarity matching
-    const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
+    const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
     if (bestMatch.score >= SIMILARITY_THRESHOLD) {
       console.log(
