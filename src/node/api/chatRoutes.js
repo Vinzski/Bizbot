@@ -473,9 +473,7 @@ router.post("/test", authenticate, async (req, res) => {
       const tokenizedFaq = tokenizer.tokenize(faqText);
       const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
       console.log(
-        `FAQ Question: "${
-          faq.question
-        }" | Jaccard Similarity: ${similarity.toFixed(2)}`
+        `FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`
       );
       if (similarity > bestMatch.score) {
         bestMatch = { score: similarity, faq };
@@ -502,9 +500,7 @@ router.post("/test", authenticate, async (req, res) => {
         faq.question.toLowerCase().trim()
       );
       console.log(
-        `FAQ Question: "${
-          faq.question
-        }" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
+        `FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
       );
       if (similarity > bestMatch.score) {
         bestMatch = { score: similarity, faq };
@@ -516,15 +512,24 @@ router.post("/test", authenticate, async (req, res) => {
 
     if (bestMatch.score >= SIMILARITY_THRESHOLD) {
       console.log(
-        `FAQ Match Found: "${
-          bestMatch.faq.question
-        }" with similarity ${bestMatch.score.toFixed(2)}`
+        `FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
       console.log("No adequate FAQ match found.");
 
-      // Proceed to Cohere Integration
+      // **1. Proceed to Rasa Integration First**
+      console.log("Proceeding to Rasa for response.");
+      const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
+
+      if (rasaResponse && rasaResponse.confidence >= 0.7) { // Assuming Rasa returns a confidence score
+        console.log("Rasa provided a satisfactory response.");
+        return res.json({ reply: rasaResponse.answer, source: "Rasa" });
+      } else {
+        console.log("Rasa could not provide a satisfactory response. Proceeding to Cohere.");
+      }
+
+      // **2. Fallback to Cohere Integration**
       // Fetch PDFs specific to the chatbot and user
       const pdfs = await PDF.find({ userId: userId, chatbotId: chatbotId });
       console.log(`Number of PDFs found: ${pdfs.length}`);
@@ -541,17 +546,19 @@ router.post("/test", authenticate, async (req, res) => {
           console.log("Cohere provided a response based on PDF content.");
           return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
         } else {
-          console.log(
-            "Cohere failed to generate a response. Proceeding to Rasa."
-          );
+          console.log("Cohere failed to generate a response.");
         }
       } else {
         console.log("No PDFs available to search.");
       }
 
-      // If Cohere fails or no PDFs, fallback to Rasa
-      const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
-      return res.json({ reply: rasaResponse, source: "Rasa" });
+      // **3. Final Fallback (Optional)**
+      // If both Rasa and Cohere fail, you can return a default message or handle accordingly
+      console.log("Both Rasa and Cohere failed to provide a response.");
+      return res.json({
+        reply: "I'm sorry, I couldn't find an answer to your question.",
+        source: "No Response",
+      });
     }
   } catch (error) {
     console.error("Error processing chat request:", error);
