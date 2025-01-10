@@ -357,6 +357,12 @@
         chatMessages.appendChild(loadingMessageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
 
+        if (currentProfileImageUrl) {
+        botProfileImage.style.backgroundImage = `url('${currentProfileImageUrl}')`;
+        botProfileImage.style.backgroundSize = 'cover';
+        botProfileImage.style.backgroundPosition = 'center';
+        botProfileImage.style.backgroundRepeat = 'no-repeat';
+
         // Send the message to the API
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
