@@ -170,7 +170,7 @@ Answer:
         const response = await cohere.generate({
             model: 'command-nightly',
             prompt: prompt,
-            max_tokens: 150,
+            max_tokens: 1000,
             temperature: 0.5,
             k: 0,
             p: 0.75,
