@@ -363,18 +363,25 @@ function saveChatbot() {
         .map((row) => row.getAttribute("data-faq-id"))
         .filter(Boolean);
 
+    // Prepare the payload
+    const payload = {
+        name: chatbotNameInput.value,
+        type: chatbotTypeSelect.value,
+        faqs: faqs,
+    };
+
+    // Conditionally include pdfId if it exists
+    if (pdfIdInput.value) {
+        payload.pdfId = pdfIdInput.value;
+    }
+
     fetch("/api/chatbots", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-            name: chatbotNameInput.value,
-            type: chatbotTypeSelect.value,
-            faqs: faqs,
-            pdfId: pdfIdInput.value, // Include the PDF ID
-        }),
+        body: JSON.stringify(payload),
     })
         .then((response) => {
             if (!response.ok) {
@@ -389,6 +396,7 @@ function saveChatbot() {
                 icon: "success",
                 confirmButtonText: "OK",
             });
+            // Optionally, redirect or perform other actions after saving
         })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
