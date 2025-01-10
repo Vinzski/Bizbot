@@ -4,6 +4,7 @@
     let themeColor = '#10B981'; // Default theme color
     let welcomeMessage = 'Welcome! How can I assist you today?'; // Default welcome message
     let chatbotName = 'BizBot'; // Default name, will be replaced
+    let currentProfileImageUrl = ''; // Initialize profile image URL
 
     // Function to add Font Awesome
     function addFontAwesome() {
@@ -163,7 +164,6 @@
         const userId = widgetElement.getAttribute('data-user-id');
         const initialToken = widgetElement.getAttribute('data-token');
 
-    
         return fetch(`https://bizbot-khpq.onrender.com/api/chatbots/name/${chatbotId}`, {
             headers: {
                 'Authorization': `Bearer ${initialToken}`
@@ -202,7 +202,7 @@
                     themeColor = data.customization.themeColor || themeColor;
                     welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
                     currentProfileImageUrl = data.customization.logo || currentProfileImageUrl; // Set the current profile image URL
-    
+
                     // Apply customization and display profile image
                     applyCustomization(currentProfileImageUrl);
                     enableSendButton();
@@ -219,38 +219,7 @@
             });
     }
 
-    // Function to fetch customization
-    function fetchCustomization(chatbotId) {
-        fetch(`https://bizbot-khpq.onrender.com/api/customization?chatbotId=${chatbotId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.customization) {
-                    themeColor = data.customization.themeColor || themeColor;
-                    welcomeMessage = data.customization.welcomeMessage || welcomeMessage;
-                    currentProfileImageUrl = data.customization.logo || currentProfileImageUrl; // Set the current profile image URL
-    
-                    // Apply customization and display profile image
-                    applyCustomization(currentProfileImageUrl);
-                    enableSendButton();
-                } else {
-                    console.warn('No customization found, using defaults.');
-                    applyCustomization(currentProfileImageUrl);
-                    enableSendButton();
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching customization:', error);
-                applyCustomization(currentProfileImageUrl);
-                enableSendButton();
-            });
-    }
-
-  // Function to apply customization
+    // Function to apply customization
     function applyCustomization(profileImageUrl, element = null) {
         console.log('Profile Image URL:', profileImageUrl);
 
@@ -308,6 +277,54 @@
         }
     }
 
+    // Function to format content (from app.js)
+    function formatContent(content) {
+        const lines = content.split('\n').map(line => line.trim());
+        let formattedContent = '';
+        let isList = false;
+        let listType = 'ul'; // 'ul' for unordered, 'ol' for ordered
+        lines.forEach((line, index) => {
+            // Check for unordered list items
+            if (/^[-*\u2022]\s+/.test(line)) {
+                if (!isList) {
+                    isList = true;
+                    listType = 'ul';
+                    formattedContent += `<${listType}>`;
+                }
+                const listItem = line.replace(/^[-*\u2022]\s+/, '');
+                formattedContent += `<li>${listItem}</li>`;
+            }
+            // Check for ordered list items
+            else if (/^\d+\.\s+/.test(line)) {
+                if (!isList) {
+                    isList = true;
+                    listType = 'ol';
+                    formattedContent += `<${listType}>`;
+                }
+                const listItem = line.replace(/^\d+\.\s+/, '');
+                formattedContent += `<li>${listItem}</li>`;
+            }
+            // Regular paragraph
+            else {
+                if (isList) {
+                    formattedContent += `</${listType}>`;
+                    isList = false;
+                }
+                if (line !== '') {
+                    formattedContent += `<p>${line}</p>`;
+                }
+            }
+
+            // If it's the last line and still inside a list, close the list
+            if (index === lines.length - 1 && isList) {
+                formattedContent += `</${listType}>`;
+                isList = false;
+            }
+        });
+
+        return formattedContent;
+    }
+
     // Function to send user messages to the server
     function sendMessage(userInput) {
         const widgetElement = document.getElementById('bizbot-widget');
@@ -341,7 +358,9 @@
             })
             .then(data => {
                 console.log('Received response from server:', data);
-                displayBotMessage(data.reply);
+                // Use formatContent to format the reply
+                const formattedReply = formatContent(data.reply);
+                displayBotMessage(formattedReply);
                 console.log(`Response Source: ${data.source}`);
             })
             .catch(error => {
@@ -350,7 +369,7 @@
             });
     }
 
-    // Function to display bot messages
+    // Function to display bot messages with formatted content
     function displayBotMessage(message) {
         const chatMessages = document.getElementById('chat-messages');
         const botMessageElement = document.createElement('div');
@@ -359,7 +378,8 @@
         botMessageElement.classList.add('message', 'bot-message');
         const messageContent = document.createElement('span');
         messageContent.classList.add('message-content');
-        messageContent.textContent = message;
+        // Use innerHTML to insert formatted content
+        messageContent.innerHTML = message;
         botMessageElement.appendChild(botProfileImage);
         botMessageElement.appendChild(messageContent);
         chatMessages.appendChild(botMessageElement);
@@ -374,8 +394,7 @@
         }
     }
 
-    
-   // Create elements for the chatbot widget
+    // Create elements for the chatbot widget
     const chatbotWidget = document.createElement('div');
     chatbotWidget.id = 'chatbot-widget';
     chatbotWidget.innerHTML = 
@@ -466,14 +485,6 @@
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     #close-chat {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: transform 0.2s ease;
-    }
-    #close-chats {
         background: none;
         border: none;
         color: white;
