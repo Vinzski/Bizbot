@@ -185,8 +185,7 @@ ${combinedPDFContent}
             p: 0.75,
             frequency_penalty: 0,
             presence_penalty: 0,
-            // Removed '\n' from stop_sequences to prevent premature stopping
-            stop_sequences: [], 
+            stop_sequences: ['\n'],
             return_likelihoods: 'NONE'
         });
 
