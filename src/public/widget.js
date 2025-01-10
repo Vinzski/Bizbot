@@ -342,6 +342,22 @@
         console.log(`userId: ${userId}`);
         console.log(`userInput: ${userInput}`);
 
+        // Append "Loading..." bot message
+        const chatMessages = document.getElementById('chat-messages');
+        const loadingMessageElement = document.createElement('div');
+        const botProfileImage = document.createElement('div');
+        botProfileImage.classList.add('profile-image');
+        loadingMessageElement.classList.add('message', 'bot-message');
+        const messageContent = document.createElement('span');
+        messageContent.classList.add('message-content');
+        messageContent.textContent = 'Loading...';
+        loadingMessageElement.appendChild(botProfileImage);
+        loadingMessageElement.appendChild(messageContent);
+        loadingMessageElement.setAttribute('data-loading', 'true'); // Assign a data attribute
+        chatMessages.appendChild(loadingMessageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+
+        // Send the message to the API
         fetch('https://bizbot-khpq.onrender.com/api/chat', {
             method: 'POST',
             headers: {
@@ -360,13 +376,27 @@
                 console.log('Received response from server:', data);
                 // Use formatContent to format the reply
                 const formattedReply = formatContent(data.reply);
-                displayBotMessage(formattedReply);
+                updateLoadingMessage(formattedReply); // Update the "Loading..." message
                 console.log(`Response Source: ${data.source}`);
             })
             .catch(error => {
                 console.error('Error sending message:', error);
-                displayBotMessage("Sorry, something went wrong. Please try again later.");
+                updateLoadingMessage("Sorry, something went wrong. Please try again later."); // Update with error message
             });
+    }
+
+    // Function to update the "Loading..." message with the actual response
+    function updateLoadingMessage(formattedReply) {
+        const chatMessages = document.getElementById('chat-messages');
+        const loadingMessageElement = chatMessages.querySelector('[data-loading="true"]');
+        if (loadingMessageElement) {
+            const messageContent = loadingMessageElement.querySelector('.message-content');
+            messageContent.innerHTML = formattedReply; // Replace "Loading..." with the actual response
+            loadingMessageElement.removeAttribute('data-loading'); // Remove the data attribute
+        } else {
+            // If "Loading..." message not found, append the response as a new message
+            displayBotMessage(formattedReply);
+        }
     }
 
     // Function to display bot messages with formatted content
@@ -735,7 +765,6 @@
         flex-direction: row;
     }
     `;
-
     const styleSheet = document.createElement('style');
     styleSheet.type = 'text/css';
     styleSheet.innerText = styles;
@@ -874,7 +903,7 @@
         userText.textContent = userInput.value;
         userMessageElement.appendChild(userText);
         chatMessages.appendChild(userMessageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;// Auto-scroll
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
 
         // Send the message to the API
         sendMessage(userInput.value);
