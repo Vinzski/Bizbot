@@ -176,7 +176,7 @@ Answer the question in a complete and detailed manner without unnecessary trunca
             frequency_penalty: 0,
             presence_penalty: 0,
             // Optionally adjust or remove stop_sequences
-            stop_sequences: ['\n\n', 'Conclusion'],
+            // stop_sequences: ['\n\n', 'Conclusion'],
             return_likelihoods: 'NONE'
         });
 
