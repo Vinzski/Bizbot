@@ -238,6 +238,8 @@ function formatContent(content) {
 function testChatbot() {
     const queryElement = document.getElementById("test-query");
     const query = queryElement.value.trim();
+    const resultDiv = document.getElementById("simulation-result");
+    const sendButton = document.getElementById("send-button"); // Assuming there's a send button with this ID
 
     // Log the user input
     console.log("User Query:", query);
@@ -278,12 +280,23 @@ function testChatbot() {
     // Log the payload being sent
     console.log("Payload to be sent:", payload);
 
-    // Optionally, log the headers
+    // Prepare the headers
     const headers = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`, // Include the JWT in the Authorization header
     };
     console.log("Request Headers:", headers);
+
+    // Display "Loading..." message
+    resultDiv.innerHTML = `<p>Loading...</p>`;
+    console.log("Displayed 'Loading...' message to the user.");
+
+    // Optional: Disable the send button to prevent multiple submissions
+    if (sendButton) {
+        sendButton.disabled = true;
+        sendButton.style.cursor = 'not-allowed';
+        console.log("Send button disabled to prevent multiple submissions.");
+    }
 
     fetch("/api/chat/test", {
         method: "POST",
@@ -302,7 +315,6 @@ function testChatbot() {
         .then((data) => {
             // Log the received data
             console.log("Received Data from Server:", data);
-            const resultDiv = document.getElementById("simulation-result");
             // Safeguard against missing data
             if (data.reply && data.source) {
                 const formattedReply = formatContent(data.reply);
@@ -318,11 +330,18 @@ function testChatbot() {
         .catch((error) => {
             // Log detailed error information
             console.error("Error testing chatbot:", error);
-            const resultDiv = document.getElementById("simulation-result");
-            resultDiv.textContent = "Error: " + error.message;
+            resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            console.log("Displayed error message to the user.");
+        })
+        .finally(() => {
+            // Re-enable the send button after the request completes
+            if (sendButton) {
+                sendButton.disabled = false;
+                sendButton.style.cursor = 'pointer';
+                console.log("Send button re-enabled.");
+            }
         });
 }
-
 
 function saveChatbot() {
     const chatbotTypeSelect = document.getElementById("chatbot-select");
