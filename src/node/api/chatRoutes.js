@@ -143,7 +143,6 @@ async function getRasaResponse(question) {
   }
 }
 
-// Update the getCohereResponse function
 async function getCohereResponse(question, pdfContents) {
     try {
         if (!pdfContents || pdfContents.length === 0) {
@@ -163,7 +162,7 @@ You are a friendly and helpful assistant. Answer the question based on the infor
 Question: ${question}
 Information:
 ${combinedPDFContent}
-Answer:
+Answer the question in a complete and detailed manner without unnecessary truncation.
 `;
 
         console.log('Cohere Prompt:', prompt);
@@ -176,7 +175,8 @@ Answer:
             p: 0.75,
             frequency_penalty: 0,
             presence_penalty: 0,
-            stop_sequences: ['\n'],
+            // Optionally adjust or remove stop_sequences
+            stop_sequences: ['\n\n', 'Conclusion'],
             return_likelihoods: 'NONE'
         });
 
