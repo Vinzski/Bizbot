@@ -4,7 +4,7 @@ const FAQ = require('../models/faqModel');
 const Feedback = require('../models/feedbackModel');
 const authenticate = require('../signup/middleware/authMiddleware');
 const PDF = require('../models/PDFModel');
-
+const mongoose = require('mongoose');
 
 router.get('/name/:chatbotId', authenticate, async (req, res) => {
     const { chatbotId } = req.params;
@@ -43,8 +43,13 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs, pdfId } = req.body; // pdfId is now optional
+    const { name, type, faqs, pdfId } = req.body; // pdfId is optional
     const userId = req.user.id; // Retrieved from authentication middleware
+
+    // Validate pdfId if provided
+    if (pdfId && !mongoose.Types.ObjectId.isValid(pdfId)) {
+        return res.status(400).json({ message: 'Invalid pdfId provided' });
+    }
 
     try {
         let chatbot = await Chatbot.findOne({ userId, name });
@@ -67,7 +72,7 @@ router.post('/', authenticate, async (req, res) => {
                 userId,
                 faqs,
                 pdfId, // This can be undefined if not provided
-                creationDate: new Date(), // Set the creation date on creation
+                // creationDate is handled by Mongoose's timestamps
             });
             await chatbot.save();
         }
