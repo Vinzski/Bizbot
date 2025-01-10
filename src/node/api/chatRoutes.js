@@ -271,7 +271,6 @@ router.post("/", authenticate, async (req, res) => {
 
                 return res.json({
                     reply: keywordMatch.answer,
-                    source: "Keyword Match",
                 });
             }
         }
@@ -292,7 +291,7 @@ router.post("/", authenticate, async (req, res) => {
             await botMessage.save();
             console.log("Bot response saved to database.");
 
-            return res.json({ reply: exactMatch.answer, source: "FAQ" });
+            return res.json({ reply: exactMatch.answer });
         }
 
         // 2. Jaccard Similarity Check
@@ -353,7 +352,7 @@ router.post("/", authenticate, async (req, res) => {
             await botMessage.save();
             console.log("Bot response saved to database.");
 
-            return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
+            return res.json({ reply: bestMatch.faq.answer });
         } else {
             console.log("No adequate FAQ match found.");
             // Proceed to Cohere Integration
@@ -381,7 +380,7 @@ router.post("/", authenticate, async (req, res) => {
                     await botMessage.save();
                     console.log("Bot response saved to database.");
 
-                    return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
+                    return res.json({ reply: cohereResponse });
                 } else {
                     console.log(
                         "Cohere failed to generate a response. Proceeding to Rasa."
@@ -403,7 +402,7 @@ router.post("/", authenticate, async (req, res) => {
             await botMessage.save();
             console.log("Bot response saved to database.");
 
-            return res.json({ reply: rasaResponse, source: "Rasa" });
+            return res.json({ reply: rasaResponse });
         }
     } catch (error) {
         console.error("Error processing chat request:", error);
@@ -452,7 +451,6 @@ router.post("/test", authenticate, async (req, res) => {
         console.log(`Keyword Match Found: "${keywordMatch.question}"`);
         return res.json({
           reply: keywordMatch.answer,
-          source: "Keyword Match",
         });
       }
     }
@@ -463,7 +461,7 @@ router.post("/test", authenticate, async (req, res) => {
     );
     if (exactMatch) {
       console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-      return res.json({ reply: exactMatch.answer, source: "FAQ" });
+      return res.json({ reply: exactMatch.answer });
     }
 
     // 2. Jaccard Similarity Check
@@ -514,7 +512,7 @@ router.post("/test", authenticate, async (req, res) => {
       console.log(
         `FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`
       );
-      return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
+      return res.json({ reply: bestMatch.faq.answer });
     } else {
       console.log("No adequate FAQ match found.");
 
@@ -524,7 +522,7 @@ router.post("/test", authenticate, async (req, res) => {
 
       if (rasaResponse && rasaResponse.confidence >= 0.7) { // Assuming Rasa returns a confidence score
         console.log("Rasa provided a satisfactory response.");
-        return res.json({ reply: rasaResponse.answer, source: "Rasa" });
+        return res.json({ reply: rasaResponse.answer });
       } else {
         console.log("Rasa could not provide a satisfactory response. Proceeding to Cohere.");
       }
@@ -544,7 +542,7 @@ router.post("/test", authenticate, async (req, res) => {
 
         if (cohereResponse) {
           console.log("Cohere provided a response based on PDF content.");
-          return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
+          return res.json({ reply: cohereResponse });
         } else {
           console.log("Cohere failed to generate a response.");
         }
@@ -557,7 +555,6 @@ router.post("/test", authenticate, async (req, res) => {
       console.log("Both Rasa and Cohere failed to provide a response.");
       return res.json({
         reply: "I'm sorry, I couldn't find an answer to your question.",
-        source: "No Response",
       });
     }
   } catch (error) {
