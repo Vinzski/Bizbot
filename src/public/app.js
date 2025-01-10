@@ -676,7 +676,7 @@ function uploadPDF() {
         }
     }
 
-    fetch("/api/upload-pdf", {
+    fetch("/api/faq/upload-pdf", {
         method: "POST",
         headers: {
             // Note: Do not set 'Content-Type' to 'application/json' when sending FormData
