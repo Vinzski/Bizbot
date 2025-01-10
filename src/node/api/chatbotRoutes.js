@@ -43,7 +43,7 @@ router.get('/', authenticate, async (req, res) => {
 
 
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs, pdfId } = req.body; // Include pdfId from the client
+    const { name, type, faqs, pdfId } = req.body; // pdfId is now optional
     const userId = req.user.id; // Retrieved from authentication middleware
 
     try {
@@ -54,7 +54,9 @@ router.post('/', authenticate, async (req, res) => {
             chatbot.type = type;
             chatbot.name = name;
             if (pdfId) {
-                chatbot.pdfId = pdfId; // Update the PDF reference
+                chatbot.pdfId = pdfId; // Update the PDF reference if provided
+            } else {
+                chatbot.pdfId = undefined; // Optionally, remove the PDF reference if not provided
             }
             await chatbot.save();
         } else {
@@ -64,7 +66,7 @@ router.post('/', authenticate, async (req, res) => {
                 type,
                 userId,
                 faqs,
-                pdfId, // Add the PDF reference on creation
+                pdfId, // This can be undefined if not provided
                 creationDate: new Date(), // Set the creation date on creation
             });
             await chatbot.save();
