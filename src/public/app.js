@@ -344,12 +344,27 @@ function testChatbot() {
 }
 
 function saveChatbot() {
+    console.log("saveChatbot called");
+
     const chatbotTypeSelect = document.getElementById("chatbot-select");
     const chatbotNameInput = document.getElementById("chatbot-name");
     const chatbotIdInput = document.getElementById("chatbot-id"); // Hidden input for Chatbot ID
     const token = localStorage.getItem("token");
 
+    // Verify that the hidden input exists
+    if (!chatbotIdInput) {
+        console.error("Element with ID 'chatbot-id' not found.");
+        Swal.fire({
+            title: "Error",
+            text: "Chatbot ID element is missing.",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
+        return;
+    }
+
     if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
+        console.log("Chatbot name or type is missing");
         Swal.fire({
             title: "Error",
             text: "Please fill out all chatbot fields before saving.",
@@ -362,6 +377,7 @@ function saveChatbot() {
     const faqs = Array.from(document.querySelectorAll("#faq-table tbody tr"))
         .map((row) => row.getAttribute("data-faq-id"))
         .filter(Boolean);
+    console.log("Collected FAQs:", faqs);
 
     // Prepare the payload
     const payload = {
@@ -372,15 +388,18 @@ function saveChatbot() {
 
     // Conditionally include pdfId if it exists
     const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID
-    if (pdfIdInput.value) {
+    if (pdfIdInput && pdfIdInput.value) {
         payload.pdfId = pdfIdInput.value;
+        console.log("Including pdfId in payload:", payload.pdfId);
     }
 
-    // Include chatbotId if updating an existing chatbot
+    // **Do not include '_id' unless backend expects it**
+    /*
     const chatbotId = chatbotIdInput.value;
     if (chatbotId) {
-        payload._id = chatbotId; // Assuming your backend expects an _id for updates
+        payload._id = chatbotId; // Remove or adjust based on backend expectations
     }
+    */
 
     fetch("/api/chatbots", {
         method: "POST",
@@ -391,14 +410,17 @@ function saveChatbot() {
         body: JSON.stringify(payload),
     })
         .then((response) => {
+            console.log("Received response:", response);
             if (!response.ok) {
                 return response.json().then(errData => {
+                    console.log("Error response data:", errData);
                     throw new Error(errData.message || "Network response was not ok");
                 });
             }
             return response.json();
         })
         .then((data) => {
+            console.log("Success data:", data);
             Swal.fire({
                 title: "Good job!",
                 text: "Chatbot saved successfully!",
@@ -408,6 +430,7 @@ function saveChatbot() {
             // Update chatbotId if it's a new chatbot
             if (data.chatbot && data.chatbot._id) {
                 chatbotIdInput.value = data.chatbot._id;
+                console.log("Updated chatbotId:", chatbotIdInput.value);
             }
             // Optionally, redirect or perform other actions after saving
         })
@@ -421,7 +444,6 @@ function saveChatbot() {
             });
         });
 }
-
 
 // Handling authentication and form submissions
 document
