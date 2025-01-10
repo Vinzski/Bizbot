@@ -36,25 +36,25 @@
                 <form id="chatbot-form">
                     <div class="form-group">
                         <label for="chatbot-name">Chatbot Name:</label>
-                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name"
-                            required>
+                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name" required>
                     </div>
-                        <div class="form-group">
-                            <label for="chatbot-select">Select Chatbot Type:</label>
-                            <input 
-                                list="chatbot-types" 
-                                id="chatbot-select" 
-                                name="chatbot-select" 
-                                required 
-                                placeholder="Type or select a type" />
-                            <datalist id="chatbot-types">
-                                <option value="Clothing"></option>
-                                <option value="Food Services"></option>
-                                <option value="Automobile"></option>
-                            </datalist>
-                        </div>
+                    <div class="form-group">
+                        <label for="chatbot-select">Select Chatbot Type:</label>
+                        <input 
+                            list="chatbot-types" 
+                            id="chatbot-select" 
+                            name="chatbot-select" 
+                            required 
+                            placeholder="Type or select a type" />
+                        <datalist id="chatbot-types">
+                            <option value="Clothing"></option>
+                            <option value="Food Services"></option>
+                            <option value="Automobile"></option>
+                        </datalist>
+                    </div>
 
-                    <input type="hidden" id="pdf-id" value="">
+                    <!-- Hidden input to store chatbotId -->
+                    <input type="hidden" id="chatbot-id" value="">
                 </form>
             </div>
             <div class="card">
