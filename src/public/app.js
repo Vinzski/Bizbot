@@ -310,13 +310,13 @@ function testChatbot() {
             // Safeguard against missing data
             if (data.reply && data.source) {
                 const formattedReply = formatContent(data.reply);
-                resultDiv.innerHTML = `<strong>Response:</strong> ${formattedReply}`;
+                resultDiv.innerHTML = `<strong>Response:</strong> ${formattedReply} <br><strong>Source:</strong> ${data.source}`;
                 console.log("Displayed Formatted Response and Source in UI.");
             } else {
                 console.warn("Received data is incomplete:", data);
                 resultDiv.innerHTML = `<strong>Response:</strong> ${
                     data.reply || "No reply received."
-                }`;
+                } <br><strong>Source:</strong> ${data.source || "Unknown"}`;
             }
         })
         .catch((error) => {
