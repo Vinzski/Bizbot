@@ -143,6 +143,7 @@ async function getRasaResponse(question) {
   }
 }
 
+// Update the getCohereResponse function
 async function getCohereResponse(question, pdfContents) {
     try {
         if (!pdfContents || pdfContents.length === 0) {
@@ -150,36 +151,26 @@ async function getCohereResponse(question, pdfContents) {
             return null;
         }
 
-        // Combine PDF contents with proper spacing
         let combinedPDFContent = pdfContents.join('\n\n');
-
-        // Define maximum content length based on model's token limit
-        const MAX_CONTENT_LENGTH = 3000; // Adjust as per model's token limit
+        const MAX_CONTENT_LENGTH = 3000;
         if (combinedPDFContent.length > MAX_CONTENT_LENGTH) {
             combinedPDFContent = combinedPDFContent.substring(0, MAX_CONTENT_LENGTH);
             console.log('Combined PDF content truncated to fit token limits.');
         }
 
-        // Construct the prompt with clear sections
         const prompt = `
-
-You are a friendly and helpful assistant. Only answer the question based on the given information provided below using simple language and a conversational tone.
-
-**Question:** ${question}
-
-**Information:**
+You are a friendly and helpful assistant. Answer the question based on the information provided below using simple language and a conversational tone.
+Question: ${question}
+Information:
 ${combinedPDFContent}
-
-**Answer:**
+Answer:
 `;
 
         console.log('Cohere Prompt:', prompt);
-
-        // Generate response from Cohere
         const response = await cohere.generate({
-            model: 'command-nightly', // Ensure this model supports desired capabilities
+            model: 'command-nightly',
             prompt: prompt,
-            max_tokens: 1000, // Increased from 150 to 300
+            max_tokens: 150,
             temperature: 0.5,
             k: 0,
             p: 0.75,
@@ -194,9 +185,8 @@ ${combinedPDFContent}
         if (response && response.generations && response.generations.length > 0) {
             const cohereAnswer = response.generations[0].text.trim();
             console.log('Cohere Generated Answer:', cohereAnswer);
-            console.log(`Cohere Response Finish Reason: ${response.generations[0].finish_reason}`);
 
-            if (cohereAnswer.length > 10) { // Ensures the response isn't too short
+            if (cohereAnswer.length > 10) {
                 return cohereAnswer;
             } else {
                 console.log('Cohere response is too short.');
@@ -271,6 +261,7 @@ router.post("/", authenticate, async (req, res) => {
 
                 return res.json({
                     reply: keywordMatch.answer,
+                    source: "Keyword Match",
                 });
             }
         }
@@ -291,7 +282,7 @@ router.post("/", authenticate, async (req, res) => {
             await botMessage.save();
             console.log("Bot response saved to database.");
 
-            return res.json({ reply: exactMatch.answer });
+            return res.json({ reply: exactMatch.answer, source: "FAQ" });
         }
 
         // 2. Jaccard Similarity Check
@@ -336,7 +327,7 @@ router.post("/", authenticate, async (req, res) => {
         });
 
         // Define threshold for similarity matching
-        const SIMILARITY_THRESHOLD = 0.9; // Adjust this threshold based on testing
+        const SIMILARITY_THRESHOLD = 0.8; // Adjust this threshold based on testing
 
         if (bestMatch.score >= SIMILARITY_THRESHOLD) {
             console.log(
@@ -352,7 +343,7 @@ router.post("/", authenticate, async (req, res) => {
             await botMessage.save();
             console.log("Bot response saved to database.");
 
-            return res.json({ reply: bestMatch.faq.answer });
+            return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
         } else {
             console.log("No adequate FAQ match found.");
             // Proceed to Cohere Integration
@@ -380,7 +371,7 @@ router.post("/", authenticate, async (req, res) => {
                     await botMessage.save();
                     console.log("Bot response saved to database.");
 
-                    return res.json({ reply: cohereResponse });
+                    return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
                 } else {
                     console.log(
                         "Cohere failed to generate a response. Proceeding to Rasa."
@@ -402,7 +393,7 @@ router.post("/", authenticate, async (req, res) => {
             await botMessage.save();
             console.log("Bot response saved to database.");
 
-            return res.json({ reply: rasaResponse });
+            return res.json({ reply: rasaResponse, source: "Rasa" });
         }
     } catch (error) {
         console.error("Error processing chat request:", error);
@@ -451,6 +442,7 @@ router.post("/test", authenticate, async (req, res) => {
         console.log(`Keyword Match Found: "${keywordMatch.question}"`);
         return res.json({
           reply: keywordMatch.answer,
+          source: "Keyword Match",
         });
       }
     }
@@ -461,7 +453,7 @@ router.post("/test", authenticate, async (req, res) => {
     );
     if (exactMatch) {
       console.log(`Exact FAQ Match Found: "${exactMatch.question}"`);
-      return res.json({ reply: exactMatch.answer });
+      return res.json({ reply: exactMatch.answer, source: "FAQ" });
     }
 
     // 2. Jaccard Similarity Check
@@ -471,7 +463,9 @@ router.post("/test", authenticate, async (req, res) => {
       const tokenizedFaq = tokenizer.tokenize(faqText);
       const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
       console.log(
-        `FAQ Question: "${faq.question}" | Jaccard Similarity: ${similarity.toFixed(2)}`
+        `FAQ Question: "${
+          faq.question
+        }" | Jaccard Similarity: ${similarity.toFixed(2)}`
       );
       if (similarity > bestMatch.score) {
         bestMatch = { score: similarity, faq };
@@ -498,7 +492,9 @@ router.post("/test", authenticate, async (req, res) => {
         faq.question.toLowerCase().trim()
       );
       console.log(
-        `FAQ Question: "${faq.question}" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
+        `FAQ Question: "${
+          faq.question
+        }" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
       );
       if (similarity > bestMatch.score) {
         bestMatch = { score: similarity, faq };
@@ -506,28 +502,19 @@ router.post("/test", authenticate, async (req, res) => {
     });
 
     // Define threshold for similarity matching
-    const SIMILARITY_THRESHOLD = 0.9; // Adjust this threshold based on testing
+    const SIMILARITY_THRESHOLD = 1.0; // Adjust this threshold based on testing
 
     if (bestMatch.score >= SIMILARITY_THRESHOLD) {
       console.log(
-        `FAQ Match Found: "${bestMatch.faq.question}" with similarity ${bestMatch.score.toFixed(2)}`
+        `FAQ Match Found: "${
+          bestMatch.faq.question
+        }" with similarity ${bestMatch.score.toFixed(2)}`
       );
-      return res.json({ reply: bestMatch.faq.answer });
+      return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
       console.log("No adequate FAQ match found.");
 
-      // **1. Proceed to Rasa Integration First**
-      console.log("Proceeding to Rasa for response.");
-      const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
-
-      if (rasaResponse && rasaResponse.confidence >= 0.7) { // Assuming Rasa returns a confidence score
-        console.log("Rasa provided a satisfactory response.");
-        return res.json({ reply: rasaResponse.answer });
-      } else {
-        console.log("Rasa could not provide a satisfactory response. Proceeding to Cohere.");
-      }
-
-      // **2. Fallback to Cohere Integration**
+      // Proceed to Cohere Integration
       // Fetch PDFs specific to the chatbot and user
       const pdfs = await PDF.find({ userId: userId, chatbotId: chatbotId });
       console.log(`Number of PDFs found: ${pdfs.length}`);
@@ -542,20 +529,19 @@ router.post("/test", authenticate, async (req, res) => {
 
         if (cohereResponse) {
           console.log("Cohere provided a response based on PDF content.");
-          return res.json({ reply: cohereResponse });
+          return res.json({ reply: cohereResponse, source: "PDF via Cohere" });
         } else {
-          console.log("Cohere failed to generate a response.");
+          console.log(
+            "Cohere failed to generate a response. Proceeding to Rasa."
+          );
         }
       } else {
         console.log("No PDFs available to search.");
       }
 
-      // **3. Final Fallback (Optional)**
-      // If both Rasa and Cohere fail, you can return a default message or handle accordingly
-      console.log("Both Rasa and Cohere failed to provide a response.");
-      return res.json({
-        reply: "I'm sorry, I couldn't find an answer to your question.",
-      });
+      // If Cohere fails or no PDFs, fallback to Rasa
+      const rasaResponse = await getRasaResponse(question); // Function to call Rasa API
+      return res.json({ reply: rasaResponse, source: "Rasa" });
     }
   } catch (error) {
     console.error("Error processing chat request:", error);
