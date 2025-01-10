@@ -324,7 +324,7 @@ function testChatbot() {
                 console.warn("Received data is incomplete:", data);
                 resultDiv.innerHTML = `<strong>Response:</strong> ${
                     data.reply || "No reply received."
-                } <br><strong>Source:</strong> ${data.source || "Unknown"}`;
+                }`;
             }
         })
         .catch((error) => {
