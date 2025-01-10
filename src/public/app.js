@@ -346,7 +346,7 @@ function testChatbot() {
 function saveChatbot() {
     const chatbotTypeSelect = document.getElementById("chatbot-select");
     const chatbotNameInput = document.getElementById("chatbot-name");
-    const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID
+    const chatbotIdInput = document.getElementById("chatbot-id"); // Hidden input for Chatbot ID
     const token = localStorage.getItem("token");
 
     if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
@@ -371,8 +371,15 @@ function saveChatbot() {
     };
 
     // Conditionally include pdfId if it exists
+    const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID
     if (pdfIdInput.value) {
         payload.pdfId = pdfIdInput.value;
+    }
+
+    // Include chatbotId if updating an existing chatbot
+    const chatbotId = chatbotIdInput.value;
+    if (chatbotId) {
+        payload._id = chatbotId; // Assuming your backend expects an _id for updates
     }
 
     fetch("/api/chatbots", {
@@ -385,7 +392,9 @@ function saveChatbot() {
     })
         .then((response) => {
             if (!response.ok) {
-                throw new Error("Network response was not ok: " + response.statusText);
+                return response.json().then(errData => {
+                    throw new Error(errData.message || "Network response was not ok");
+                });
             }
             return response.json();
         })
@@ -396,6 +405,10 @@ function saveChatbot() {
                 icon: "success",
                 confirmButtonText: "OK",
             });
+            // Update chatbotId if it's a new chatbot
+            if (data.chatbot && data.chatbot._id) {
+                chatbotIdInput.value = data.chatbot._id;
+            }
             // Optionally, redirect or perform other actions after saving
         })
         .catch((error) => {
