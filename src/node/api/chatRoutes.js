@@ -179,7 +179,7 @@ ${combinedPDFContent}
         const response = await cohere.generate({
             model: 'command-nightly', // Ensure this model supports desired capabilities
             prompt: prompt,
-            max_tokens: 300, // Increased from 150 to 300
+            max_tokens: 1000, // Increased from 150 to 300
             temperature: 0.5,
             k: 0,
             p: 0.75,
