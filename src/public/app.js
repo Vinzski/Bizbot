@@ -193,7 +193,6 @@ function formatContent(content) {
     let formattedContent = '';
     let isList = false;
     let listType = 'ul'; // 'ul' for unordered, 'ol' for ordered
-
     lines.forEach((line, index) => {
         // Check for unordered list items
         if (/^[-*\u2022]\s+/.test(line)) {
@@ -294,7 +293,6 @@ function testChatbot() {
         .then((response) => {
             // Log the response status
             console.log("Response Status:", response.status, response.statusText);
-
             if (!response.ok) {
                 console.error("Network response was not ok:", response.statusText);
                 throw new Error("Network response was not ok: " + response.statusText);
@@ -304,9 +302,7 @@ function testChatbot() {
         .then((data) => {
             // Log the received data
             console.log("Received Data from Server:", data);
-
             const resultDiv = document.getElementById("simulation-result");
-
             // Safeguard against missing data
             if (data.reply && data.source) {
                 const formattedReply = formatContent(data.reply);
