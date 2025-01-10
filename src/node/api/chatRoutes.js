@@ -158,7 +158,7 @@ async function getCohereResponse(question, pdfContents) {
         }
 
         const prompt = `
-You are a friendly and helpful assistant. Use only the information provided below to answer the question. If the answer is not in the given information, politely decline to answer. Keep your responses clear, concise, and conversational.
+You are a friendly and helpful assistant. Use only the information provided below to answer specific questions. If the answer is not in the given information, politely decline to answer. However, feel free to respond to general conversational queries like "Hi," "How are you?" or "Thank you" in an engaging and friendly manner. Keep your responses clear, concise, and conversational.
 Question: ${question}
 Information:
 ${combinedPDFContent}
