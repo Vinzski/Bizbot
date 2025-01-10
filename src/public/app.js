@@ -628,58 +628,79 @@ function removeFaqRow(id) {
   }
 }
 
-async function uploadPDF() {
-    const form = document.getElementById('pdf-upload-form');
-    const fileInput = document.getElementById('pdf-file');
-    const statusDiv = document.getElementById('upload-status');
-    const pdfList = document.getElementById('pdf-list');
+function uploadPDF() {
+    const pdfFileInput = document.getElementById("pdf-file");
+    const chatbotNameInput = document.getElementById("chatbot-name");
+    const chatbotTypeSelect = document.getElementById("chatbot-select");
+    const chatbotIdInput = document.getElementById("chatbot-id"); // Hidden input for Chatbot ID
+    const token = localStorage.getItem("token");
 
-    // Extract chatbotId from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatbotId = urlParams.get('chatbotId'); // Assuming ?chatbotId=XYZ in the URL
-
-    if (!fileInput.files.length) {
-        statusDiv.textContent = 'Please select a file to upload.';
-        return;
-    }
-
-    if (!chatbotId) {
-        statusDiv.textContent = 'Chatbot ID not found in the URL.';
+    const file = pdfFileInput.files[0];
+    if (!file) {
+        Swal.fire({
+            title: "Error",
+            text: "Please select a PDF file to upload.",
+            icon: "error",
+            confirmButtonText: "OK",
+        });
         return;
     }
 
     const formData = new FormData();
-    formData.append('pdf', fileInput.files[0]); // Append the file
-    formData.append('chatbotId', chatbotId);   // Append chatbotId
+    formData.append("pdf", file);
 
-    try {
-        statusDiv.textContent = 'Uploading...';
-        const response = await fetch('/api/faqs/upload-pdf', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`, // Include JWT if needed
-            },
-            body: formData,
+    // Optionally, include chatbotId if a chatbot exists
+    const chatbotId = chatbotIdInput.value; // Get the chatbotId from hidden input
+    if (chatbotId) {
+        formData.append("chatbotId", chatbotId);
+    } else {
+        // Optionally, include name and type to create a new chatbot
+        const name = chatbotNameInput.value;
+        const type = chatbotTypeSelect.value;
+        if (name && type) {
+            formData.append("name", name);
+            formData.append("type", type);
+        }
+    }
+
+    fetch("/api/upload-pdf", {
+        method: "POST",
+        headers: {
+            // Note: Do not set 'Content-Type' to 'application/json' when sending FormData
+            Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.error) {
+            throw new Error(data.message || "Failed to upload PDF");
+        }
+
+        Swal.fire({
+            title: "Success",
+            text: data.message,
+            icon: "success",
+            confirmButtonText: "OK",
         });
 
-      if (response.ok) {
-          const data = await response.json();
-          statusDiv.textContent = data.message;
+        // If a new chatbot was created, update the chatbot-id hidden input
+        if (data.chatbot && data.chatbot._id) {
+            chatbotIdInput.value = data.chatbot._id;
+            // Optionally, display chatbot details on the UI
+        }
 
-          // Set the PDF ID in the hidden input field
-          const pdfIdInput = document.getElementById("pdf-id");
-          pdfIdInput.value = data.pdf._id; // Use the ID from the uploaded PDF
-
-          // Dynamically add the newly uploaded PDF to the list with an icon
-          const pdfItem = document.createElement('li');
-          pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${data.pdf.filename}</span>`;
-          pdfList.appendChild(pdfItem);
-      } else {
-          const error = await response.json();
-          statusDiv.textContent = `Error: ${error.message}`;
-      }
-    } catch (err) {
-        console.error('Upload error:', err);
-        statusDiv.textContent = 'An error occurred while uploading the PDF.';
-    }
+        // Update the PDF list
+        loadPDFsForChatbot([data.pdf]);
+    })
+    .catch((error) => {
+        console.error("Error uploading PDF:", error);
+        Swal.fire({
+            title: "Error",
+            text: `Failed to upload PDF: ${error.message}`,
+            icon: "error",
+            confirmButtonText: "Try Again",
+        });
+    });
 }
+
