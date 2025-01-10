@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pdfParse = require('pdf-parse');
 const multer = require('multer');
+const mongoose = require('mongoose');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -16,28 +17,64 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
+        // Parse the PDF content
         const pdfText = await pdfParse(req.file.buffer);
         const extractedText = pdfText.text;
 
+        let chatbotId = req.body.chatbotId;
+
+        // Validate chatbotId if provided
+        if (chatbotId && !mongoose.Types.ObjectId.isValid(chatbotId)) {
+            return res.status(400).json({ message: 'Invalid chatbotId provided' });
+        }
+
+        let chatbot;
+        if (chatbotId) {
+            chatbot = await Chatbot.findById(chatbotId);
+            if (!chatbot) {
+                return res.status(404).json({ message: 'Chatbot not found with the provided chatbotId' });
+            }
+        } else {
+            // Create a new chatbot since chatbotId is not provided
+            chatbot = new Chatbot({
+                name: req.body.name || 'Default Chatbot Name', // Customize as needed
+                type: req.body.type || 'Default Type',         // Customize as needed
+                userId: req.user.id,
+                faqs: [], // Initialize with empty FAQs or as needed
+                // pdfId will be set after saving the PDF
+            });
+            await chatbot.save();
+        }
+
+        // Create and save the PDF
         const pdfData = new PDF({
             filename: req.file.originalname,
-            chatbotId: req.body.chatbotId,
+            chatbotId: chatbot._id, // Associate with the chatbot
             userId: req.user.id,
             content: extractedText,
         });
 
         await pdfData.save();
 
-        // Send the newly uploaded PDF back in the response
+        // Update the chatbot to reference the new PDF
+        chatbot.pdfId = pdfData._id;
+        await chatbot.save();
+
         res.status(200).json({
-            message: 'PDF uploaded and content saved successfully',
+            message: 'PDF uploaded and associated with chatbot successfully',
             pdf: {
                 filename: pdfData.filename,
-                content: pdfData.content, // Or you could exclude content for privacy if not needed
-                _id: pdfData._id  // Return the PDF ID to associate with chatbot
+                content: pdfData.content, // Be cautious about sending content if sensitive
+                _id: pdfData._id,
+            },
+            chatbot: {
+                _id: chatbot._id,
+                name: chatbot.name,
+                type: chatbot.type,
             },
         });
     } catch (error) {
+        console.error('Error processing PDF upload:', error);
         res.status(500).json({ message: 'Error processing PDF', error: error.toString() });
     }
 });
