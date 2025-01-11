@@ -122,7 +122,6 @@ function jaroWinklerSimilarity(str1, str2) {
   return JaroWinklerDistance(str1, str2);
 }
 
-
 // Function to get response from Rasa (replace with actual Rasa API call)
 async function getRasaResponse(question) {
   try {
@@ -225,7 +224,7 @@ router.post("/", authenticate, async (req, res) => {
         await userMessage.save();
         console.log("User message saved to database.");
 
-        // Fetch FAQs specific to the and user
+        // Fetch FAQs specific to the chatbot and user
         const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
 
