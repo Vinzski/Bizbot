@@ -1,3 +1,6 @@
+// Initialize the pendingPdfs array at the top
+let pendingPdfs = [];
+
 // Toggle between login and signup forms
 function toggleForm() {
   const isLogin = document
@@ -560,9 +563,6 @@ function removeFaqRow(id) {
     console.warn("Row not found to remove!");
   }
 }
-
-// Initialize the pendingPdfs array at the top
-let pendingPdfs = [];
 
 function uploadPDF() {
     const pdfFileInput = document.getElementById("pdf-file");
