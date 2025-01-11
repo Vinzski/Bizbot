@@ -1,3 +1,4 @@
+<!-- training.html -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,24 +8,37 @@
     <title>Training Data Management - BizBot Admin</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Optional: Add some basic styling for pending PDFs */
+        .pending-pdf {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .pending-pdf button {
+            margin-left: 10px;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
         <aside class="sidebar">
-    <h2>BizBot Admin</h2>
-    <nav>
-        <ul>
-            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
-            <li><a href="training.html" class="active"><i class="fas fa-database"></i> Training Data</a></li>
-            <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
-            <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
-            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
-        </ul>
-    </nav>
-</aside>
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
+                    <li><a href="training.html" class="active"><i class="fas fa-database"></i> Training Data</a></li>
+                    <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
+                    <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i>
+                            Logout</button></li>
+                </ul>
+            </nav>
+        </aside>
 
         <main class="main-content">
             <header class="dashboard-header">
@@ -78,9 +92,16 @@
                         <label for="pdf-file">Upload PDF:</label>
                         <input type="file" id="pdf-file" name="pdf" accept=".pdf">
                     </div>
-                    <button type="button" onclick="uploadPDF()">Upload PDF</button>
+                    <button type="button" onclick="uploadPDF()" id="upload-pdf-button">Upload PDF</button>
                 </form>
                 <div id="upload-status"></div>
+            </div>
+
+            <div class="card">
+                <h2>Pending PDFs</h2>
+                <ul id="pdf-list" class="pdf-display">
+                    <!-- Pending PDFs will be dynamically displayed here -->
+                </ul>
             </div>
 
             <div class="card">
@@ -109,11 +130,10 @@
                 </table>
             </div>
 
-            <!-- Display Pending PDFs -->
-            <div class="card" id="pending-pdf-card" style="display: none;">
-                <h2>Pending PDFs</h2>
+            <div class="card">
+                <h2>PDFs</h2>
                 <ul id="pdf-list" class="pdf-display">
-                    <!-- Pending PDFs will be dynamically displayed here -->
+                    <!-- Uploaded PDFs will be dynamically displayed here -->
                 </ul>
             </div>
 
@@ -122,23 +142,6 @@
     <button type="button" id="saveChatbotBtn" class="save-chatbot-button" onclick="saveChatbot()">Save Chatbot</button>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
     <script src="app.js"></script>
-        <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const chatbotId = urlParams.get('chatbotId');
-            if (chatbotId) {
-                loadChatbotDetails(chatbotId);
-            } else {
-                console.error("No chatbotId found in URL");
-                Swal.fire({
-                    title: "Error",
-                    text: "No chatbot selected for editing.",
-                    icon: "error",
-                    confirmButtonText: "OK",
-                });
-            }
-        });
-    </script>
 </body>
 
 </html>
