@@ -684,7 +684,7 @@ function uploadPDF() {
 }
 
 function displayPendingPdfs() {
-    const pdfList = document.getElementById("pdf-list");
+    const pdfList = document.getElementById("pending-pdf-list");
     const pendingPdfCard = document.getElementById("pending-pdf-card");
     pdfList.innerHTML = ""; // Clear existing list
 
@@ -695,10 +695,7 @@ function displayPendingPdfs() {
 
     pendingPdfs.forEach((file, index) => {
         const listItem = document.createElement("li");
-        listItem.classList.add("pending-pdf");
-
-        const fileNameSpan = document.createElement("span");
-        fileNameSpan.textContent = file.name;
+        listItem.textContent = file.name;
 
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "Remove";
@@ -707,13 +704,13 @@ function displayPendingPdfs() {
             displayPendingPdfs();
         };
 
-        listItem.appendChild(fileNameSpan);
         listItem.appendChild(removeBtn);
         pdfList.appendChild(listItem);
     });
 
     pendingPdfCard.style.display = "block";
 }
+
 
 function saveChatbot() {
     console.log("saveChatbot called");
@@ -723,20 +720,7 @@ function saveChatbot() {
     const chatbotIdInput = document.getElementById("chatbot-id"); // Hidden input for Chatbot ID
     const token = localStorage.getItem("token");
 
-    // Verify that the hidden input exists
-    if (!chatbotIdInput) {
-        console.error("Element with ID 'chatbot-id' not found.");
-        Swal.fire({
-            title: "Error",
-            text: "Chatbot ID element is missing.",
-            icon: "error",
-            confirmButtonText: "OK",
-        });
-        return;
-    }
-
     if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
-        console.log("Chatbot name or type is missing");
         Swal.fire({
             title: "Error",
             text: "Please fill out all chatbot fields before saving.",
@@ -749,7 +733,6 @@ function saveChatbot() {
     const faqs = Array.from(document.querySelectorAll("#faq-table tbody tr"))
         .map((row) => row.getAttribute("data-faq-id"))
         .filter(Boolean);
-    console.log("Collected FAQs:", faqs);
 
     // Prepare the payload
     const payload = {
@@ -758,15 +741,10 @@ function saveChatbot() {
         faqs: faqs,
     };
 
-    // Include pdfId if it exists
-    const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID
-    if (pdfIdInput && pdfIdInput.value) {
-        payload.pdfId = pdfIdInput.value;
-        console.log("Including pdfId in payload:", payload.pdfId);
-    }
+    const chatbotId = chatbotIdInput.value;
 
-    fetch("/api/chatbots", {
-        method: "POST",
+    fetch(chatbotId ? `/api/chatbots/${chatbotId}` : "/api/chatbots", {
+        method: chatbotId ? "PUT" : "POST", // Use PUT for updates, POST for creation
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -774,36 +752,35 @@ function saveChatbot() {
         body: JSON.stringify(payload),
     })
         .then((response) => {
-            console.log("Received response:", response);
             if (!response.ok) {
-                return response.json().then(errData => {
-                    console.log("Error response data:", errData);
-                    throw new Error(errData.message || "Network response was not ok");
-                });
+                throw new Error("Failed to save chatbot");
             }
             return response.json();
         })
         .then((data) => {
-            console.log("Success data:", data);
             Swal.fire({
-                title: "Good job!",
+                title: "Success",
                 text: "Chatbot saved successfully!",
                 icon: "success",
                 confirmButtonText: "OK",
             });
 
-            // Update chatbotId hidden input
-            if (data.chatbot && data.chatbot._id) {
+            if (!chatbotId) {
+                // If a new chatbot was created, update the chatbotId hidden input
                 chatbotIdInput.value = data.chatbot._id;
-                console.log("Updated chatbotId:", chatbotIdInput.value);
             }
 
             // If there are pending PDFs, upload them now
             if (pendingPdfs.length > 0) {
-                uploadPendingPdfs();
+                uploadPendingPdfs(data.chatbot._id); // Pass the chatbotId
             }
 
-            // Optionally, disable the Save Chatbot button or provide further UI feedback
+            // Clear the Pending PDFs list
+            pendingPdfs = [];
+            displayPendingPdfs();
+
+            // Update the PDFs section
+            loadPDFsForChatbot(data.chatbot.pdfs || []);
         })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
@@ -816,13 +793,11 @@ function saveChatbot() {
         });
 }
 
-function uploadPendingPdfs() {
-    const chatbotIdInput = document.getElementById("chatbot-id");
-    const chatbotId = chatbotIdInput.value;
+
+function uploadPendingPdfs(chatbotId) {
     const token = localStorage.getItem("token");
 
-    // Iterate through pendingPdfs and upload each
-    pendingPdfs.forEach((file) => {
+    pendingPdfs.forEach((file, index) => {
         const formData = new FormData();
         formData.append("pdf", file);
         formData.append("chatbotId", chatbotId);
@@ -834,95 +809,63 @@ function uploadPendingPdfs() {
             },
             body: formData,
         })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.error) {
-                throw new Error(data.message || "Failed to upload PDF");
-            }
-
-            Swal.fire({
-                title: "Success",
-                text: `PDF "${data.pdf.filename}" uploaded successfully.`,
-                icon: "success",
-                confirmButtonText: "OK",
-            });
-
-            // Update the PDF list
-            loadPDFsForChatbot([data.pdf]);
-
-            // Remove the uploaded PDF from pendingPdfs
-            pendingPdfs = pendingPdfs.filter(pendingFile => pendingFile.name !== file.name);
-            displayPendingPdfs();
-        })
-        .catch((error) => {
-            console.error("Error uploading PDF:", error);
-            Swal.fire({
-                title: "Error",
-                text: `Failed to upload PDF "${file.name}": ${error.message}`,
-                icon: "error",
-                confirmButtonText: "Try Again",
-            });
-        });
-    });
-}
-
-// Example implementation of loadPDFsForChatbot (you might need to adjust this based on your actual implementation)
-function loadPDFsForChatbot(pdfs) {
-    const pdfList = document.getElementById("pdf-list");
-    pdfList.innerHTML = ""; // Clear existing list
-
-    pdfs.forEach((pdf) => {
-        const listItem = document.createElement("li");
-        listItem.textContent = pdf.filename;
-        pdfList.appendChild(listItem);
-    });
-}
-
-function removePDF(pdfId) {
-    const token = localStorage.getItem("token");
-    const chatbotId = document.getElementById("chatbot-id").value;
-
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This will remove the PDF from the chatbot.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, remove it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/api/faqs/${pdfId}`, { // Ensure you have a DELETE route for PDFs
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => {
+            .then((response) => {
                 if (!response.ok) {
-                    throw new Error('Failed to remove PDF');
+                    throw new Error("Failed to upload PDF");
                 }
                 return response.json();
             })
-            .then(() => {
-                Swal.fire(
-                    'Removed!',
-                    'The PDF has been removed from the chatbot.',
-                    'success'
-                );
-                // Refresh the chatbot details to reflect PDF removal
-                loadChatbotDetails(chatbotId);
+            .then((data) => {
+                Swal.fire({
+                    title: "Success",
+                    text: `PDF "${file.name}" uploaded successfully.`,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                });
+
+                // Update the PDFs section with the newly uploaded PDF
+                loadPDFsForChatbot(data.pdfs);
+
+                // Remove the uploaded PDF from pendingPdfs
+                pendingPdfs.splice(index, 1);
+                displayPendingPdfs();
             })
-            .catch(error => {
-                console.error('Error removing PDF:', error);
-                Swal.fire(
-                    'Error!',
-                    'Failed to remove PDF. Please try again.',
-                    'error'
-                );
+            .catch((error) => {
+                console.error("Error uploading PDF:", error);
+                Swal.fire({
+                    title: "Error",
+                    text: `Failed to upload PDF "${file.name}": ${error.message}`,
+                    icon: "error",
+                    confirmButtonText: "Try Again",
+                });
             });
-        }
     });
 }
+
+
+// Example implementation of loadPDFsForChatbot (you might need to adjust this based on your actual implementation)
+function loadPDFsForChatbot(pdfs) {
+    const pdfList = document.getElementById("uploaded-pdf-list");
+    pdfList.innerHTML = ""; // Clear the list first
+
+    if (!pdfs || pdfs.length === 0) {
+        pdfList.innerHTML = "<li>No PDFs associated with this chatbot.</li>";
+        return;
+    }
+
+    pdfs.forEach((pdf) => {
+        const pdfItem = document.createElement("li");
+        const pdfLink = document.createElement("a");
+        pdfLink.href = `/uploads/${pdf.filename}`; // Adjust path if needed
+        pdfLink.target = "_blank"; // Open in a new tab
+        pdfLink.textContent = pdf.filename;
+
+        pdfItem.appendChild(pdfLink);
+        pdfList.appendChild(pdfItem);
+    });
+
+    console.log(`Loaded ${pdfs.length} PDFs for this chatbot`);
+}
+
 
 
