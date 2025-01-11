@@ -122,38 +122,6 @@ function jaroWinklerSimilarity(str1, str2) {
   return JaroWinklerDistance(str1, str2);
 }
 
-// Combined Similarity Score Function
-function combinedSimilarity(userQuestion, faq) {
-  // Normalize and tokenize FAQ question
-  const normalizedFaqQuestion = faq.question.toLowerCase().trim();
-  const tokenizedFaqQuestion = tokenizer.tokenize(normalizedFaqQuestion);
-  const stemmedFaqQuestion = tokenizedFaqQuestion
-    .map((token) => stemmer.stem(token))
-    .join(" ");
-
-  // Compute individual similarities
-  const jaccard = jaccardSimilarity(userQuestion, tokenizedFaqQuestion);
-  const cosine = cosineSimilarity(userQuestion, tokenizedFaqQuestion);
-  const jaroWinkler = jaroWinklerSimilarity(
-    userQuestion.join(" "),
-    normalizedFaqQuestion
-  );
-
-  // Assign weights to each similarity metric
-  const weights = {
-    jaccard: 0.3,
-    cosine: 0.5,
-    jaroWinkler: 0.2,
-  };
-
-  // Calculate combined similarity score
-  const combinedScore =
-    (weights.jaccard * jaccard) +
-    (weights.cosine * cosine) +
-    (weights.jaroWinkler * jaroWinkler);
-
-  return combinedScore;
-}
 
 // Function to get response from Rasa (replace with actual Rasa API call)
 async function getRasaResponse(question) {
@@ -448,7 +416,7 @@ router.post("/test", authenticate, async (req, res) => {
 
   try {
     // Fetch FAQs specific to the chatbot and user
-    const faqs = await FAQ.find({ userId: userId }); // Ensure chatbotId is considered
+    const faqs = await FAQ.find({ userId: userId });
     console.log(`Number of FAQs found: ${faqs.length}`);
 
     if (faqs.length === 0) {
@@ -489,16 +457,45 @@ router.post("/test", authenticate, async (req, res) => {
       return res.json({ reply: exactMatch.answer, source: "FAQ" });
     }
 
-    // Initialize best match
+    // 2. Jaccard Similarity Check
     let bestMatch = { score: 0, faq: null };
-
-    // Compute combined similarity scores for all FAQs
     faqs.forEach((faq) => {
-      const similarity = combinedSimilarity(tokenizedUserQuestion, faq);
+      const faqText = faq.question.toLowerCase().trim();
+      const tokenizedFaq = tokenizer.tokenize(faqText);
+      const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
       console.log(
-        `FAQ Question: "${faq.question}" | Combined Similarity: ${similarity.toFixed(
-          2
-        )}`
+        `FAQ Question: "${
+          faq.question
+        }" | Jaccard Similarity: ${similarity.toFixed(2)}`
+      );
+      if (similarity > bestMatch.score) {
+        bestMatch = { score: similarity, faq };
+      }
+    });
+
+    // 3. Cosine Similarity Check
+    faqs.forEach((faq) => {
+      const faqText = faq.question.toLowerCase().trim();
+      const tokenizedFaq = tokenizer.tokenize(faqText);
+      const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+      console.log(
+        `FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`
+      );
+      if (similarity > bestMatch.score) {
+        bestMatch = { score: similarity, faq };
+      }
+    });
+
+    // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
+    faqs.forEach((faq) => {
+      const similarity = jaroWinklerSimilarity(
+        normalizedUserQuestion,
+        faq.question.toLowerCase().trim()
+      );
+      console.log(
+        `FAQ Question: "${
+          faq.question
+        }" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
       );
       if (similarity > bestMatch.score) {
         bestMatch = { score: similarity, faq };
@@ -506,13 +503,13 @@ router.post("/test", authenticate, async (req, res) => {
     });
 
     // Define threshold for similarity matching
-    const SIMILARITY_THRESHOLD = 0.75; // Adjusted based on combined score scale
+    const SIMILARITY_THRESHOLD = 0.85; // Adjust this threshold based on testing
 
     if (bestMatch.score >= SIMILARITY_THRESHOLD) {
       console.log(
-        `FAQ Match Found: "${bestMatch.faq.question}" with combined similarity ${bestMatch.score.toFixed(
-          2
-        )}`
+        `FAQ Match Found: "${
+          bestMatch.faq.question
+        }" with similarity ${bestMatch.score.toFixed(2)}`
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
