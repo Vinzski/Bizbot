@@ -257,7 +257,7 @@ router.post("/", authenticate, async (req, res) => {
         await userMessage.save();
         console.log("User message saved to database.");
 
-        // Fetch FAQs specific to the chatbot and user
+        // Fetch FAQs specific to the and user
         const faqs = await FAQ.find({ userId: userId });
         console.log(`Number of FAQs found: ${faqs.length}`);
 
@@ -448,7 +448,7 @@ router.post("/test", authenticate, async (req, res) => {
 
   try {
     // Fetch FAQs specific to the chatbot and user
-    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId }); // Ensure chatbotId is considered
+    const faqs = await FAQ.find({ userId: userId }); // Ensure chatbotId is considered
     console.log(`Number of FAQs found: ${faqs.length}`);
 
     if (faqs.length === 0) {
