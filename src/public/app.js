@@ -861,7 +861,7 @@ function removePDF(pdfId) {
         confirmButtonText: 'Yes, remove it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch(`/api/pdfs/${pdfId}`, { // Ensure you have a DELETE route for PDFs
+            fetch(`/api/faqs/${pdfId}`, { // Ensure you have a DELETE route for PDFs
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
