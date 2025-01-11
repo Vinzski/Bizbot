@@ -448,7 +448,7 @@ router.post("/test", authenticate, async (req, res) => {
 
   try {
     // Fetch FAQs specific to the chatbot and user
-    const faqs = await FAQ.find({ userId: userId });
+    const faqs = await FAQ.find({ userId: userId, chatbotId: chatbotId }); // Ensure chatbotId is considered
     console.log(`Number of FAQs found: ${faqs.length}`);
 
     if (faqs.length === 0) {
@@ -489,45 +489,16 @@ router.post("/test", authenticate, async (req, res) => {
       return res.json({ reply: exactMatch.answer, source: "FAQ" });
     }
 
-    // 2. Jaccard Similarity Check
+    // Initialize best match
     let bestMatch = { score: 0, faq: null };
-    faqs.forEach((faq) => {
-      const faqText = faq.question.toLowerCase().trim();
-      const tokenizedFaq = tokenizer.tokenize(faqText);
-      const similarity = jaccardSimilarity(tokenizedUserQuestion, tokenizedFaq);
-      console.log(
-        `FAQ Question: "${
-          faq.question
-        }" | Jaccard Similarity: ${similarity.toFixed(2)}`
-      );
-      if (similarity > bestMatch.score) {
-        bestMatch = { score: similarity, faq };
-      }
-    });
 
-    // 3. Cosine Similarity Check
+    // Compute combined similarity scores for all FAQs
     faqs.forEach((faq) => {
-      const faqText = faq.question.toLowerCase().trim();
-      const tokenizedFaq = tokenizer.tokenize(faqText);
-      const similarity = cosineSimilarity(tokenizedUserQuestion, tokenizedFaq);
+      const similarity = combinedSimilarity(tokenizedUserQuestion, faq);
       console.log(
-        `FAQ Question: "${faq.question}" | Cosine Similarity: ${similarity}`
-      );
-      if (similarity > bestMatch.score) {
-        bestMatch = { score: similarity, faq };
-      }
-    });
-
-    // 4. Jaro-Winkler Similarity Check (for fuzzy matching)
-    faqs.forEach((faq) => {
-      const similarity = jaroWinklerSimilarity(
-        normalizedUserQuestion,
-        faq.question.toLowerCase().trim()
-      );
-      console.log(
-        `FAQ Question: "${
-          faq.question
-        }" | Jaro-Winkler Similarity: ${similarity.toFixed(2)}`
+        `FAQ Question: "${faq.question}" | Combined Similarity: ${similarity.toFixed(
+          2
+        )}`
       );
       if (similarity > bestMatch.score) {
         bestMatch = { score: similarity, faq };
@@ -535,13 +506,13 @@ router.post("/test", authenticate, async (req, res) => {
     });
 
     // Define threshold for similarity matching
-    const SIMILARITY_THRESHOLD = 0.85; // Adjust this threshold based on testing
+    const SIMILARITY_THRESHOLD = 0.75; // Adjusted based on combined score scale
 
     if (bestMatch.score >= SIMILARITY_THRESHOLD) {
       console.log(
-        `FAQ Match Found: "${
-          bestMatch.faq.question
-        }" with similarity ${bestMatch.score.toFixed(2)}`
+        `FAQ Match Found: "${bestMatch.faq.question}" with combined similarity ${bestMatch.score.toFixed(
+          2
+        )}`
       );
       return res.json({ reply: bestMatch.faq.answer, source: "FAQ" });
     } else {
