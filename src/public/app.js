@@ -666,7 +666,7 @@ function uploadPDF() {
         });
     } else {
         // Chatbot is not saved yet; store the PDF in pendingPdfs
-        pendingPdfs.push(file);
+        pendingPdfs.push(file);  // Add the file to the pending PDFs list
 
         Swal.fire({
             title: "Info",
@@ -675,7 +675,7 @@ function uploadPDF() {
             confirmButtonText: "OK",
         });
 
-        // Optionally, update the UI to show pending PDFs
+        // Update the UI to show pending PDFs
         displayPendingPdfs();
 
         // Optionally, clear the file input
@@ -693,22 +693,23 @@ function displayPendingPdfs() {
         return;
     }
 
+    // Loop through pending PDFs and add them to the list
     pendingPdfs.forEach((file, index) => {
         const listItem = document.createElement("li");
-        listItem.textContent = file.name;
+        listItem.textContent = file.name; // Show the file name
 
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "Remove";
         removeBtn.onclick = () => {
-            pendingPdfs.splice(index, 1);
-            displayPendingPdfs();
+            pendingPdfs.splice(index, 1);  // Remove file from pending list
+            displayPendingPdfs();  // Re-render the list
         };
 
         listItem.appendChild(removeBtn);
         pdfList.appendChild(listItem);
     });
 
-    pendingPdfCard.style.display = "block";
+    pendingPdfCard.style.display = "block";  // Show the "Pending PDFs" card
 }
 
 function saveChatbot() {
