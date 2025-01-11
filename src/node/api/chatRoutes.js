@@ -167,7 +167,7 @@ Answer the question in a complete and detailed manner without unnecessary trunca
 
         console.log('Cohere Prompt:', prompt);
         const response = await cohere.generate({
-            model: 'command-light',
+            model: 'command',
             prompt: prompt,
             max_tokens: 1000,
             temperature: 0.5,
