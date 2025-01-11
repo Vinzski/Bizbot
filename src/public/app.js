@@ -386,7 +386,7 @@ function saveChatbot() {
         faqs: faqs,
     };
 
-    // Conditionally include pdfId if it exists
+    // Include pdfId if it exists
     const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID
     if (pdfIdInput && pdfIdInput.value) {
         payload.pdfId = pdfIdInput.value;
@@ -665,9 +665,8 @@ function removeFaqRow(id) {
 
 function uploadPDF() {
     const pdfFileInput = document.getElementById("pdf-file");
-    const chatbotNameInput = document.getElementById("chatbot-name");
-    const chatbotTypeSelect = document.getElementById("chatbot-select");
     const chatbotIdInput = document.getElementById("chatbot-id"); // Hidden input for Chatbot ID
+    const pdfIdInput = document.getElementById("pdf-id"); // Hidden input for PDF ID (if exists)
     const token = localStorage.getItem("token");
 
     const file = pdfFileInput.files[0];
@@ -684,24 +683,15 @@ function uploadPDF() {
     const formData = new FormData();
     formData.append("pdf", file);
 
-    // Optionally, include chatbotId if a chatbot exists
     const chatbotId = chatbotIdInput.value; // Get the chatbotId from hidden input
     if (chatbotId) {
         formData.append("chatbotId", chatbotId);
-    } else {
-        // Optionally, include name and type to create a new chatbot
-        const name = chatbotNameInput.value;
-        const type = chatbotTypeSelect.value;
-        if (name && type) {
-            formData.append("name", name);
-            formData.append("type", type);
-        }
     }
+    // Do not include name and type to prevent automatic chatbot creation
 
     fetch("/api/faqs/upload-pdf", {
         method: "POST",
         headers: {
-            // Note: Do not set 'Content-Type' to 'application/json' when sending FormData
             Authorization: `Bearer ${token}`,
         },
         body: formData,
@@ -722,7 +712,20 @@ function uploadPDF() {
         // If a new chatbot was created, update the chatbot-id hidden input
         if (data.chatbot && data.chatbot._id) {
             chatbotIdInput.value = data.chatbot._id;
-            // Optionally, display chatbot details on the UI
+        }
+
+        // Update the PDF ID hidden input
+        if (data.pdf && data.pdf._id) {
+            if (!pdfIdInput) {
+                // If the pdf-id input doesn't exist, create it
+                const newPdfIdInput = document.createElement("input");
+                newPdfIdInput.type = "hidden";
+                newPdfIdInput.id = "pdf-id";
+                newPdfIdInput.value = data.pdf._id;
+                document.getElementById("chatbot-form").appendChild(newPdfIdInput);
+            } else {
+                pdfIdInput.value = data.pdf._id;
+            }
         }
 
         // Update the PDF list
@@ -738,4 +741,5 @@ function uploadPDF() {
         });
     });
 }
+
 
