@@ -157,27 +157,28 @@ async function getCohereResponse(question, pdfContents) {
             console.log('Combined PDF content truncated to fit token limits.');
         }
 
-        const prompt = `
-You are a friendly and helpful assistant. Use only the information provided below to answer specific questions. If the answer is not in the given information, politely decline to answer. However, feel free to respond to general conversational queries like "Hi," "How are you?" or "Thank you" in an engaging and friendly manner. Keep your responses clear, concise, and conversational.
-Question: ${question}
-Information:
-${combinedPDFContent}
-Answer the question in a complete and detailed manner without unnecessary truncation.
-`;
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a friendly and helpful assistant. Use only the information provided below to answer specific questions. If the answer is not in the given information, politely decline to answer. However, feel free to respond to general conversational queries like "Hi," "How are you?" or "Thank you" in an engaging and friendly manner. Keep your responses clear, concise, and conversational.`
+            },
+            {
+                role: 'user',
+                content: `Question: ${question}\n\nInformation:\n${combinedPDFContent}`
+            }
+        ];
 
-        console.log('Cohere Prompt:', prompt);
+        console.log('Cohere Chat Messages:', JSON.stringify(messages, null, 2));
+
         const response = await cohere.chat({
-            model: 'command-r7b-12-2024-vllm',
-            prompt: prompt,
+            model: 'command-r7b-12-2024-vllm', // Ensure this is the correct model name for Chat API
+            messages: messages,
             max_tokens: 1000,
             temperature: 0.5,
             k: 0,
             p: 0.75,
             frequency_penalty: 0,
-            presence_penalty: 0,
-            // Optionally adjust or remove stop_sequences
-            // stop_sequences: ['\n\n', 'Conclusion'],
-            return_likelihoods: 'NONE'
+            presence_penalty: 0
         });
 
         console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
