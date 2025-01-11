@@ -684,12 +684,19 @@ function uploadPDF() {
 }
 
 function displayPendingPdfs() {
-    const pdfList = document.getElementById("pending-pdf-list");
-    const pendingPdfCard = document.getElementById("pending-pdf-card");
+    const pdfList = document.getElementById("pdf-list"); // Use 'pdf-list' as per your HTML
+    const pendingPdfCard = document.getElementById("pdf-list").parentNode; // Get the parent of the ul element to show/hide
+
+    // Check if the pdf-list element exists before modifying it
+    if (!pdfList || !pendingPdfCard) {
+        console.error('Element(s) not found: #pdf-list');
+        return;
+    }
+
     pdfList.innerHTML = ""; // Clear existing list
 
     if (pendingPdfs.length === 0) {
-        pendingPdfCard.style.display = "none";
+        pendingPdfCard.style.display = "none";  // Hide the "Pending PDFs" card when no PDFs are pending
         return;
     }
 
