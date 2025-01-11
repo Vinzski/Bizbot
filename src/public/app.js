@@ -72,7 +72,12 @@ function loadChatbotDetails(chatbotId) {
       Authorization: `Bearer ${token}`,
     },
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch chatbot details');
+      }
+      return response.json();
+    })
     .then((data) => {
       if (data.chatbot) {
         const chatbot = data.chatbot;
@@ -89,52 +94,57 @@ function loadChatbotDetails(chatbotId) {
     })
     .catch((error) => {
       console.error("Error loading chatbot details:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to load chatbot details. Please try again.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     });
 }
+
 
 function loadPDFsForChatbot(pdfs) {
   const pdfList = document.getElementById('pdf-list');
   pdfList.innerHTML = ''; // Clear the list first
 
+  if (!Array.isArray(pdfs)) {
+    console.error("pdfs is not an array");
+    return;
+  }
+
+  if (pdfs.length === 0) {
+    pdfList.innerHTML = '<li>No PDF associated with this chatbot.</li>';
+    return;
+  }
+
   pdfs.forEach((pdf) => {
     const pdfItem = document.createElement('li');
-    pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> <span>${pdf.filename}</span>`;
+    // Create a link to view/download the PDF
+    const pdfLink = document.createElement('a');
+    pdfLink.href = `/uploads/${pdf.filename}`; // Adjust the path if needed
+    pdfLink.target = '_blank'; // Open in a new tab
+    pdfLink.textContent = pdf.filename;
+    pdfLink.style.marginLeft = '10px';
+
+    pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> `;
+    pdfItem.appendChild(pdfLink);
+
+    // Optionally, add a "Remove" button if you want to allow PDF deletion
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.style.marginLeft = '10px';
+    removeBtn.onclick = () => {
+      removePDF(pdf._id);
+    };
+    pdfItem.appendChild(removeBtn);
+
     pdfList.appendChild(pdfItem);
   });
 
-  console.log(`Loaded ${pdfs.length} PDFs for this chatbot`);
+  console.log(`Loaded ${pdfs.length} PDF(s) for this chatbot`);
 }
 
-function loadFAQsForChatbot(faqIds) {
-  const token = localStorage.getItem("token");
-  fetch("/api/faqs", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-    .then((response) => response.json())
-    .then((allFaqs) => {
-      const tbody = document.querySelector("#faq-table tbody");
-      const filteredFaqs = allFaqs.filter((faq) => faqIds.includes(faq._id));
-      filteredFaqs.forEach((faq) => {
-        const row = document.createElement("tr");
-        row.setAttribute("data-faq-id", faq._id);
-        row.innerHTML = `
-            <td>${faq.question}</td>
-            <td>${faq.answer}</td>
-            <td>
-                <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
-                <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
-            </td>
-          `;
-        tbody.appendChild(row);
-      });
-      console.log(`Loaded ${filteredFaqs.length} FAQs for this chatbot`);
-    })
-    .catch((error) => {
-      console.error("Error loading FAQs:", error);
-    });
-}
 
 function addOrUpdateFAQ() {
   const questionInput = document.getElementById("faq-question");
