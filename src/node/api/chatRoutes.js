@@ -183,8 +183,9 @@ async function getCohereResponse(question, pdfContents) {
 
         console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
 
-        if (response && response.generations && response.generations.length > 0) {
-            const cohereAnswer = response.generations[0].text.trim();
+        // Adjusted response parsing for Chat API
+        if (response && response.message) {
+            const cohereAnswer = response.message.trim();
             console.log('Cohere Generated Answer:', cohereAnswer);
 
             if (cohereAnswer.length > 10) {
@@ -195,10 +196,26 @@ async function getCohereResponse(question, pdfContents) {
             }
         } else {
             console.log('Cohere response does not contain expected data structure.');
+            console.log('Full Response:', JSON.stringify(response, null, 2));
             return null;
         }
     } catch (error) {
         console.error('Error fetching response from Cohere:', error);
+
+        // Enhanced error logging
+        if (error.response) {
+            // Server responded with a status other than 2xx
+            console.error('Cohere API Error Response:', error.response.data);
+            console.error('Status Code:', error.response.status);
+            console.error('Headers:', error.response.headers);
+        } else if (error.request) {
+            // No response received
+            console.error('No response received from Cohere:', error.request);
+        } else {
+            // Other errors
+            console.error('Error Message:', error.message);
+        }
+        console.error('Full Error Object:', error);
         return null;
     }
 }
