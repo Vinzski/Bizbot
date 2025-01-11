@@ -145,6 +145,37 @@ function loadPDFsForChatbot(pdfs) {
   console.log(`Loaded ${pdfs.length} PDF(s) for this chatbot`);
 }
 
+function loadFAQsForChatbot(faqIds) {
+  const token = localStorage.getItem("token");
+  fetch("/api/faqs", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => response.json())
+    .then((allFaqs) => {
+      const tbody = document.querySelector("#faq-table tbody");
+      const filteredFaqs = allFaqs.filter((faq) => faqIds.includes(faq._id));
+      filteredFaqs.forEach((faq) => {
+        const row = document.createElement("tr");
+        row.setAttribute("data-faq-id", faq._id);
+        row.innerHTML = `
+            <td>${faq.question}</td>
+            <td>${faq.answer}</td>
+            <td>
+                <button class="btn-edit" onclick="editFunc('${faq._id}')">EDIT</button>
+                <button class="btn-delete" onclick="deleteFunc('${faq._id}')">DELETE</button>
+            </td>
+          `;
+        tbody.appendChild(row);
+      });
+      console.log(`Loaded ${filteredFaqs.length} FAQs for this chatbot`);
+    })
+    .catch((error) => {
+      console.error("Error loading FAQs:", error);
+    });
+}
+
 
 function addOrUpdateFAQ() {
   const questionInput = document.getElementById("faq-question");
