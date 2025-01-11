@@ -122,6 +122,39 @@ function jaroWinklerSimilarity(str1, str2) {
   return JaroWinklerDistance(str1, str2);
 }
 
+// Combined Similarity Score Function
+function combinedSimilarity(userQuestion, faq) {
+  // Normalize and tokenize FAQ question
+  const normalizedFaqQuestion = faq.question.toLowerCase().trim();
+  const tokenizedFaqQuestion = tokenizer.tokenize(normalizedFaqQuestion);
+  const stemmedFaqQuestion = tokenizedFaqQuestion
+    .map((token) => stemmer.stem(token))
+    .join(" ");
+
+  // Compute individual similarities
+  const jaccard = jaccardSimilarity(userQuestion, tokenizedFaqQuestion);
+  const cosine = cosineSimilarity(userQuestion, tokenizedFaqQuestion);
+  const jaroWinkler = jaroWinklerSimilarity(
+    userQuestion.join(" "),
+    normalizedFaqQuestion
+  );
+
+  // Assign weights to each similarity metric
+  const weights = {
+    jaccard: 0.3,
+    cosine: 0.5,
+    jaroWinkler: 0.2,
+  };
+
+  // Calculate combined similarity score
+  const combinedScore =
+    (weights.jaccard * jaccard) +
+    (weights.cosine * cosine) +
+    (weights.jaroWinkler * jaroWinkler);
+
+  return combinedScore;
+}
+
 // Function to get response from Rasa (replace with actual Rasa API call)
 async function getRasaResponse(question) {
   try {
