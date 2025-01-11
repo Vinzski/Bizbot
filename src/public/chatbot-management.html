@@ -95,27 +95,27 @@
                     alert('Failed to load chatbots. Please try again.');
                 });
         }
-        async function editChatbot(chatbotId) {
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch(`/api/chatbots/${chatbotId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch chatbot details');
-                }
-                const data = await response.json();
-                const chatbot = data.chatbot;
-                const faqs = data.faqs.map(faq => faq._id).join(',');
-                const pdfs = data.pdfs.map(pdf => pdf._id).join(','); // Fetch PDFs data
-                window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}&pdfs=${pdfs}`; // Include PDFs in URL
-            } catch (error) {
-                console.error('Error fetching chatbot details:', error);
-                alert('Failed to fetch chatbot details. Please try again.');
+async function editChatbot(chatbotId) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`/api/chatbots/${chatbotId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch chatbot details');
         }
+        const data = await response.json();
+        const chatbot = data.chatbot;
+        const faqs = data.faqs.map(faq => faq._id).join(',');
+        const pdfs = data.pdfs.map(pdf => pdf._id).join(','); // Fetch PDFs data
+        window.location.href = `training.html?chatbotId=${chatbotId}&faqs=${faqs}&pdfs=${pdfs}`; // Include PDFs in URL
+    } catch (error) {
+        console.error('Error fetching chatbot details:', error);
+        alert('Failed to fetch chatbot details. Please try again.');
+    }
+}
 
         function deleteChatbot(chatbotId) {
             const token = localStorage.getItem('token');
