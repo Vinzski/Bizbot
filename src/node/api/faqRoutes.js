@@ -40,6 +40,41 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // Limit file size to 10MB
 });
 
+// DELETE /api/pdfs/:id
+router.delete('/:id', authenticate, async (req, res) => {
+    const pdfId = req.params.id;
+    const userId = req.user.id;
+
+    // Validate pdfId
+    if (!mongoose.Types.ObjectId.isValid(pdfId)) {
+        return res.status(400).json({ message: 'Invalid pdfId provided' });
+    }
+
+    try {
+        const pdf = await PDF.findOne({ _id: pdfId, userId });
+        if (!pdf) {
+            return res.status(404).json({ message: 'PDF not found' });
+        }
+
+        // Remove the PDF reference from the chatbot
+        await Chatbot.updateOne({ pdfId: pdfId }, { $unset: { pdfId: "" } });
+
+        // Delete the PDF file from the filesystem
+        const filePath = path.join(__dirname, '..', 'uploads', pdf.filename);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+
+        // Delete the PDF document from the database
+        await PDF.deleteOne({ _id: pdfId });
+
+        res.status(200).json({ message: 'PDF removed successfully' });
+    } catch (error) {
+        console.error('Error removing PDF:', error);
+        res.status(500).json({ message: 'Error removing PDF', error: error.toString() });
+    }
+});
+
 // POST /api/faqs/upload-pdf
 router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
     try {
