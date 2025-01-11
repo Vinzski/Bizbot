@@ -157,35 +157,33 @@ async function getCohereResponse(question, pdfContents) {
             console.log('Combined PDF content truncated to fit token limits.');
         }
 
-        const messages = [
-            {
-                role: 'system',
-                content: `You are a friendly and helpful assistant. Use only the information provided below to answer specific questions. If the answer is not in the given information, politely decline to answer. However, feel free to respond to general conversational queries like "Hi," "How are you?" or "Thank you" in an engaging and friendly manner. Keep your responses clear, concise, and conversational.`
-            },
-            {
-                role: 'user',
-                content: `Question: ${question}\n\nInformation:\n${combinedPDFContent}`
-            }
-        ];
+        const prompt = `
+You are a friendly and helpful assistant. Use only the information provided below to answer specific questions. If the answer is not in the given information, politely decline to answer. However, feel free to respond to general conversational queries like "Hi," "How are you?" or "Thank you" in an engaging and friendly manner. Keep your responses clear, concise, and conversational.
+Question: ${question}
+Information:
+${combinedPDFContent}
+Answer the question in a complete and detailed manner without unnecessary truncation.
+`;
 
-        console.log('Cohere Chat Messages:', JSON.stringify(messages, null, 2));
-
-        const response = await cohere.chat({
-            model: 'command-r7b-12-2024-vllm', // Ensure this is the correct model name for Chat API
-            messages: messages,
+        console.log('Cohere Prompt:', prompt);
+        const response = await cohere.generate({
+            model: 'command-nightly',
+            prompt: prompt,
             max_tokens: 1000,
             temperature: 0.5,
             k: 0,
             p: 0.75,
             frequency_penalty: 0,
-            presence_penalty: 0
+            presence_penalty: 0,
+            // Optionally adjust or remove stop_sequences
+            // stop_sequences: ['\n\n', 'Conclusion'],
+            return_likelihoods: 'NONE'
         });
 
         console.log('Cohere Raw Response:', JSON.stringify(response, null, 2));
 
-        // Adjusted response parsing for Chat API
-        if (response && response.message) {
-            const cohereAnswer = response.message.trim();
+        if (response && response.generations && response.generations.length > 0) {
+            const cohereAnswer = response.generations[0].text.trim();
             console.log('Cohere Generated Answer:', cohereAnswer);
 
             if (cohereAnswer.length > 10) {
@@ -196,26 +194,10 @@ async function getCohereResponse(question, pdfContents) {
             }
         } else {
             console.log('Cohere response does not contain expected data structure.');
-            console.log('Full Response:', JSON.stringify(response, null, 2));
             return null;
         }
     } catch (error) {
         console.error('Error fetching response from Cohere:', error);
-
-        // Enhanced error logging
-        if (error.response) {
-            // Server responded with a status other than 2xx
-            console.error('Cohere API Error Response:', error.response.data);
-            console.error('Status Code:', error.response.status);
-            console.error('Headers:', error.response.headers);
-        } else if (error.request) {
-            // No response received
-            console.error('No response received from Cohere:', error.request);
-        } else {
-            // Other errors
-            console.error('Error Message:', error.message);
-        }
-        console.error('Full Error Object:', error);
         return null;
     }
 }
