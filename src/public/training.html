@@ -122,6 +122,23 @@
     <button type="button" id="saveChatbotBtn" class="save-chatbot-button" onclick="saveChatbot()">Save Chatbot</button>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
     <script src="app.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const chatbotId = urlParams.get('chatbotId');
+            if (chatbotId) {
+                loadChatbotDetails(chatbotId);
+            } else {
+                console.error("No chatbotId found in URL");
+                Swal.fire({
+                    title: "Error",
+                    text: "No chatbot selected for editing.",
+                    icon: "error",
+                    confirmButtonText: "OK",
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
