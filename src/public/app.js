@@ -784,8 +784,9 @@ function saveChatbot() {
 
             // Clear the Pending PDFs list
             pendingPdfs = [];
-            displayPendingPdfs();
-            // Update the PDFs section
+            displayPendingPdfs(); // Clear the "Pending PDFs" section
+
+            // Update the PDFs section to show the uploaded PDFs
             loadPDFsForChatbot(data.chatbot.pdfs || []);
         })
         .catch((error) => {
@@ -829,11 +830,11 @@ function uploadPendingPdfs(chatbotId) {
                 });
 
                 // Update the PDFs section with the newly uploaded PDF
-                loadPDFsForChatbot(data.pdfs);
+                loadPDFsForChatbot([data.pdf]);
 
                 // Remove the uploaded PDF from pendingPdfs
                 pendingPdfs.splice(index, 1);
-                displayPendingPdfs();
+                displayPendingPdfs(); // Re-render the Pending PDFs list
             })
             .catch((error) => {
                 console.error("Error uploading PDF:", error);
@@ -846,3 +847,4 @@ function uploadPendingPdfs(chatbotId) {
             });
     });
 }
+
