@@ -3,69 +3,117 @@ const router = express.Router();
 const pdfParse = require('pdf-parse');
 const multer = require('multer');
 const mongoose = require('mongoose');
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const path = require('path');
+const fs = require('fs');
 
 const PDF = require('../models/PDFModel');
 const FAQ = require('../models/faqModel');
 const Chatbot = require('../models/chatbotModel');
 const authenticate = require('../signup/middleware/authMiddleware');
 
+// Configure Multer for File Uploads
+// Switch from memoryStorage to diskStorage to handle file persistence and deletion
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, '..', 'uploads'); // Ensure this directory exists
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        // Generate a unique filename to prevent conflicts
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const extension = path.extname(file.originalname);
+        cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        // Accept only PDF files
+        if (file.mimetype !== 'application/pdf') {
+            return cb(new Error('Only PDF files are allowed'), false);
+        }
+        cb(null, true);
+    },
+    limits: { fileSize: 10 * 1024 * 1024 } // Limit file size to 10MB
+});
+
+// POST /api/faqs/upload-pdf
 router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) => {
     try {
+        // Check if a file is uploaded
         if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
+            return res.status(400).json({ message: 'No PDF file uploaded' });
         }
 
-        // Parse the PDF content
-        const pdfText = await pdfParse(req.file.buffer);
-        const extractedText = pdfText.text;
+        const { chatbotId } = req.body;
 
-        let chatbotId = req.body.chatbotId;
+        // **Issue 1 Fix:** Require chatbotId to prevent automatic chatbot creation
+        if (!chatbotId) {
+            // Optionally, you can allow creating a chatbot here only if name and type are provided
+            return res.status(400).json({ message: 'chatbotId is required to associate the PDF with an existing chatbot' });
+        }
 
-        // Validate chatbotId if provided
-        if (chatbotId && !mongoose.Types.ObjectId.isValid(chatbotId)) {
+        // Validate chatbotId
+        if (!mongoose.Types.ObjectId.isValid(chatbotId)) {
             return res.status(400).json({ message: 'Invalid chatbotId provided' });
         }
 
-        let chatbot;
-        if (chatbotId) {
-            chatbot = await Chatbot.findById(chatbotId);
-            if (!chatbot) {
-                return res.status(404).json({ message: 'Chatbot not found with the provided chatbotId' });
-            }
-        } else {
-            // Create a new chatbot since chatbotId is not provided
-            chatbot = new Chatbot({
-                name: req.body.name || 'Default Chatbot Name', // Customize as needed
-                type: req.body.type || 'Default Type',         // Customize as needed
-                userId: req.user.id,
-                faqs: [], // Initialize with empty FAQs or as needed
-                // pdfId will be set after saving the PDF
-            });
-            await chatbot.save();
+        // Find the chatbot and ensure it belongs to the authenticated user
+        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId: req.user.id });
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Chatbot not found or does not belong to the user' });
         }
 
-        // Create and save the PDF
-        const pdfData = new PDF({
-            filename: req.file.originalname,
-            chatbotId: chatbot._id, // Associate with the chatbot
+        // **Issue 2 Fix:** Replace existing PDF if it exists
+        if (chatbot.pdfId) {
+            const existingPDF = await PDF.findById(chatbot.pdfId);
+            if (existingPDF) {
+                // Delete the existing PDF file from the filesystem
+                const existingFilePath = path.join(__dirname, '..', 'uploads', existingPDF.filename);
+                if (fs.existsSync(existingFilePath)) {
+                    fs.unlink(existingFilePath, (err) => {
+                        if (err) {
+                            console.error('Error deleting existing PDF file:', err);
+                            // Proceed even if file deletion fails
+                        }
+                    });
+                }
+
+                // Delete the existing PDF document from the database
+                await PDF.deleteOne({ _id: existingPDF._id });
+            }
+        }
+
+        // Parse the new PDF content
+        const pdfBuffer = fs.readFileSync(req.file.path);
+        const pdfData = await pdfParse(pdfBuffer);
+        const extractedText = pdfData.text;
+
+        // Create and save the new PDF document
+        const newPDF = new PDF({
+            filename: req.file.filename,
+            chatbotId: chatbot._id,
             userId: req.user.id,
             content: extractedText,
+            // timestamp is automatically handled by the schema
         });
 
-        await pdfData.save();
+        await newPDF.save();
 
         // Update the chatbot to reference the new PDF
-        chatbot.pdfId = pdfData._id;
+        chatbot.pdfId = newPDF._id;
         await chatbot.save();
 
         res.status(200).json({
             message: 'PDF uploaded and associated with chatbot successfully',
             pdf: {
-                filename: pdfData.filename,
-                content: pdfData.content, // Be cautious about sending content if sensitive
-                _id: pdfData._id,
+                filename: newPDF.filename,
+                _id: newPDF._id,
+                // Do not send 'content' if it's large or sensitive
             },
             chatbot: {
                 _id: chatbot._id,
@@ -73,9 +121,19 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
                 type: chatbot.type,
             },
         });
+
     } catch (error) {
         console.error('Error processing PDF upload:', error);
-        res.status(500).json({ message: 'Error processing PDF', error: error.toString() });
+
+        // Handle Multer-specific errors
+        if (error instanceof multer.MulterError) {
+            // A Multer error occurred when uploading
+            return res.status(400).json({ message: error.message });
+        } else if (error.message === 'Only PDF files are allowed') {
+            return res.status(400).json({ message: error.message });
+        }
+
+        res.status(500).json({ message: 'Error processing PDF upload', error: error.toString() });
     }
 });
 
