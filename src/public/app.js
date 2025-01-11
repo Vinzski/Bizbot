@@ -711,7 +711,6 @@ function displayPendingPdfs() {
     pendingPdfCard.style.display = "block";
 }
 
-
 function saveChatbot() {
     console.log("saveChatbot called");
 
@@ -778,7 +777,6 @@ function saveChatbot() {
             // Clear the Pending PDFs list
             pendingPdfs = [];
             displayPendingPdfs();
-
             // Update the PDFs section
             loadPDFsForChatbot(data.chatbot.pdfs || []);
         })
@@ -792,7 +790,6 @@ function saveChatbot() {
             });
         });
 }
-
 
 function uploadPendingPdfs(chatbotId) {
     const token = localStorage.getItem("token");
@@ -842,12 +839,10 @@ function uploadPendingPdfs(chatbotId) {
     });
 }
 
-
 // Example implementation of loadPDFsForChatbot (you might need to adjust this based on your actual implementation)
 function loadPDFsForChatbot(pdfs) {
     const pdfList = document.getElementById("uploaded-pdf-list");
     pdfList.innerHTML = ""; // Clear the list first
-
     if (!pdfs || pdfs.length === 0) {
         pdfList.innerHTML = "<li>No PDFs associated with this chatbot.</li>";
         return;
@@ -859,13 +854,9 @@ function loadPDFsForChatbot(pdfs) {
         pdfLink.href = `/uploads/${pdf.filename}`; // Adjust path if needed
         pdfLink.target = "_blank"; // Open in a new tab
         pdfLink.textContent = pdf.filename;
-
         pdfItem.appendChild(pdfLink);
         pdfList.appendChild(pdfItem);
     });
 
     console.log(`Loaded ${pdfs.length} PDFs for this chatbot`);
 }
-
-
-
