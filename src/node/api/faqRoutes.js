@@ -12,7 +12,6 @@ const Chatbot = require('../models/chatbotModel');
 const authenticate = require('../signup/middleware/authMiddleware');
 
 // Configure Multer for File Uploads
-// Switch from memoryStorage to diskStorage to handle file persistence and deletion
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = path.join(__dirname, '..', 'uploads'); // Ensure this directory exists
@@ -51,9 +50,8 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
 
         const { chatbotId } = req.body;
 
-        // **Issue 1 Fix:** Require chatbotId to prevent automatic chatbot creation
+        // **Require chatbotId to prevent automatic chatbot creation**
         if (!chatbotId) {
-            // Optionally, you can allow creating a chatbot here only if name and type are provided
             return res.status(400).json({ message: 'chatbotId is required to associate the PDF with an existing chatbot' });
         }
 
@@ -68,7 +66,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             return res.status(404).json({ message: 'Chatbot not found or does not belong to the user' });
         }
 
-        // **Issue 2 Fix:** Replace existing PDF if it exists
+        // **Replace existing PDF if it exists**
         if (chatbot.pdfId) {
             const existingPDF = await PDF.findById(chatbot.pdfId);
             if (existingPDF) {
