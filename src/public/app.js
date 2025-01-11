@@ -561,7 +561,7 @@ function removeFaqRow(id) {
   }
 }
 
-// Initialize an array to hold pending PDFs
+// Initialize the pendingPdfs array at the top
 let pendingPdfs = [];
 
 function uploadPDF() {
@@ -644,24 +644,34 @@ function uploadPDF() {
 
 function displayPendingPdfs() {
     const pdfList = document.getElementById("pdf-list");
+    const pendingPdfCard = document.getElementById("pending-pdf-card");
     pdfList.innerHTML = ""; // Clear existing list
+
+    if (pendingPdfs.length === 0) {
+        pendingPdfCard.style.display = "none";
+        return;
+    }
 
     pendingPdfs.forEach((file, index) => {
         const listItem = document.createElement("li");
-        listItem.textContent = file.name;
+        listItem.classList.add("pending-pdf");
 
-        // Optionally, add a remove button for each pending PDF
+        const fileNameSpan = document.createElement("span");
+        fileNameSpan.textContent = file.name;
+
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "Remove";
-        removeBtn.style.marginLeft = "10px";
         removeBtn.onclick = () => {
             pendingPdfs.splice(index, 1);
             displayPendingPdfs();
         };
 
+        listItem.appendChild(fileNameSpan);
         listItem.appendChild(removeBtn);
         pdfList.appendChild(listItem);
     });
+
+    pendingPdfCard.style.display = "block";
 }
 
 function saveChatbot() {
@@ -799,7 +809,7 @@ function uploadPendingPdfs() {
             // Update the PDF list
             loadPDFsForChatbot([data.pdf]);
 
-            // Optionally, clear the pendingPdfs array or remove the uploaded PDF from it
+            // Remove the uploaded PDF from pendingPdfs
             pendingPdfs = pendingPdfs.filter(pendingFile => pendingFile.name !== file.name);
             displayPendingPdfs();
         })
@@ -814,5 +824,18 @@ function uploadPendingPdfs() {
         });
     });
 }
+
+// Example implementation of loadPDFsForChatbot (you might need to adjust this based on your actual implementation)
+function loadPDFsForChatbot(pdfs) {
+    const pdfList = document.getElementById("pdf-list");
+    pdfList.innerHTML = ""; // Clear existing list
+
+    pdfs.forEach((pdf) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = pdf.filename;
+        pdfList.appendChild(listItem);
+    });
+}
+
 
 
