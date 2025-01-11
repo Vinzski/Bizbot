@@ -106,6 +106,12 @@ function loadChatbotDetails(chatbotId) {
 
 function loadPDFsForChatbot(pdfs) {
   const pdfList = document.getElementById('pdf-list');
+  
+  if (!pdfList) {
+    console.error("PDF list element not found");
+    return;
+  }
+  
   pdfList.innerHTML = ''; // Clear the list first
 
   if (!Array.isArray(pdfs)) {
@@ -120,9 +126,8 @@ function loadPDFsForChatbot(pdfs) {
 
   pdfs.forEach((pdf) => {
     const pdfItem = document.createElement('li');
-    // Create a link to view/download the PDF
     const pdfLink = document.createElement('a');
-    pdfLink.href = `/uploads/${pdf.filename}`; // Adjust the path if needed
+    pdfLink.href = `/uploads/${pdf.filename}`; // Adjust path if needed
     pdfLink.target = '_blank'; // Open in a new tab
     pdfLink.textContent = pdf.filename;
     pdfLink.style.marginLeft = '10px';
@@ -130,7 +135,6 @@ function loadPDFsForChatbot(pdfs) {
     pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> `;
     pdfItem.appendChild(pdfLink);
 
-    // Optionally, add a "Remove" button if you want to allow PDF deletion
     const removeBtn = document.createElement('button');
     removeBtn.textContent = 'Remove';
     removeBtn.style.marginLeft = '10px';
@@ -837,26 +841,4 @@ function uploadPendingPdfs(chatbotId) {
                 });
             });
     });
-}
-
-// Example implementation of loadPDFsForChatbot (you might need to adjust this based on your actual implementation)
-function loadPDFsForChatbot(pdfs) {
-    const pdfList = document.getElementById("uploaded-pdf-list");
-    pdfList.innerHTML = ""; // Clear the list first
-    if (!pdfs || pdfs.length === 0) {
-        pdfList.innerHTML = "<li>No PDFs associated with this chatbot.</li>";
-        return;
-    }
-
-    pdfs.forEach((pdf) => {
-        const pdfItem = document.createElement("li");
-        const pdfLink = document.createElement("a");
-        pdfLink.href = `/uploads/${pdf.filename}`; // Adjust path if needed
-        pdfLink.target = "_blank"; // Open in a new tab
-        pdfLink.textContent = pdf.filename;
-        pdfItem.appendChild(pdfLink);
-        pdfList.appendChild(pdfItem);
-    });
-
-    console.log(`Loaded ${pdfs.length} PDFs for this chatbot`);
 }
