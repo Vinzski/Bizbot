@@ -847,5 +847,51 @@ function loadPDFsForChatbot(pdfs) {
     });
 }
 
+function removePDF(pdfId) {
+    const token = localStorage.getItem("token");
+    const chatbotId = document.getElementById("chatbot-id").value;
+
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will remove the PDF from the chatbot.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, remove it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/pdfs/${pdfId}`, { // Ensure you have a DELETE route for PDFs
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to remove PDF');
+                }
+                return response.json();
+            })
+            .then(() => {
+                Swal.fire(
+                    'Removed!',
+                    'The PDF has been removed from the chatbot.',
+                    'success'
+                );
+                // Refresh the chatbot details to reflect PDF removal
+                loadChatbotDetails(chatbotId);
+            })
+            .catch(error => {
+                console.error('Error removing PDF:', error);
+                Swal.fire(
+                    'Error!',
+                    'Failed to remove PDF. Please try again.',
+                    'error'
+                );
+            });
+        }
+    });
+}
 
 
