@@ -42,6 +42,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 
+// Existing POST route for creating/updating chatbots
 router.post('/', authenticate, async (req, res) => {
     const { name, type, faqs, pdfId } = req.body; // pdfId is optional
     const userId = req.user.id; // Retrieved from authentication middleware
@@ -71,7 +72,7 @@ router.post('/', authenticate, async (req, res) => {
                 type,
                 userId,
                 faqs,
-                pdfId, // This can be undefined if not provided
+                // pdfId will be set via the PDF upload route
                 // creationDate is handled by Mongoose's timestamps
             });
             await chatbot.save();
@@ -80,6 +81,82 @@ router.post('/', authenticate, async (req, res) => {
     } catch (error) {
         console.error('Error in saving chatbot:', error);
         res.status(500).json({ message: "Failed to create or update chatbot", error: error.toString() });
+    }
+});
+
+// **New GET route to fetch chatbot details with FAQs and PDFs**
+router.get('/:id', authenticate, async (req, res) => {
+    const chatbotId = req.params.id;
+    const userId = req.user.id;
+
+    // Validate chatbotId
+    if (!mongoose.Types.ObjectId.isValid(chatbotId)) {
+        return res.status(400).json({ message: 'Invalid chatbotId provided' });
+    }
+
+    try {
+        // Find the chatbot, populate faqs and pdfId
+        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId })
+            .populate('faqs')       // Populate FAQs
+            .populate('pdfId');     // Populate PDF
+
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Chatbot not found' });
+        }
+
+        // Extract FAQs
+        const faqs = chatbot.faqs || [];
+
+        // Extract PDFs (assuming one PDF per chatbot)
+        const pdfs = chatbot.pdfId ? [chatbot.pdfId] : [];
+
+        res.status(200).json({ chatbot, faqs, pdfs });
+    } catch (error) {
+        console.error('Error fetching chatbot details:', error);
+        res.status(500).json({ message: 'Error fetching chatbot details', error: error.toString() });
+    }
+});
+
+// **DELETE route (for completeness)**
+router.delete('/:id', authenticate, async (req, res) => {
+    const chatbotId = req.params.id;
+    const userId = req.user.id;
+
+    // Validate chatbotId
+    if (!mongoose.Types.ObjectId.isValid(chatbotId)) {
+        return res.status(400).json({ message: 'Invalid chatbotId provided' });
+    }
+
+    try {
+        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId });
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Chatbot not found' });
+        }
+
+        // If chatbot has a PDF, delete it
+        if (chatbot.pdfId) {
+            const pdf = await PDF.findById(chatbot.pdfId);
+            if (pdf) {
+                // Delete the PDF file from the server (if stored on disk)
+                const fs = require('fs');
+                const path = require('path');
+                const filePath = path.join(__dirname, '..', 'uploads', pdf.filename);
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+
+                // Remove the PDF document from the database
+                await PDF.deleteOne({ _id: chatbot.pdfId });
+            }
+        }
+
+        // Delete the chatbot
+        await Chatbot.deleteOne({ _id: chatbotId });
+
+        res.status(200).json({ message: 'Chatbot deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting chatbot:', error);
+        res.status(500).json({ message: 'Error deleting chatbot', error: error.toString() });
     }
 });
 
