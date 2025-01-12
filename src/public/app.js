@@ -828,8 +828,10 @@ function uploadPendingPdfs(chatbotId) {
                     confirmButtonText: "OK",
                 });
 
+                const pdfsArray = Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : [];
+
                 // Update the PDFs section with the newly uploaded PDFs
-                loadPDFsForChatbot(data.pdfs); // Use the new list of PDFs
+                loadPDFsForChatbot(pdfsArray); // Use the new list of PDFs
 
                 // Remove the uploaded PDF from pendingPdfs
                 pendingPdfs.splice(index, 1);
