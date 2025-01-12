@@ -783,8 +783,8 @@ function saveChatbot() {
             pendingPdfs = [];
             displayPendingPdfs();  // Update the Pending PDFs UI
 
-            // Update the PDFs section to show all PDFs, including the newly uploaded ones
-            loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs
+            // Ensure data.chatbot.pdfs is always an array and update the PDFs section
+            loadPDFsForChatbot(Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : []);  // Ensure pdfs is an array
         })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
