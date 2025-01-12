@@ -710,6 +710,7 @@ function displayPendingPdfs() {
 
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "Remove";
+        removeBtn.style.marginLeft = "68px";
         removeBtn.onclick = () => {
             pendingPdfs.splice(index, 1);  // Remove file from pending list
             displayPendingPdfs();  // Re-render the list
