@@ -105,44 +105,42 @@ function loadChatbotDetails(chatbotId) {
 
 
 function loadPDFsForChatbot(pdfs) {
-  const pdfList = document.getElementById('pdf-list');
-  pdfList.innerHTML = ''; // Clear the list first
+    const pdfList = document.getElementById("uploaded-pdf-list"); // Use the updated ID for "Uploaded PDFs"
 
-  if (!Array.isArray(pdfs)) {
-    console.error("pdfs is not an array");
-    return;
-  }
+    if (!Array.isArray(pdfs)) {
+        console.error("pdfs is not an array");
+        return;
+    }
 
-  if (pdfs.length === 0) {
-    pdfList.innerHTML = '<li>No PDF associated with this chatbot.</li>';
-    return;
-  }
+    pdfList.innerHTML = ''; // Clear existing list
 
-  pdfs.forEach((pdf) => {
-    const pdfItem = document.createElement('li');
-    // Create a link to view/download the PDF
-    const pdfLink = document.createElement('a');
-    pdfLink.href = `/uploads/${pdf.filename}`; // Adjust the path if needed
-    pdfLink.target = '_blank'; // Open in a new tab
-    pdfLink.textContent = pdf.filename;
-    pdfLink.style.marginLeft = '10px';
+    if (pdfs.length === 0) {
+        pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
+        return;
+    }
 
-    pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> `;
-    pdfItem.appendChild(pdfLink);
+    pdfs.forEach((pdf) => {
+        const pdfItem = document.createElement('li');
+        const pdfLink = document.createElement('a');
+        pdfLink.href = `/uploads/${pdf.filename}`; // Adjust the path if needed
+        pdfLink.target = '_blank';
+        pdfLink.textContent = pdf.filename;
 
-    // Optionally, add a "Remove" button if you want to allow PDF deletion
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = 'Remove';
-    removeBtn.style.marginLeft = '10px';
-    removeBtn.onclick = () => {
-      removePDF(pdf._id);
-    };
-    pdfItem.appendChild(removeBtn);
+        pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> `;
+        pdfItem.appendChild(pdfLink);
 
-    pdfList.appendChild(pdfItem);
-  });
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.style.marginLeft = '10px';
+        removeBtn.onclick = () => {
+            removePDF(pdf._id);
+        };
+        pdfItem.appendChild(removeBtn);
 
-  console.log(`Loaded ${pdfs.length} PDF(s) for this chatbot`);
+        pdfList.appendChild(pdfItem);
+    });
+
+    console.log(`Loaded ${pdfs.length} PDF(s) for this chatbot`);
 }
 
 function loadFAQsForChatbot(faqIds) {
@@ -684,12 +682,12 @@ function uploadPDF() {
 }
 
 function displayPendingPdfs() {
-    const pdfList = document.getElementById("pdf-list"); // Use 'pdf-list' as per your HTML
-    const pendingPdfCard = document.getElementById("pdf-list").parentNode; // Get the parent of the ul element to show/hide
+    const pdfList = document.getElementById("pending-pdf-list"); // Change ID to 'pending-pdf-list'
+    const pendingPdfCard = pdfList.parentNode; // Get the parent of the ul element to show/hide
 
     // Check if the pdf-list element exists before modifying it
     if (!pdfList || !pendingPdfCard) {
-        console.error('Element(s) not found: #pdf-list');
+        console.error('Element(s) not found: #pending-pdf-list');
         return;
     }
 
