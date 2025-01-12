@@ -21,12 +21,16 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-        // Generate a unique filename to prevent conflicts
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const extension = path.extname(file.originalname);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
+        // Sanitize the original filename
+        const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+
+        // Append timestamp for uniqueness
+        const timestamp = Date.now();
+
+        cb(null, `${timestamp}-${sanitizedFilename}`);
     }
 });
+
 
 const upload = multer({ 
     storage: storage,
