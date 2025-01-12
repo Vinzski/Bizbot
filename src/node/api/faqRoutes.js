@@ -85,7 +85,7 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
 
         const { chatbotId } = req.body;
 
-        // **Require chatbotId to prevent automatic chatbot creation**
+        // Require chatbotId to associate the PDF with an existing chatbot
         if (!chatbotId) {
             return res.status(400).json({ message: 'chatbotId is required to associate the PDF with an existing chatbot' });
         }
@@ -101,26 +101,6 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             return res.status(404).json({ message: 'Chatbot not found or does not belong to the user' });
         }
 
-        // **Replace existing PDF if it exists**
-        if (chatbot.pdfId) {
-            const existingPDF = await PDF.findById(chatbot.pdfId);
-            if (existingPDF) {
-                // Delete the existing PDF file from the filesystem
-                const existingFilePath = path.join(__dirname, '..', 'uploads', existingPDF.filename);
-                if (fs.existsSync(existingFilePath)) {
-                    fs.unlink(existingFilePath, (err) => {
-                        if (err) {
-                            console.error('Error deleting existing PDF file:', err);
-                            // Proceed even if file deletion fails
-                        }
-                    });
-                }
-
-                // Delete the existing PDF document from the database
-                await PDF.deleteOne({ _id: existingPDF._id });
-            }
-        }
-
         // Parse the new PDF content
         const pdfBuffer = fs.readFileSync(req.file.path);
         const pdfData = await pdfParse(pdfBuffer);
@@ -131,14 +111,13 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             filename: req.file.filename,
             chatbotId: chatbot._id,
             userId: req.user.id,
-            content: extractedText,
-            // timestamp is automatically handled by the schema
+            content: extractedText,  // Content of the PDF
         });
 
         await newPDF.save();
 
-        // Update the chatbot to reference the new PDF
-        chatbot.pdfId = newPDF._id;
+        // Add the new PDF to the chatbot's pdfId array (instead of replacing it)
+        chatbot.pdfId.push(newPDF._id);  // Push the new PDF to the pdfId array
         await chatbot.save();
 
         res.status(200).json({
@@ -146,7 +125,6 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             pdf: {
                 filename: newPDF.filename,
                 _id: newPDF._id,
-                // Do not send 'content' if it's large or sensitive
             },
             chatbot: {
                 _id: chatbot._id,
@@ -160,7 +138,6 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
 
         // Handle Multer-specific errors
         if (error instanceof multer.MulterError) {
-            // A Multer error occurred when uploading
             return res.status(400).json({ message: error.message });
         } else if (error.message === 'Only PDF files are allowed') {
             return res.status(400).json({ message: error.message });
