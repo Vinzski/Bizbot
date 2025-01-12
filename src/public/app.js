@@ -776,14 +776,14 @@ function saveChatbot() {
 
             // If there are pending PDFs, upload them now
             if (pendingPdfs.length > 0) {
-                uploadPendingPdfs(data.chatbot._id);
+                uploadPendingPdfs(data.chatbot._id); // Upload the pending PDFs to the new chatbot
             }
 
-            // Clear the Pending PDFs list
+            // Clear the Pending PDFs list after uploading
             pendingPdfs = [];
-            displayPendingPdfs();
+            displayPendingPdfs();  // Update the Pending PDFs UI
 
-            // Update the PDFs section with the newly uploaded PDFs
+            // Update the PDFs section to show all PDFs, including the newly uploaded ones
             loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs
         })
         .catch((error) => {
