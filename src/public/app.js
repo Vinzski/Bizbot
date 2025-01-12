@@ -136,7 +136,7 @@ function loadPDFsForChatbot(pdfs) {
 
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
-        removeBtn.style.marginLeft = '68px';
+        removeBtn.style.marginLeft = '68%';
         removeBtn.onclick = () => {
             removePDF(pdf._id);
         };
@@ -710,7 +710,7 @@ function displayPendingPdfs() {
 
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "Remove";
-        removeBtn.style.marginLeft = "68px";
+        removeBtn.style.marginLeft = "80%";
         removeBtn.onclick = () => {
             pendingPdfs.splice(index, 1);  // Remove file from pending list
             displayPendingPdfs();  // Re-render the list
