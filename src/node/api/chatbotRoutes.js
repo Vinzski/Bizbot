@@ -166,7 +166,11 @@ router.get('/count', authenticate, async (req, res) => {
     }
 
     try {
-        const chatbotCount = await Chatbot.countDocuments({ userId: req.user.id });
+        // Ensure userId is ObjectId type
+        const userId = mongoose.Types.ObjectId(req.user.id);
+
+        // Fetch chatbot count for the user
+        const chatbotCount = await Chatbot.countDocuments({ userId: userId });
         res.json({ count: chatbotCount });
     } catch (error) {
         console.error('Error counting chatbots:', error);
