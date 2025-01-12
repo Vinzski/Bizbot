@@ -5,7 +5,7 @@ const chatbotSchema = new mongoose.Schema({
     type: { type: String, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     faqs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FAQ' }],
-    pdfId: { type: mongoose.Schema.Types.ObjectId, ref: 'PDF' }
+    pdfId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PDF' }]
 }, 
 { timestamps: true });  
 
