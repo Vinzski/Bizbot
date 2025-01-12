@@ -78,7 +78,7 @@ router.post('/', authenticate, async (req, res) => {
         res.status(201).json({
             message: 'Chatbot saved successfully',
             chatbot,
-            pdfs: chatbot.pdfId, // Include the list of PDFs in the response
+            pdfs: Array.isArray(chatbot.pdfId) ? chatbot.pdfId : [chatbot.pdfId], // Include the list of PDFs in the response
         });
     } catch (error) {
         console.error('Error in saving chatbot:', error);
