@@ -136,7 +136,7 @@ function loadPDFsForChatbot(pdfs) {
 
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
-        removeBtn.style.marginLeft = '10px';
+        removeBtn.style.marginLeft = '68px';
         removeBtn.onclick = () => {
             removePDF(pdf._id);
         };
