@@ -830,7 +830,7 @@ function uploadPendingPdfs(chatbotId) {
                 const pdfsArray = Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : [];
 
                 // Update the PDFs section with the newly uploaded PDFs
-                loadPDFsForChatbot(pdfsArray); // Use the new list of PDFs
+                loadPDFsForChatbot(data.pdfs); // Pass the PDFs data
 
                 // Remove the uploaded PDF from pendingPdfs
                 pendingPdfs.splice(index, 1);
