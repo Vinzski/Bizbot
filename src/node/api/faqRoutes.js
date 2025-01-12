@@ -44,7 +44,6 @@ const upload = multer({
 router.delete('/delete-pdf/:id', authenticate, async (req, res) => {
     try {
         const pdfId = req.params.id;
-        const userId = req.user.id;
 
         // Validate PDF ID
         if (!mongoose.Types.ObjectId.isValid(pdfId)) {
@@ -57,15 +56,20 @@ router.delete('/delete-pdf/:id', authenticate, async (req, res) => {
             return res.status(404).json({ message: 'PDF not found' });
         }
 
-        // Ensure the PDF belongs to the authenticated user
-        if (pdf.userId.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Unauthorized to delete this PDF' });
+        // Ensure the PDF is associated with a chatbot
+        if (!pdf.chatbotId) {
+            return res.status(400).json({ message: 'PDF is not associated with any chatbot' });
         }
 
         // Find the associated chatbot
-        const chatbot = await Chatbot.findOne({ _id: pdf.chatbotId, userId: req.user.id });
+        const chatbot = await Chatbot.findById(pdf.chatbotId);
         if (!chatbot) {
-            return res.status(404).json({ message: 'Associated chatbot not found or does not belong to the user' });
+            return res.status(404).json({ message: 'Associated chatbot not found' });
+        }
+
+        // Verify that the authenticated user owns the chatbot
+        if (chatbot.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized to delete this PDF' });
         }
 
         // Remove the PDF reference from the chatbot's pdfId array
