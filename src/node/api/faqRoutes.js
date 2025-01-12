@@ -41,37 +41,64 @@ const upload = multer({
 });
 
 // DELETE /api/pdfs/:id
-router.delete('/:id', authenticate, async (req, res) => {
-    const pdfId = req.params.id;
-    const userId = req.user.id;
-
-    // Validate pdfId
-    if (!mongoose.Types.ObjectId.isValid(pdfId)) {
-        return res.status(400).json({ message: 'Invalid pdfId provided' });
-    }
-
+router.delete('/delete-pdf/:id', authenticate, async (req, res) => {
     try {
-        const pdf = await PDF.findOne({ _id: pdfId, userId });
+        const pdfId = req.params.id;
+
+        // Validate PDF ID
+        if (!mongoose.Types.ObjectId.isValid(pdfId)) {
+            return res.status(400).json({ message: 'Invalid PDF ID provided' });
+        }
+
+        // Find the PDF document
+        const pdf = await PDF.findById(pdfId);
         if (!pdf) {
             return res.status(404).json({ message: 'PDF not found' });
         }
 
-        // Remove the PDF reference from the chatbot
-        await Chatbot.updateOne({ pdfId: pdfId }, { $unset: { pdfId: "" } });
+        // Ensure the PDF belongs to the authenticated user
+        if (pdf.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized to delete this PDF' });
+        }
+
+        // Find the associated chatbot
+        const chatbot = await Chatbot.findOne({ _id: pdf.chatbotId, userId: req.user.id });
+        if (!chatbot) {
+            return res.status(404).json({ message: 'Associated chatbot not found or does not belong to the user' });
+        }
+
+        // Remove the PDF reference from the chatbot's pdfId array
+        chatbot.pdfId = chatbot.pdfId.filter(id => id.toString() !== pdfId);
+        await chatbot.save();
+
+        // Delete the PDF document from the database
+        await PDF.findByIdAndDelete(pdfId);
 
         // Delete the PDF file from the filesystem
         const filePath = path.join(__dirname, '..', 'uploads', pdf.filename);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error(`Failed to delete file ${pdf.filename}:`, err);
+                // Optionally, you can choose to handle this error differently
+            }
+        });
 
-        // Delete the PDF document from the database
-        await PDF.deleteOne({ _id: pdfId });
+        // Populate the updated pdfId array
+        const updatedChatbot = await Chatbot.findById(chatbot._id).populate('pdfId');
 
-        res.status(200).json({ message: 'PDF removed successfully' });
+        res.status(200).json({
+            message: 'PDF deleted successfully',
+            chatbot: {
+                _id: updatedChatbot._id,
+                name: updatedChatbot.name,
+                type: updatedChatbot.type,
+                pdfs: updatedChatbot.pdfId, // Updated array of PDFs
+            },
+        });
+
     } catch (error) {
-        console.error('Error removing PDF:', error);
-        res.status(500).json({ message: 'Error removing PDF', error: error.toString() });
+        console.error('Error deleting PDF:', error);
+        res.status(500).json({ message: 'Error deleting PDF', error: error.toString() });
     }
 });
 
