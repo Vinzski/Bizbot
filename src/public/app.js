@@ -722,7 +722,7 @@ function saveChatbot() {
 
     const chatbotTypeSelect = document.getElementById("chatbot-select");
     const chatbotNameInput = document.getElementById("chatbot-name");
-    const chatbotIdInput = document.getElementById("chatbot-id"); // Hidden input for Chatbot ID
+    const chatbotIdInput = document.getElementById("chatbot-id");
     const token = localStorage.getItem("token");
 
     if (!chatbotTypeSelect.value || !chatbotNameInput.value) {
@@ -749,7 +749,7 @@ function saveChatbot() {
     const chatbotId = chatbotIdInput.value;
 
     fetch(chatbotId ? `/api/chatbots/${chatbotId}` : "/api/chatbots", {
-        method: chatbotId ? "PUT" : "POST", // Use PUT for updates, POST for creation
+        method: chatbotId ? "PUT" : "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -771,21 +771,20 @@ function saveChatbot() {
             });
 
             if (!chatbotId) {
-                // If a new chatbot was created, update the chatbotId hidden input
                 chatbotIdInput.value = data.chatbot._id;
             }
 
             // If there are pending PDFs, upload them now
             if (pendingPdfs.length > 0) {
-                uploadPendingPdfs(data.chatbot._id); // Pass the chatbotId
+                uploadPendingPdfs(data.chatbot._id);
             }
 
             // Clear the Pending PDFs list
             pendingPdfs = [];
-            displayPendingPdfs(); // Clear the "Pending PDFs" section
+            displayPendingPdfs();
 
-            // Update the PDFs section to show the uploaded PDFs
-            loadPDFsForChatbot(data.chatbot.pdfs || []);
+            // Update the PDFs section with the newly uploaded PDFs
+            loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs
         })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
@@ -827,8 +826,8 @@ function uploadPendingPdfs(chatbotId) {
                     confirmButtonText: "OK",
                 });
 
-                // Update the PDFs section with the newly uploaded PDF
-                loadPDFsForChatbot([data.pdf]);
+                // Update the PDFs section with the newly uploaded PDFs
+                loadPDFsForChatbot(data.pdfs); // Use the new list of PDFs
 
                 // Remove the uploaded PDF from pendingPdfs
                 pendingPdfs.splice(index, 1);
