@@ -22,30 +22,6 @@ window.onload = () => {
       document.getElementById('chatbot-count').textContent = 'Error';
   });
 
-      // Fetch all chatbots for the logged-in user
-  fetch('https://bizbot-khpq.onrender.com/api/chatbots', {
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`  // Send token in the Authorization header
-      }
-  })
-  .then(response => response.json())
-  .then(chatbots => {
-      const chatbotSelect = document.getElementById('chatbot-select');
-      chatbots.forEach(chatbot => {
-          const option = document.createElement('option');
-          option.value = chatbot._id;
-          option.textContent = chatbot.name;
-          chatbotSelect.appendChild(option);
-      });
-  })
-  .catch(error => {
-      console.error('Error fetching chatbots:', error);
-      document.getElementById('chatbot-count').textContent = 'Error';
-  });
-};
-
   // Fetch the FAQ count from the server
   fetch('https://bizbot-khpq.onrender.com/api/faqs/count', {
       method: 'GET',
