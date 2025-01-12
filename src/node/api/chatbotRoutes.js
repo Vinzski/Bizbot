@@ -108,7 +108,7 @@ router.get('/:id', authenticate, async (req, res) => {
 
         // Extract FAQs and PDFs (ensure pdfId is always an array)
         const faqs = chatbot.faqs || [];
-        const pdfs = Array.isArray(chatbot.pdfId) ? chatbot.pdfId : [];
+        const pdfs = Array.isArray(chatbot.pdfId) ? chatbot.pdfId : [chatbot.pdfId];
 
         res.status(200).json({ chatbot, faqs, pdfs });
     } catch (error) {
