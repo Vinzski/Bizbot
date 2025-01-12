@@ -781,16 +781,16 @@ function saveChatbot() {
             if (pendingPdfs.length > 0) {
                 uploadPendingPdfs(data.chatbot._id); // Upload the pending PDFs to the new chatbot
             }
+
+            loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs, even if pdfs is undefined
         
             // Clear the Pending PDFs list after uploading
             pendingPdfs = [];
             displayPendingPdfs();  // Update the Pending PDFs UI
         
-            // Log data.chatbot.pdfs to check the structure
             console.log('Loaded chatbot data:', data);
         
             // Update the PDFs section to show all PDFs, including the newly uploaded ones
-            loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs, even if pdfs is undefined
         })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
