@@ -112,7 +112,7 @@ function loadPDFsForChatbot(pdfs) {
         console.error("pdfs is not an array");
         pdfs = pdfs ? [pdfs] : []; // Fallback to empty array
     }
-    // pdfList.innerHTML = '';
+    pdfList.innerHTML = '';
     if (pdfs.length === 0) {
         pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
         return;
