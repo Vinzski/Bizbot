@@ -175,37 +175,25 @@ router.get('/count', authenticate, async (req, res) => {
 });
 
 router.get('/:chatbotId', authenticate, async (req, res) => {
-    const chatbotId = req.params.id;
-    const userId = req.user.id;
-
-    // Validate chatbotId
-    if (!mongoose.Types.ObjectId.isValid(chatbotId)) {
-        return res.status(400).json({ message: 'Invalid chatbotId provided' });
-    }
-
     try {
-        // Find the chatbot, populate faqs and pdfId (now an array of PDFs)
-        const chatbot = await Chatbot.findOne({ _id: chatbotId, userId })
-            .populate('faqs')       // Populate FAQs
-            .populate('pdfId');     // Populate pdfId (array of PDFs)
-
+        const chatbot = await Chatbot.findById(req.params.chatbotId);
         if (!chatbot) {
             return res.status(404).json({ message: 'Chatbot not found' });
         }
 
-        // Extract FAQs
-        const faqs = chatbot.faqs || [];
+        // Fetch FAQs associated with this chatbot
+        const faqs = await FAQ.find({ _id: { $in: chatbot.faqs } });
 
-        // Extract PDFs (now pdfId is an array)
-        const pdfs = chatbot.pdfId || [];  // Ensure pdfId is always an array, even if empty
+        // Fetch PDFs associated with this chatbot
+        const pdfs = await PDF.find({ chatbotId: req.params.chatbotId });
 
-        res.status(200).json({ chatbot, faqs, pdfs });
+        // Send chatbot, FAQs, and PDFs data
+        res.json({ chatbot, faqs, pdfs });
     } catch (error) {
-        console.error('Error fetching chatbot details:', error);
-        res.status(500).json({ message: 'Error fetching chatbot details', error: error.toString() });
+        console.error('Failed to fetch chatbot', error);
+        res.status(500).json({ message: "Failed to fetch chatbot", error: error.toString() });
     }
 });
-
 
 router.delete('/:chatbotId', authenticate, async (req, res) => {
     const { chatbotId } = req.params;
