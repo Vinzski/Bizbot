@@ -777,7 +777,7 @@ function saveChatbot() {
                 uploadPendingPdfs(data.chatbot._id); // Upload the pending PDFs to the new chatbot
             }
 
-            loadPDFsForChatbot(data.pdfs);  // Ensure it loads all PDFs, even if pdfs is undefined
+            loadPDFsForChatbot([data.pdf]);  // Ensure it loads all PDFs, even if pdfs is undefined
         
             // Clear the Pending PDFs list after uploading
             pendingPdfs = [];
@@ -830,7 +830,7 @@ function uploadPendingPdfs(chatbotId) {
                 const pdfsArray = Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : [];
 
                 // Update the PDFs section with the newly uploaded PDFs
-                loadPDFsForChatbot(data.pdfs); // Use the new list of PDFs
+                loadPDFsForChatbot([data.pdf]); // Use the new list of PDFs
 
                 // Remove the uploaded PDF from pendingPdfs
                 pendingPdfs.splice(index, 1);
