@@ -44,12 +44,12 @@ router.get('/', authenticate, async (req, res) => {
 
 // Existing POST route for creating/updating chatbots
 router.post('/', authenticate, async (req, res) => {
-    const { name, type, faqs, pdfId } = req.body; // pdfId is optional
-    const userId = req.user.id; // Retrieved from authentication middleware
+    const { name, type, faqs, pdfId } = req.body;
+    const userId = req.user.id;
 
     // Validate pdfId if provided
-    if (pdfId && !mongoose.Types.ObjectId.isValid(pdfId)) {
-        return res.status(400).json({ message: 'Invalid pdfId provided' });
+    if (pdfId && !Array.isArray(pdfId)) {
+        return res.status(400).json({ message: 'pdfId must be an array' });
     }
 
     try {
@@ -59,10 +59,8 @@ router.post('/', authenticate, async (req, res) => {
             chatbot.faqs = faqs;
             chatbot.type = type;
             chatbot.name = name;
-            if (pdfId) {
-                chatbot.pdfId = pdfId; // Update the PDF reference if provided
-            } else {
-                chatbot.pdfId = undefined; // Optionally, remove the PDF reference if not provided
+            if (pdfId && Array.isArray(pdfId)) {
+                chatbot.pdfId = pdfId; // Update the PDF references if provided
             }
             await chatbot.save();
         } else {
@@ -72,15 +70,19 @@ router.post('/', authenticate, async (req, res) => {
                 type,
                 userId,
                 faqs,
-                // pdfId will be set via the PDF upload route
-                // creationDate is handled by Mongoose's timestamps
+                pdfId: pdfId || [], // Ensure pdfId is initialized as an array
             });
             await chatbot.save();
         }
-        res.status(201).json({ message: 'Chatbot saved successfully', chatbot });
+
+        res.status(201).json({
+            message: 'Chatbot saved successfully',
+            chatbot,
+            pdfs: chatbot.pdfId, // Include the list of PDFs in the response
+        });
     } catch (error) {
         console.error('Error in saving chatbot:', error);
-        res.status(500).json({ message: "Failed to create or update chatbot", error: error.toString() });
+        res.status(500).json({ message: 'Failed to create or update chatbot', error: error.toString() });
     }
 });
 
