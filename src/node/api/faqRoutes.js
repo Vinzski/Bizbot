@@ -101,11 +101,6 @@ router.post('/upload-pdf', authenticate, upload.single('pdf'), async (req, res) 
             return res.status(404).json({ message: 'Chatbot not found or does not belong to the user' });
         }
 
-        // Ensure the pdfId field is initialized as an array
-        if (!chatbot.pdfId) {
-            chatbot.pdfId = [];  // Initialize the pdfId field as an empty array if it's undefined
-        }
-
         // Parse the new PDF content
         const pdfBuffer = fs.readFileSync(req.file.path);
         const pdfData = await pdfParse(pdfBuffer);
