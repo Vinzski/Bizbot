@@ -113,7 +113,6 @@ function loadPDFsForChatbot(pdfs) {
         pdfs = pdfs ? [pdfs] : []; // Fallback to empty array
     }
 
-    pdfList.innerHTML = ''; // Clear existing list
     if (pdfs.length === 0) {
         pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
         return;
