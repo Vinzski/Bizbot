@@ -110,7 +110,7 @@ function loadPDFsForChatbot(pdfs) {
     // Ensure pdfs is always an array
     if (!Array.isArray(pdfs)) {
         console.error("pdfs is not an array");
-        pdfs = []; // Fallback to empty array
+        pdfs = pdfs ? [pdfs] : []; // Fallback to empty array
     }
 
     pdfList.innerHTML = ''; // Clear existing list
