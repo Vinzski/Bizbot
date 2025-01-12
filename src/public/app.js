@@ -114,10 +114,10 @@ function loadPDFsForChatbot(pdfs) {
 
     // pdfList.innerHTML = ''; // Clear existing list
 
-    if (pdfs.length === 0) {
-        pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
-        return;
-    }
+    // if (pdfs.length === 0) {
+    //     pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
+    //     return;
+    // }
 
     pdfs.forEach((pdf) => {
         const pdfItem = document.createElement('li');
