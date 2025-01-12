@@ -158,7 +158,7 @@ async function getCohereResponse(question, pdfContents) {
         }
 
         const prompt = `
-You are a friendly and helpful assistant. Strictly use only the information provided below to answer specific questions. If the answer is not in the given information, politely decline to answer. For general conversational queries like 'Hi,' 'How are you?' or 'Thank you,' respond in an engaging and friendly manner. Keep your responses clear, concise, and conversational.
+You are a friendly and helpful assistant. Strictly use only the information provided below to answer specific questions. If the answer is not explicitly found in the provided information, respond with: 'I’m sorry, I cannot answer that based on the information provided.' Do not attempt to infer, assume, or generate answers outside the given data. However, you may respond to general conversational queries like 'Hi,' 'How are you?' or 'Thank you' in an engaging and friendly manner. Keep your responses clear, concise, and conversational.
 Question: ${question}
 Information:
 ${combinedPDFContent}
