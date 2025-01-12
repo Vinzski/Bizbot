@@ -49,15 +49,12 @@
                 <form id="chatbot-form">
                     <div class="form-group">
                         <label for="chatbot-name">Chatbot Name:</label>
-                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name" required>
+                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name"
+                            required>
                     </div>
                     <div class="form-group">
                         <label for="chatbot-select">Select Chatbot Type:</label>
-                        <input 
-                            list="chatbot-types" 
-                            id="chatbot-select" 
-                            name="chatbot-select" 
-                            required 
+                        <input list="chatbot-types" id="chatbot-select" name="chatbot-select" required
                             placeholder="Type or select a type" />
                         <datalist id="chatbot-types">
                             <option value="Clothing"></option>
@@ -97,9 +94,10 @@
                 <div id="upload-status"></div>
             </div>
 
+            <!-- Pending PDFs section -->
             <div class="card">
                 <h2>Pending PDFs</h2>
-                <ul id="pdf-list" class="pdf-display">
+                <ul id="pending-pdf-list" class="pdf-display">
                     <!-- Pending PDFs will be dynamically displayed here -->
                 </ul>
             </div>
@@ -130,9 +128,10 @@
                 </table>
             </div>
 
+            <!-- Uploaded PDFs section -->
             <div class="card">
                 <h2>PDFs</h2>
-                <ul id="pdf-list" class="pdf-display">
+                <ul id="uploaded-pdf-list" class="pdf-display">
                     <!-- Uploaded PDFs will be dynamically displayed here -->
                 </ul>
             </div>
@@ -140,7 +139,7 @@
         </main>
     </div>
     <button type="button" id="saveChatbotBtn" class="save-chatbot-button" onclick="saveChatbot()">Save Chatbot</button>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="app.js"></script>
 </body>
 
