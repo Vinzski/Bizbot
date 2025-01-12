@@ -107,15 +107,11 @@ function loadChatbotDetails(chatbotId) {
 function loadPDFsForChatbot(pdfs) {
     const pdfList = document.getElementById("uploaded-pdf-list");
 
-    // Log the pdfs type to debug
-    console.log('pdfs received in loadPDFsForChatbot:', pdfs);
-    console.log('Type of pdfs:', Array.isArray(pdfs));
-
-    // Ensure pdfs is always an array
-    if (!Array.isArray(pdfs)) {
-        console.error("pdfs is not an array");
-        pdfs = []; // Fallback to empty array
-    }
+    // // Ensure pdfs is always an array
+    // if (!Array.isArray(pdfs)) {
+    //     console.error("pdfs is not an array");
+    //     pdfs = []; // Fallback to empty array
+    // }
 
     pdfList.innerHTML = ''; // Clear existing list
     if (pdfs.length === 0) {
