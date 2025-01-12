@@ -107,17 +107,17 @@ function loadChatbotDetails(chatbotId) {
 function loadPDFsForChatbot(pdfs) {
     const pdfList = document.getElementById("uploaded-pdf-list"); // Use the updated ID for "Uploaded PDFs"
 
-    // if (!Array.isArray(pdfs)) {
-    //     console.error("pdfs is not an array");
-    //     return;
-    // }
+    if (!Array.isArray(pdfs)) {
+        console.error("pdfs is not an array");
+        return;
+    }
 
-    // pdfList.innerHTML = ''; // Clear existing list
+    pdfList.innerHTML = ''; // Clear existing list
 
-    // if (pdfs.length === 0) {
-    //     pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
-    //     return;
-    // }
+    if (pdfs.length === 0) {
+        pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
+        return;
+    }
 
     pdfs.forEach((pdf) => {
         const pdfItem = document.createElement('li');
