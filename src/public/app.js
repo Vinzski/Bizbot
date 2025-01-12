@@ -105,43 +105,37 @@ function loadChatbotDetails(chatbotId) {
 
 
 function loadPDFsForChatbot(pdfs) {
-    const pdfList = document.getElementById("uploaded-pdf-list"); // Use the updated ID for "Uploaded PDFs"
+    const pdfList = document.getElementById('pdf-list');
+    pdfList.innerHTML = ''; // Clear the list first
 
     if (!Array.isArray(pdfs)) {
         console.error("pdfs is not an array");
         return;
     }
 
-    pdfList.innerHTML = ''; // Clear existing list
-
     if (pdfs.length === 0) {
-        pdfList.innerHTML = '<li>No PDFs uploaded for this chatbot.</li>';
+        pdfList.innerHTML = '<li>No PDF associated with this chatbot.</li>';
         return;
     }
 
     pdfs.forEach((pdf) => {
         const pdfItem = document.createElement('li');
+        // Create a link to view/download the PDF
         const pdfLink = document.createElement('a');
         pdfLink.href = `/uploads/${pdf.filename}`; // Adjust the path if needed
-        pdfLink.target = '_blank';
+        pdfLink.target = '_blank'; // Open in a new tab
         pdfLink.textContent = pdf.filename;
+        pdfLink.style.marginLeft = '10px';
 
         pdfItem.innerHTML = `<i class="fas fa-file-pdf"></i> `;
         pdfItem.appendChild(pdfLink);
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.style.marginLeft = '10px';
-        removeBtn.onclick = () => {
-            removePDF(pdf._id);
-        };
-        pdfItem.appendChild(removeBtn);
 
         pdfList.appendChild(pdfItem);
     });
 
     console.log(`Loaded ${pdfs.length} PDF(s) for this chatbot`);
 }
+
 
 function loadFAQsForChatbot(faqIds) {
   const token = localStorage.getItem("token");
@@ -783,8 +777,8 @@ function saveChatbot() {
             pendingPdfs = [];
             displayPendingPdfs();  // Update the Pending PDFs UI
 
-            // Ensure data.chatbot.pdfs is always an array and update the PDFs section
-            loadPDFsForChatbot(Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : []);  // Ensure pdfs is an array
+            // Update the PDFs section to show all PDFs, including the newly uploaded ones
+            loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs
         })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
