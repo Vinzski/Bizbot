@@ -169,7 +169,7 @@ Answer the question in a complete and detailed manner without unnecessary trunca
         const response = await cohere.generate({
             model: 'command',
             prompt: prompt,
-            max_tokens: 1000,
+            max_tokens: 3000,
             temperature: 0.5,
             k: 0,
             p: 0.75,
