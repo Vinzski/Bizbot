@@ -848,3 +848,55 @@ function uploadPendingPdfs(chatbotId) {
     });
 }
 
+function removePDF(pdfId) {
+    const token = localStorage.getItem("token");
+
+    // Optional: Confirm deletion with the user
+    Swal.fire({
+        title: "Confirm Deletion",
+        text: "Are you sure you want to delete this PDF?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with deletion
+            fetch(`/api/faqs/delete-pdf/${pdfId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.message || "Failed to delete PDF"); });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    Swal.fire({
+                        title: "Deleted!",
+                        text: "The PDF has been deleted.",
+                        icon: "success",
+                        confirmButtonText: "OK",
+                    });
+
+                    // Update the UI with the updated list of PDFs
+                    const pdfsArray = Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : [];
+                    loadPDFsForChatbot(pdfsArray);
+
+                    console.log(`PDF ${pdfId} deleted successfully.`);
+                })
+                .catch((error) => {
+                    console.error("Error deleting PDF:", error);
+                    Swal.fire({
+                        title: "Error",
+                        text: `Failed to delete PDF: ${error.message}`,
+                        icon: "error",
+                        confirmButtonText: "Try Again",
+                    });
+                });
+        }
+    });
+}
