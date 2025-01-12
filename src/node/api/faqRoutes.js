@@ -67,11 +67,6 @@ router.delete('/delete-pdf/:id', authenticate, async (req, res) => {
             return res.status(404).json({ message: 'Associated chatbot not found' });
         }
 
-        // Verify that the authenticated user owns the chatbot
-        if (chatbot.userId.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Unauthorized to delete this PDF' });
-        }
-
         // Remove the PDF reference from the chatbot's pdfId array
         chatbot.pdfId = chatbot.pdfId.filter(id => id.toString() !== pdfId);
         await chatbot.save();
