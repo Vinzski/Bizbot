@@ -44,6 +44,7 @@ const upload = multer({
 router.delete('/delete-pdf/:id', authenticate, async (req, res) => {
     try {
         const pdfId = req.params.id;
+        const userId = req.user.id;
 
         // Validate PDF ID
         if (!mongoose.Types.ObjectId.isValid(pdfId)) {
