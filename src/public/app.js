@@ -761,30 +761,30 @@ function saveChatbot() {
             }
             return response.json();
         })
-        .then((data) => {
-            Swal.fire({
-                title: "Success",
-                text: "Chatbot saved successfully!",
-                icon: "success",
-                confirmButtonText: "OK",
-            });
-
-            if (!chatbotId) {
-                chatbotIdInput.value = data.chatbot._id;
-            }
-
-            // If there are pending PDFs, upload them now
-            if (pendingPdfs.length > 0) {
-                uploadPendingPdfs(data.chatbot._id); // Upload the pending PDFs to the new chatbot
-            }
-
-            // Clear the Pending PDFs list after uploading
-            pendingPdfs = [];
-            displayPendingPdfs();  // Update the Pending PDFs UI
-
-            // Ensure data.chatbot.pdfs is always an array and update the PDFs section
-            loadPDFsForChatbot(Array.isArray(data.chatbot.pdfs) ? data.chatbot.pdfs : []);  // Ensure pdfs is an array
-        })
+          .then((data) => {
+              Swal.fire({
+                  title: "Success",
+                  text: "Chatbot saved successfully!",
+                  icon: "success",
+                  confirmButtonText: "OK",
+              });
+          
+              if (!chatbotId) {
+                  chatbotIdInput.value = data.chatbot._id;
+              }
+          
+              // If there are pending PDFs, upload them now
+              if (pendingPdfs.length > 0) {
+                  uploadPendingPdfs(data.chatbot._id); // Upload the pending PDFs to the new chatbot
+              }
+          
+              // Clear the Pending PDFs list after uploading
+              pendingPdfs = [];
+              displayPendingPdfs();  // Update the Pending PDFs UI
+          
+              // Update the PDFs section to show all PDFs, including the newly uploaded ones
+              loadPDFsForChatbot(data.chatbot.pdfs || []);  // Ensure it loads all PDFs, even if pdfs is undefined
+          })
         .catch((error) => {
             console.error("Error saving chatbot:", error);
             Swal.fire({
