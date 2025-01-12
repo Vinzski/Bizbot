@@ -95,10 +95,10 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 
     try {
-        // Find the chatbot, populate faqs and pdfId
+        // Find the chatbot, populate faqs and pdfId (now an array of PDFs)
         const chatbot = await Chatbot.findOne({ _id: chatbotId, userId })
             .populate('faqs')       // Populate FAQs
-            .populate('pdfId');     // Populate PDF
+            .populate('pdfId');     // Populate pdfId (array of PDFs)
 
         if (!chatbot) {
             return res.status(404).json({ message: 'Chatbot not found' });
@@ -107,8 +107,8 @@ router.get('/:id', authenticate, async (req, res) => {
         // Extract FAQs
         const faqs = chatbot.faqs || [];
 
-        // Extract PDFs (assuming one PDF per chatbot)
-        const pdfs = chatbot.pdfId ? [chatbot.pdfId] : [];
+        // Extract PDFs (now pdfId is an array)
+        const pdfs = chatbot.pdfId || [];  // Ensure pdfId is always an array, even if empty
 
         res.status(200).json({ chatbot, faqs, pdfs });
     } catch (error) {
