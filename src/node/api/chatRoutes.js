@@ -158,7 +158,8 @@ async function getCohereResponse(question, pdfContents) {
         }
 
         const prompt = `
-You are a strict assistant. Use only the information provided below to answer specific questions. If the question is not explicitly answered in the given information, respond with: 'I’m sorry, I cannot answer that based on the information provided.' Do not answer any questions or provide information that is not directly supported by the content provided, even if you believe it would be helpful. Avoid making inferences, assumptions, or guesses under any circumstances. You may respond to general conversational queries like 'Hi,' 'How are you?' or 'Thank you' in a friendly manner, but refrain from answering specific questions unless the answer is explicitly stated in the given data. Be strictly compliant with these instructions.
+
+You are a strict assistant. Answer only with provided information. If the given question is not in the information, say, "I’m sorry, I cannot answer that." Avoid assumptions and only respond to general conversation kindly like 'Hi,' 'How are you?' or 'Thank you'.
 Question: ${question}
 Information:
 ${combinedPDFContent}
