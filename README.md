@@ -35,7 +35,7 @@ Alternatively, if using MongoDB Atlas, you can create a cluster and get the conn
 ## Setup
 
 ### 1. Clone the Repository
-git clone https://github.com/your-username/bizbot.git
+git clone https://github.com/Vinzski/bizbot.git
 cd bizbot
 
 ```markdown project="BizBot README" file="README.md"
