@@ -35,76 +35,209 @@ Alternatively, if using MongoDB Atlas, you can create a cluster and get the conn
 ## Setup
 
 ### 1. Clone the Repository
-
 git clone https://github.com/your-username/bizbot.git
 cd bizbot
 
-2. Install Dependencies
+```markdown project="BizBot README" file="README.md"
+...
+```
+
+### 2. Install Dependencies
+
 Run the following command to install the required dependencies:
+
+```shellscript
 npm install
+```
 
-3. Configuration
-Create a .env file in the root of the project and set the following environment variables:
+### 3. Configuration
 
-bash
-Copy
-Edit
+Create a `.env` file in the root of the project and set the following environment variables:
+
+```shellscript
 MONGODB_URI=<Your MongoDB Connection String>
 PORT=3000
+JWT_SECRET=<Your Secret Key for JWT>
 RASA_SERVER_URL=http://localhost:5005  # If using Rasa, set the URL of the Rasa server
-4. Running the Application
+COHERE_API_KEY=<Your Cohere API Key>  # For advanced NLP features
+```
+
+### 4. Running the Application
+
 Once everything is set up, you can start the BizBot application with the following command:
 
-bash
-Copy
-Edit
+```shellscript
 npm start
-This will start the server on http://localhost:3000. The bot will be available at this URL for local testing.
+```
 
-5. Testing and Deployment
+This will start the server on [http://localhost:3000](http://localhost:3000). The bot will be available at this URL for local testing.
+
+### 5. Testing and Deployment
+
 You can use ngrok for external access if needed:
 
-bash
-Copy
-Edit
+```shellscript
 ngrok http 3000
+```
+
 This will provide a public URL that can be used for testing and deployment on other sites.
 
-How to Use
-Open http://localhost:3000 in your browser.
+## Project Structure
 
-Admin users can configure the bot through the admin control panel.
+### API Routes
 
-The bot will respond to user queries based on the customizable responses and FAQs.
+#### chatRoutes.js
 
-Customize the chatbot's look and feel, including color schemes, logos, and welcome messages.
+Handles chat functionality with NLP and AI integrations:
 
-View chatbot performance analytics to gauge user engagement and effectiveness.
+- Uses similarity algorithms (Jaccard, Cosine, Jaro-Winkler) to match user questions with FAQs
+- Integrates with Cohere AI for PDF content searching
+- Falls back to Rasa NLU when no match is found
 
-How to Customize the Chatbot Widget
+
+#### chatbotRoutes.js
+
+Manages CRUD operations for chatbots:
+
+- Create/update chatbots with FAQs and PDF references
+- Retrieve chatbot details with populated FAQs and PDFs
+- Delete chatbots and associated resources
+
+
+#### customizationRoutes.js
+
+Handles chatbot UI customization:
+
+- Save theme colors, welcome messages, and logos
+- Upload logo images to AWS S3
+- Update user profiles with password verification
+
+
+#### domainRoutes.js
+
+Manages domain registration for chatbots:
+
+- Register new domains for embedding the chatbot
+- Retrieve domains registered by users
+
+
+#### faqRoutes.js
+
+Handles FAQ management and PDF uploads:
+
+- Upload and parse PDFs using pdf-parse
+- Create, read, update, and delete FAQs
+- Associate PDFs with specific chatbots
+
+
+#### feedbackRoutes.js
+
+Manages user feedback for chatbots:
+
+- Submit ratings and feedback text
+- Retrieve feedbacks with optional rating filters
+
+
+#### messageRoutes.js
+
+Retrieves message history for chatbots:
+
+- Get all user messages for a specific chatbot
+
+
+### Controllers and Core Files
+
+#### authController.js
+
+Handles user authentication:
+
+- User registration with password hashing
+- Login with JWT token generation
+
+
+#### authMiddleware.js
+
+Authentication middleware for protecting routes:
+
+- Verifies JWT tokens
+- Attaches user information to requests
+
+
+#### server.js
+
+Main Express server configuration:
+
+- Dynamic CORS configuration based on registered domains
+- API route registration
+- Global error handling
+- Token generation for the chatbot widget
+
+
+#### db.js
+
+MongoDB connection configuration:
+
+- Establishes connection to MongoDB using environment variables
+
+
+#### widget.js
+
+Client-side chatbot widget for embedding in websites:
+
+- Customizable appearance (theme color, logo, welcome message)
+- Message formatting and display
+- Feedback collection with emoji rating system
+- Token-based authentication
+
+
+## How to Use
+
+1. Open [http://localhost:3000](http://localhost:3000) in your browser.
+2. Admin users can configure the bot through the admin control panel.
+3. The bot will respond to user queries based on the customizable responses and FAQs.
+4. Customize the chatbot's look and feel, including color schemes, logos, and welcome messages.
+5. View chatbot performance analytics to gauge user engagement and effectiveness.
+
+
+## How to Customize the Chatbot Widget
+
 To embed the chatbot into a website, simply add the following script to your HTML:
 
-html
-Copy
-Edit
+```html
 <script src="http://localhost:3000/chatbot-widget.js"></script>
+<div id="bizbot-widget" data-chatbot-id="YOUR_CHATBOT_ID" data-user-id="YOUR_USER_ID" data-token="YOUR_TOKEN"></div>
+```
+
 Replace localhost:3000 with your production URL if deploying.
 
-Analytics and Reporting
+## Analytics and Reporting
+
 BizBot provides a detailed analytics report showing user ratings and interaction statistics. Admins can access these reports from the admin dashboard to evaluate the bot's performance.
 
-Contributing
+## Natural Language Processing Features
+
+BizBot employs several NLP techniques for accurate response matching:
+
+- **Jaccard Similarity**: Measures word overlap between queries
+- **Cosine Similarity**: Uses TF-IDF for vector-based text comparison
+- **Jaro-Winkler Distance**: Handles string edit distances with prefix emphasis
+- **Cohere Integration**: Uses advanced AI to extract answers from PDF content
+- **Rasa Fallback**: Default response system when no matches are found
+
+
+## Contributing
+
 We welcome contributions to the BizBot project! Please fork this repository, create a branch, and submit a pull request for review.
 
-License
+## License
+
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-Contact
-For any inquiries or support, please contact [your-email@example.com].
+## Contact
+
+For any inquiries or support, please contact [[vinzmuloc@gmail.com](mailto:vinzmuloc@example.com)].
 
 Enjoy using BizBot, and feel free to customize it to fit your business needs!
-
-sql
 Copy
 Edit
 
