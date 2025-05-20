@@ -39,7 +39,7 @@ Alternatively, if using MongoDB Atlas, you can create a cluster and get the conn
 
 
 ```markdown project="BizBot README" file="README.md"
-cd bizbot
+cd src
 ```
 
 ### 2. Install Dependencies
