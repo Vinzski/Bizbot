@@ -62,7 +62,16 @@ COHERE_API_KEY=<Your Cohere API Key>  # For advanced NLP features
 Once everything is set up, you can start the BizBot application with the following command:
 
 ```shellscript
-npm start
+cd src
+```
+```shellscript
+cd node
+```
+```shellscript
+cd signup
+```
+```shellscript
+npm run server
 ```
 
 This will start the server on [http://localhost:3000](http://localhost:3000). The bot will be available at this URL for local testing.
@@ -112,7 +121,7 @@ Handles chatbot UI customization:
 
 Manages domain registration for chatbots:
 
-- Register new domains for embedding the chatbot
+- Register new domains for CORS embedding the chatbot
 - Retrieve domains registered by users
 
 
@@ -148,7 +157,6 @@ Handles user authentication:
 
 - User registration with password hashing
 - Login with JWT token generation
-
 
 #### authMiddleware.js
 
@@ -198,6 +206,7 @@ Client-side chatbot widget for embedding in websites:
 
 To embed the chatbot into a website, simply add the following script to your HTML:
 
+SAMPLE
 ```html
 <script src="http://localhost:3000/chatbot-widget.js"></script>
 <div id="bizbot-widget" data-chatbot-id="YOUR_CHATBOT_ID" data-user-id="YOUR_USER_ID" data-token="YOUR_TOKEN"></div>
@@ -230,7 +239,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-For any inquiries or support, please contact [[vinzmuloc@gmail.com](mailto:vinzmuloc@example.com)].
+For any inquiries or support, please contact [[vinzmuloc@gmail.com](mailto:vinzmuloc@gmail.com)].
 
 Enjoy using BizBot, and feel free to customize it to fit your business needs!
 Copy
