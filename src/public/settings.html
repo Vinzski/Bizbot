@@ -5,13 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - BizBot Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="mobile-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <h2>BizBot Admin</h2>
             <nav>
                 <ul>
@@ -25,10 +33,12 @@
                 </ul>
             </nav>
         </aside>
+        
         <main class="main-content">
             <header class="dashboard-header">
-                <h1>Settings</h1>
+                <h1>Chatbot Customization</h1>
             </header>
+            
             <div class="card">
                 <h2>Customization Options</h2>
                 <form id="customization-form">
@@ -46,181 +56,186 @@
                     
                     <div class="form-group">
                         <label for="theme-color">Theme Color:</label>
-                        <input type="color" id="theme-color" name="theme-color" value="#4a90e2" class="color-picker">
+                        <input type="color" id="theme-color" name="theme-color" value="#6366f1" class="color-picker">
                     </div>
+                    
                     <div class="form-group">
                         <label for="welcome-message">Welcome Message:</label>
-                        <textarea id="welcome-message" name="welcome-message"
-                            rows="3">Hello! How can I assist you today?</textarea>
+                        <textarea id="welcome-message" name="welcome-message" rows="3">Hello! How can I assist you today?</textarea>
                     </div>
+                    
                     <button type="submit">Save Customization</button>
                 </form>
             </div>
         </main>
     </div>
-    <script src="app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-document.addEventListener('DOMContentLoaded', async function () {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
     
-    try {
-        // Fetch chatbots
-        const response = await fetch('/api/chatbots', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+    <script src="app.js"></script>
+    <script>
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            sidebar.classList.toggle('mobile-visible');
+            overlay.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on links
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            try {
+                const response = await fetch('/api/chatbots', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load chatbots');
+
+                const chatbots = await response.json();
+                const chatbotSelect = document.getElementById('chatbot-select');
+
+                chatbots.forEach(chatbot => {
+                    const option = document.createElement('option');
+                    option.value = chatbot._id;
+                    option.textContent = chatbot.name;
+                    chatbotSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching chatbots:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load chatbots. Please try again.'
+                });
             }
-        });
 
-        if (!response.ok) throw new Error('Failed to load chatbots');
+            document.getElementById('chatbot-select').addEventListener('change', async (e) => {
+                const chatbotId = e.target.value;
+                if (!chatbotId) return;
 
-        const chatbots = await response.json();
-        const chatbotSelect = document.getElementById('chatbot-select');
+                try {
+                    const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-        chatbots.forEach(chatbot => {
-            const option = document.createElement('option');
-            option.value = chatbot._id;
-            option.textContent = chatbot.name;
-            chatbotSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error fetching chatbots:', error);
-    }
+                    if (!response.ok) throw new Error('Failed to fetch customization');
 
-    // Fetch customization when chatbot is selected
-    document.getElementById('chatbot-select').addEventListener('change', async (e) => {
-        const chatbotId = e.target.value;
-        if (!chatbotId) return;
+                    const customization = await response.json();
 
-        try {
-            const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+                    if (customization && customization.customization) {
+                        const { themeColor, welcomeMessage } = customization.customization;
+
+                        const validThemeColor = /^#[0-9A-Fa-f]{6}$/i.test(themeColor)
+                            ? themeColor
+                            : '#6366f1';
+
+                        document.getElementById('theme-color').value = validThemeColor;
+                        document.getElementById('welcome-message').value = welcomeMessage || 'Hello! How can I assist you today?';
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch customization:', error);
                 }
             });
 
-            if (!response.ok) throw new Error('Failed to fetch customization');
+            document.getElementById('customization-form').onsubmit = async function(e) {
+                e.preventDefault();
 
-            const customization = await response.json();
+                const formData = new FormData();
+                formData.append('chatbotId', document.getElementById('chatbot-select').value);
+                formData.append('themeColor', document.getElementById('theme-color').value);
+                formData.append('welcomeMessage', document.getElementById('welcome-message').value);
 
-            console.log('Customization Data:', customization); // Log response data to see structure
+                const fileInput = document.getElementById('dataset');
+                if (fileInput.files.length > 0) {
+                    formData.append('logo', fileInput.files[0]);
+                }
 
-            if (customization && customization.customization) {
-                const { themeColor, welcomeMessage } = customization.customization;
+                try {
+                    const response = await fetch('/api/customization/save', {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: formData
+                    });
 
-                // Validate and set theme color
-                const validThemeColor = /^#[0-9A-Fa-f]{6}$/i.test(themeColor)
-                    ? themeColor
-                    : '#FFFFFF'; // Default to white if themeColor is invalid or missing
-
-                console.log('Theme Color:', validThemeColor); // Log theme color to ensure it's valid
-                document.getElementById('theme-color').value = validThemeColor;
-
-                // Validate and set welcome message
-                console.log('Welcome Message:', welcomeMessage); // Log welcome message to ensure it's fetched correctly
-                document.getElementById('welcome-message').value = welcomeMessage || 'Welcome to our chatbot!'; // Default fallback message
-            } else {
-                console.log('No customization data available for this chatbot.');
-            }
-        } catch (error) {
-            console.error('Failed to fetch customization:', error);
-        }
-    });
-
-    document.getElementById('customization-form').onsubmit = async function(e) {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append('chatbotId', document.getElementById('chatbot-select').value);
-        formData.append('themeColor', document.getElementById('theme-color').value);
-        formData.append('welcomeMessage', document.getElementById('welcome-message').value);
-
-        const fileInput = document.getElementById('dataset');
-        if (fileInput.files.length > 0) {
-            formData.append('logo', fileInput.files[0]);
-        }
-
-        try {
-            const response = await fetch('/api/customization/save', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`
-                },
-                body: formData
-            });
-
-            if (response.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Saved!',
-                    text: 'Customization saved successfully!',
-                    confirmButtonText: 'OK'
-                });
-            } else {
-                const error = await response.json();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: `Error: ${error.message}`,
-                    confirmButtonText: 'OK'
-                });
-            }
-        } catch (error) {
-            console.error('Error saving customization:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'An error occurred while saving the customization.',
-                confirmButtonText: 'OK'
-            });
-        }
-    };
-});
-
-async function fetchCustomization(chatbotId) {
-    if (!chatbotId) return;  // Guard clause to ensure chatbotId is present
-
-    try {
-        const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`, // Assuming you use Bearer token for authentication
-                'Content-Type': 'application/json'
-            }
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Saved!',
+                            text: 'Customization saved successfully!',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        const error = await response.json();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: `Error: ${error.message}`,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error saving customization:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'An error occurred while saving the customization.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            };
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        async function fetchCustomization(chatbotId) {
+            if (!chatbotId) return;
+
+            try {
+                const response = await fetch(`/api/customization/get-customization/${chatbotId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                const validColor = /^#[0-9A-Fa-f]{6}$/i.test(data.customization.themeColor) 
+                    ? data.customization.themeColor 
+                    : '#6366f1';
+
+                document.getElementById('theme-color').value = validColor;
+                document.getElementById('welcome-message').value = data.customization.welcomeMessage;
+
+            } catch (error) {
+                console.error('Error fetching customization data:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to fetch customization data.'
+                });
+            }
         }
-
-        const data = await response.json();
-
-        // Validate and set the themeColor value to the form field
-        const validColor = /^#[0-9A-Fa-f]{6}$/i.test(data.customization.themeColor) 
-            ? data.customization.themeColor 
-            : '#FFFFFF'; // Default to white if themeColor is invalid
-
-        document.getElementById('theme-color').value = validColor;
-        document.getElementById('welcome-message').value = data.customization.welcomeMessage;
-
-        // Optional: handle logo update if your UI supports it
-        // For example: display the logo as an image
-        // document.getElementById('logo').src = data.customization.logo;
-
-    } catch (error) {
-        console.error('Error fetching customization data:', error);
-        alert('Failed to fetch customization data.');
-    }
-}
-
-document.getElementById('chatbot-select').addEventListener('change', (event) => {
-    fetchCustomization(event.target.value);
-});
-
     </script>
-
 </body>
 
 </html>
