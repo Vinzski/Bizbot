@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bizbot - Login & Signup</title>
+    <title>Login and Signup</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div class="page-container">
         <div class="form-container">
-            <h2 id="formTitle">Welcome Back</h2>
+            <h2 id="formTitle">Login</h2>
             <form id="authForm">
                 <div class="input-group">
                     <input type="text" id="username" placeholder=" " style="display: none;">
-                    <label for="username" style="display: none;">Full Name</label>
+                    <label for="username" style="display: none;">Username</label>
                 </div>  
                 
                 <div class="input-group">
                     <input type="email" id="email" required placeholder=" ">
-                    <label for="email">Email Address</label>
+                    <label for="email">Email</label>
                 </div>
                 
                 <div class="input-group">
@@ -28,112 +27,25 @@
                     <label for="password">Password</label>
                 </div>
 
-                <button type="submit" id="submitBtn">Sign In</button>
+                <button type="submit" id="submitBtn">Login</button>
             </form>
-            <button type="button" class="switch-btn" onclick="toggleForm()">Create New Account</button>
-            <div id="message"></div>
+            <button type="button" class="switch-btn" onclick="toggleForm()">Switch to Signup</button>
+            <p id="message"></p>
         </div>
         <div class="logo-container">
-            <div class="welcome-message">Bizbot</div>
-            <div class="welcome-subtitle">Your AI Business Assistant</div>
-            <div class="logo-placeholder">🤖</div>
+            <div class="welcome-message">Welcome to Bizbot!</div>
+            <img src="/bizbot logo.png?height=300&width=300" alt="Logo Placeholder" class="logo-placeholder">
         </div>
     </div>
 
+    <script src="app.js"></script>
     <script>
-        let isLogin = true;
-
-        function toggleForm() {
-            const formTitle = document.getElementById('formTitle');
-            const submitBtn = document.getElementById('submitBtn');
-            const switchBtn = document.querySelector('.switch-btn');
-            const usernameGroup = document.querySelector('#username').parentElement;
-            const messageDiv = document.getElementById('message');
-
-            isLogin = !isLogin;
-
-            if (isLogin) {
-                formTitle.textContent = 'Welcome Back';
-                submitBtn.textContent = 'Sign In';
-                switchBtn.textContent = 'Create New Account';
-                usernameGroup.style.display = 'none';
-                document.getElementById('username').style.display = 'none';
-                document.querySelector('label[for="username"]').style.display = 'none';
-            } else {
-                formTitle.textContent = 'Create Account';
-                submitBtn.textContent = 'Sign Up';
-                switchBtn.textContent = 'Already have an account?';
-                usernameGroup.style.display = 'block';
-                document.getElementById('username').style.display = 'block';
-                document.querySelector('label[for="username"]').style.display = 'block';
-            }
-
-            messageDiv.textContent = '';
-            messageDiv.className = '';
-            
-            // Add smooth transition effect
-            document.querySelector('.form-container').style.animation = 'slideIn 0.5s ease-out';
-        }
-
-        document.getElementById('authForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const messageDiv = document.getElementById('message');
-            
-            // Add loading state
-            submitBtn.classList.add('loading');
-            submitBtn.disabled = true;
-            
-            // Simulate API call
-            setTimeout(() => {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
-                
-                messageDiv.textContent = isLogin ? 'Login successful!' : 'Account created successfully!';
-                messageDiv.className = 'success';
-                
-                // Clear message after 3 seconds
-                setTimeout(() => {
-                    messageDiv.textContent = '';
-                    messageDiv.className = '';
-                }, 3000);
-            }, 2000);
-        });
-
-        // Enhanced input interactions
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
-            });
-        });
-
-        // Enhanced button interactions
         document.querySelectorAll('button').forEach(button => {
             button.addEventListener('mouseenter', function() {
-                if (!this.disabled) {
-                    this.style.transform = 'translateY(-2px)';
-                }
+                this.style.animation = 'pulse 0.5s';
             });
-            
-            button.addEventListener('mouseleave', function() {
-                if (!this.disabled) {
-                    this.style.transform = 'translateY(0)';
-                }
-            });
-        });
-
-        // Form validation with better UX
-        document.querySelectorAll('input[required]').forEach(input => {
-            input.addEventListener('invalid', function() {
-                this.parentElement.classList.add('shake');
-                setTimeout(() => {
-                    this.parentElement.classList.remove('shake');
-                }, 600);
+            button.addEventListener('animationend', function() {
+                this.style.animation = '';
             });
         });
     </script>
