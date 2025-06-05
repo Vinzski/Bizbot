@@ -1,4 +1,3 @@
-<!-- training.html -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,25 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Data Management - BizBot Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* Optional: Add some basic styling for pending PDFs */
-        .pending-pdf {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-
-        .pending-pdf button {
-            margin-left: 68px;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="mobile-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <h2>BizBot Admin</h2>
             <nav>
                 <ul>
@@ -34,8 +29,7 @@
                     <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
                     <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
                     <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i>
-                            Logout</button></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
                 </ul>
             </nav>
         </aside>
@@ -44,29 +38,27 @@
             <header class="dashboard-header">
                 <h1>Training Data Management</h1>
             </header>
+            
             <div class="card">
                 <h2>Manage Data</h2>
                 <form id="chatbot-form">
                     <div class="form-group">
                         <label for="chatbot-name">Chatbot Name:</label>
-                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name"
-                            required>
+                        <input type="text" id="chatbot-name" name="chatbot-name" placeholder="Enter chatbot name" required>
                     </div>
                     <div class="form-group">
                         <label for="chatbot-select">Select Chatbot Type:</label>
-                        <input list="chatbot-types" id="chatbot-select" name="chatbot-select" required
-                            placeholder="Type or select a type" />
+                        <input list="chatbot-types" id="chatbot-select" name="chatbot-select" required placeholder="Type or select a type" />
                         <datalist id="chatbot-types">
                             <option value="Clothing"></option>
                             <option value="Food Services"></option>
                             <option value="Automobile"></option>
                         </datalist>
                     </div>
-
-                    <!-- Hidden input to store chatbotId -->
                     <input type="hidden" id="chatbot-id" value="">
                 </form>
             </div>
+            
             <div class="card">
                 <h2>Add FAQ Data</h2>
                 <form id="faq-form">
@@ -76,7 +68,7 @@
                     </div>
                     <div class="form-group">
                         <label for="faq-answer">Answer:</label>
-                        <textarea id="faq-answer" name="faq-answer" required></textarea>
+                        <textarea id="faq-answer" name="faq-answer" required rows="4"></textarea>
                     </div>
                     <button type="button" onclick="addOrUpdateFAQ()">Submit FAQ</button>
                 </form>
@@ -94,7 +86,6 @@
                 <div id="upload-status"></div>
             </div>
 
-            <!-- Pending PDFs section -->
             <div class="card">
                 <h2>Pending PDFs</h2>
                 <ul id="pending-pdf-list" class="pdf-display">
@@ -114,33 +105,53 @@
 
             <div class="card">
                 <h2>Current FAQs</h2>
-                <table id="faq-table">
-                    <thead>
-                        <tr>
-                            <th>Question</th>
-                            <th>Answer</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- FAQs will be dynamically filled here -->
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table id="faq-table">
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>Answer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- FAQs will be dynamically filled here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Uploaded PDFs section -->
             <div class="card">
                 <h2>PDFs</h2>
                 <ul id="uploaded-pdf-list" class="pdf-display">
                     <!-- Uploaded PDFs will be dynamically displayed here -->
                 </ul>
             </div>
-
         </main>
     </div>
+    
     <button type="button" id="saveChatbotBtn" class="save-chatbot-button" onclick="saveChatbot()">Save Chatbot</button>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="app.js"></script>
+    <script>
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            sidebar.classList.toggle('mobile-visible');
+            overlay.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on links
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
