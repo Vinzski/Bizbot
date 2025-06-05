@@ -5,70 +5,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics and Reports - BizBot Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="mobile-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="container">
-<aside class="sidebar">
-    <h2>BizBot Admin</h2>
-    <nav>
-        <ul>
-            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
-            <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
-            <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
-            <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
-            <li><a href="analytics.html" class="active"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
-        </ul>
-    </nav>
-</aside>
+        <aside class="sidebar" id="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
+                    <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
+                    <li><a href="integration.html"><i class="fas fa-plug"></i> Integration</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
+                    <li><a href="analytics.html" class="active"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
+                </ul>
+            </nav>
+        </aside>
+        
         <main class="main-content">
             <header class="dashboard-header">
                 <h1>Analytics and Reports</h1>
             </header>
 
-            <!-- Dropdown to choose a chatbot -->
-            <div class="card">
-                <h2>Choose a Chatbot</h2>
-                <select id="chatbotSelector">
-                    <!-- Options will be populated dynamically -->
-                </select>
+            <div class="grid">
+                <div class="card">
+                    <h2>Choose a Chatbot</h2>
+                    <select id="chatbotSelector">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="card">
+                    <h2>Choose a Chart</h2>
+                    <select id="chartSelector">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                        <option value="pie">Pie Chart</option>
+                    </select>
+                </div>
+
+                <div class="card">
+                    <h2>Export Data</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button id="downloadCsv" class="btn">
+                            <i class="fas fa-file-csv"></i> Download CSV
+                        </button>
+                        <button id="downloadPdf" class="btn">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Dropdown to choose chart type -->
-            <div class="card">
-                <h2>Choose a Chart</h2>
-                <select id="chartSelector">
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </div>
-
-            <div class="card">
-                <button id="downloadCsv" class="btn">Download CSV</button>
-                <button id="downloadPdf" class="btn">Download PDF</button>
-            </div>
-
-
-            <!-- Bar Chart Section -->
             <div class="card" id="barChartContainer" style="display: block;">
                 <h2>Chatbot Rating (Bar Chart)</h2>
-                <canvas id="barChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="barChart"></canvas>
+                </div>
             </div>
 
-            <!-- Line Chart Section -->
             <div class="card" id="lineChartContainer" style="display: none;">
                 <h2>Chatbot Rating (Line Chart)</h2>
-                <canvas id="lineChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="lineChart"></canvas>
+                </div>
             </div>
 
-            <!-- Pie Chart Section -->
             <div class="card" id="pieChartContainer" style="display: none;">
                 <h2>Chatbot Rating (Pie Chart)</h2>
                 <div class="chart-container">
@@ -77,15 +92,40 @@
             </div>
         </main>
     </div>
+    
     <script src="app.js"></script>
     <script>
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            sidebar.classList.toggle('mobile-visible');
+            overlay.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on links
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
         // Initialize Chart.js context
         let barChart, lineChart, pieChart;
         const barChartCtx = document.getElementById('barChart').getContext('2d');
         const lineChartCtx = document.getElementById('lineChart').getContext('2d');
         const pieChartCtx = document.getElementById('pieChart').getContext('2d');
 
-        // Function to create and return a new chart instance
+        // Chart configuration with modern colors
+        const chartColors = {
+            backgroundColor: ['#ef4444', '#f59e0b', '#eab308', '#10b981', '#6366f1'],
+            borderColor: '#1e293b',
+            borderWidth: 2
+        };
+
         function createChart(ctx, type) {
             return new Chart(ctx, {
                 type: type,
@@ -93,11 +133,24 @@
                     labels: ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent'],
                     datasets: [{
                         label: 'Ratings',
-                        data: [0, 0, 0, 0, 0],  // Initial data (to be updated)
-                        backgroundColor: ['#ff0000', '#ff9900', '#ffff00', '#33cc33', '#3399ff'],
-                        borderColor: '#333',
-                        borderWidth: 1
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: chartColors.backgroundColor,
+                        borderColor: chartColors.borderColor,
+                        borderWidth: chartColors.borderWidth
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Chatbot Ratings Distribution'
+                        }
+                    }
                 }
             });
         }
@@ -107,107 +160,84 @@
         lineChart = createChart(lineChartCtx, 'line');
         pieChart = createChart(pieChartCtx, 'pie');
 
-        // Fetch chatbots for the logged-in user
-// Fetch chatbots for the logged-in user and update charts
-async function fetchChatbots() {
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch('/api/chatbots', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        async function fetchChatbots() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/chatbots', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
-        if (!response.ok) throw new Error('Failed to load chatbots');
+                if (!response.ok) throw new Error('Failed to load chatbots');
 
-        const chatbots = await response.json();
-        const chatbotSelector = document.getElementById('chatbotSelector');
-        chatbotSelector.innerHTML = '';  // Clear previous options
+                const chatbots = await response.json();
+                const chatbotSelector = document.getElementById('chatbotSelector');
+                chatbotSelector.innerHTML = '';
 
-        if (chatbots.length > 0) {
-            chatbots.forEach((chatbot, index) => {
-                const option = document.createElement('option');
-                option.value = chatbot._id;
-                option.textContent = chatbot.name;
-                chatbotSelector.appendChild(option);
-                if (index === 0) {
-                    chatbotSelector.value = chatbot._id; // Set the first chatbot as selected
-                    updateCharts(chatbot._id); // Update charts for the first chatbot
+                if (chatbots.length > 0) {
+                    chatbots.forEach((chatbot, index) => {
+                        const option = document.createElement('option');
+                        option.value = chatbot._id;
+                        option.textContent = chatbot.name;
+                        chatbotSelector.appendChild(option);
+                        if (index === 0) {
+                            chatbotSelector.value = chatbot._id;
+                            updateCharts(chatbot._id);
+                        }
+                    });
+                } else {
+                    chatbotSelector.innerHTML = '<option>No chatbots available</option>';
+                    clearCharts();
+                }
+            } catch (error) {
+                console.error('Error fetching chatbots:', error);
+                chatbotSelector.innerHTML = '<option>Error loading chatbots</option>';
+                clearCharts();
+            }
+        }
+
+        function clearCharts() {
+            const datasets = [barChart, lineChart, pieChart].map(chart => chart.data.datasets[0].data);
+            datasets.forEach(data => data.fill(0));
+            [barChart, lineChart, pieChart].forEach(chart => chart.update());
+        }
+
+        async function fetchRatings(chatbotId) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/chatbots/ratings/${chatbotId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    throw new Error('Failed to fetch ratings');
+                }
+            } catch (error) {
+                console.error('Error fetching ratings:', error);
+                return [];
+            }
+        }
+
+        async function updateCharts(chatbotId) {
+            const ratings = await fetchRatings(chatbotId);
+            const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
+
+            ratings.forEach(rating => {
+                if (ratingCounts.hasOwnProperty(rating.rating)) {
+                    ratingCounts[rating.rating]++;
                 }
             });
-        } else {
-            // No chatbots available
-            chatbotSelector.innerHTML = '<option>No chatbots available</option>';
-            // Optionally clear charts or show a message
-            clearCharts();
+
+            const data = Object.values(ratingCounts);
+
+            [barChart, lineChart, pieChart].forEach(chart => {
+                chart.data.datasets[0].data = data;
+                chart.update();
+            });
         }
-    } catch (error) {
-        console.error('Error fetching chatbots:', error);
-        chatbotSelector.innerHTML = '<option>Error loading chatbots</option>';
-        clearCharts();
-    }
-}
 
-// Function to clear charts or handle empty data scenarios
-function clearCharts() {
-    const datasets = [barChart, lineChart, pieChart].map(chart => chart.data.datasets[0].data);
-    datasets.forEach(data => data.fill(0)); // Set all data to zero
-    [barChart, lineChart, pieChart].forEach(chart => chart.update());
-}
-
-// Call fetchChatbots to initialize everything
-document.addEventListener('DOMContentLoaded', fetchChatbots);
-
-
-        // Fetch ratings for the selected chatbot
-async function fetchRatings(chatbotId) {
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch(`/api/chatbots/ratings/${chatbotId}`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-            return await response.json();
-        } else {
-            throw new Error('Failed to fetch ratings');
-        }
-    } catch (error) {
-        console.error('Error fetching ratings:', error);
-        // Return default values if the fetch fails
-        return [];
-    }
-}
-
-
-        // Update the charts with new ratings data
-async function updateCharts(chatbotId) {
-    const ratings = await fetchRatings(chatbotId);
-    const ratingCounts = { Poor: 0, Unsatisfied: 0, Neutral: 0, Satisfied: 0, Excellent: 0 };
-
-    // Update the rating counts based on fetched data
-    ratings.forEach(rating => {
-        if (ratingCounts.hasOwnProperty(rating.rating)) {
-            ratingCounts[rating.rating]++;
-        }
-    });
-
-    const data = Object.values(ratingCounts);
-
-    // Update bar chart
-    barChart.data.datasets[0].data = data;
-    barChart.update();
-
-    // Update line chart
-    lineChart.data.datasets[0].data = data;
-    lineChart.update();
-
-    // Update pie chart
-    pieChart.data.datasets[0].data = data;
-    pieChart.update();
-}
-
-
-        // Event listener for chatbot selection
         document.getElementById('chatbotSelector').addEventListener('change', function () {
             const selectedChatbotId = this.value;
             if (selectedChatbotId) {
@@ -215,16 +245,13 @@ async function updateCharts(chatbotId) {
             }
         });
 
-        // Event listener for chart type selection
         document.getElementById('chartSelector').addEventListener('change', function () {
             const selectedChartType = this.value;
 
-            // Hide all chart containers
             document.getElementById('barChartContainer').style.display = 'none';
             document.getElementById('lineChartContainer').style.display = 'none';
             document.getElementById('pieChartContainer').style.display = 'none';
 
-            // Show the selected chart container
             if (selectedChartType === 'bar') {
                 document.getElementById('barChartContainer').style.display = 'block';
             } else if (selectedChartType === 'line') {
@@ -234,79 +261,65 @@ async function updateCharts(chatbotId) {
             }
         });
 
-        // Initialize the page by fetching chatbots
-        fetchChatbots();
+        function downloadCSV(chatbotName, chartType) {
+            const data = chartType === 'bar' ? barChart.data.datasets[0].data :
+                         chartType === 'line' ? lineChart.data.datasets[0].data :
+                         pieChart.data.datasets[0].data;
 
-        // Function to convert chart data to CSV format
-function downloadCSV(chatbotName, chartType) {
-    const data = chartType === 'bar' ? barChart.data.datasets[0].data :
-                 chartType === 'line' ? lineChart.data.datasets[0].data :
-                 pieChart.data.datasets[0].data;
+            const csvHeader = 'Rating,Count\n';
+            const csvContent = ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']
+                .map((rating, index) => `${rating},${data[index]}`)
+                .join('\n');
 
-    // Prepare CSV content
-    const csvHeader = 'Rating,Count\n';
-    const csvContent = ['Poor', 'Unsatisfied', 'Neutral', 'Satisfied', 'Excellent']
-        .map((rating, index) => `${rating},${data[index]}`)
-        .join('\n');
+            const csvData = csvHeader + csvContent;
 
-    const csvData = csvHeader + csvContent;
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${chatbotName}_ratings.csv`;
+            link.click();
+        }
 
-    // Create and trigger the download
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${chatbotName}_ratings.csv`;
-    link.click();
-}
+        const { jsPDF } = window.jspdf;
 
-// Access jsPDF from the UMD module
-const { jsPDF } = window.jspdf;
+        async function downloadPDF(chatbotName, chartType) {
+            const doc = new jsPDF();
 
-// Function to generate and download the PDF report
-async function downloadPDF(chatbotName, chartType) {
-    const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text(`Chatbot: ${chatbotName}`, 10, 10);
 
-    // Add title
-    doc.setFontSize(18);
-    doc.text(`Chatbot: ${chatbotName}`, 10, 10);
+            doc.setFontSize(12);
+            doc.text(`Chart Type: ${chartType}`, 10, 20);
 
-    // Add chart type
-    doc.setFontSize(12);
-    doc.text(`Chart Type: ${chartType}`, 10, 20);
+            let chartData;
+            if (chartType === 'bar') {
+                chartData = barChart;
+            } else if (chartType === 'line') {
+                chartData = lineChart;
+            } else if (chartType === 'pie') {
+                chartData = pieChart;
+            }
 
-    // Get the chart data
-    let chartData;
-    if (chartType === 'bar') {
-        chartData = barChart;
-    } else if (chartType === 'line') {
-        chartData = lineChart;
-    } else if (chartType === 'pie') {
-        chartData = pieChart;
-    }
+            const chartImage = chartData.toBase64Image();
+            doc.addImage(chartImage, 'PNG', 10, 40, 180, 120);
 
-    // Get the chart as an image (base64-encoded)
-    const chartImage = chartData.toBase64Image();
+            doc.save(`${chatbotName}_report.pdf`);
+        }
 
-    // Add the chart image to the PDF
-    doc.addImage(chartImage, 'PNG', 10, 40, 180, 120);  // Adjust position and size as needed
+        document.getElementById('downloadCsv').addEventListener('click', () => {
+            const chatbotName = document.getElementById('chatbotSelector').selectedOptions[0].text;
+            const chartType = document.getElementById('chartSelector').value;
+            downloadCSV(chatbotName, chartType);
+        });
 
-    // Save the PDF
-    doc.save(`${chatbotName}_report.pdf`);
-}
+        document.getElementById('downloadPdf').addEventListener('click', () => {
+            const chatbotName = document.getElementById('chatbotSelector').selectedOptions[0].text;
+            const chartType = document.getElementById('chartSelector').value;
+            downloadPDF(chatbotName, chartType);
+        });
 
-// Event listener for the CSV download button
-document.getElementById('downloadCsv').addEventListener('click', () => {
-    const chatbotName = document.getElementById('chatbotSelector').selectedOptions[0].text;
-    const chartType = document.getElementById('chartSelector').value;
-    downloadCSV(chatbotName, chartType);
-});
-
-// Event listener for the PDF download button
-document.getElementById('downloadPdf').addEventListener('click', () => {
-    const chatbotName = document.getElementById('chatbotSelector').selectedOptions[0].text;
-    const chartType = document.getElementById('chartSelector').value;
-    downloadPDF(chatbotName, chartType);
-});
-
+        document.addEventListener('DOMContentLoaded', fetchChatbots);
     </script>
 </body>
+
+</html>
