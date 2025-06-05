@@ -4,57 +4,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - BizBot Admin</title>
+    <title>Integration - BizBot Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
-    <style>
-    .code-container {
-        background-color: #f4f4f4;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 15px;
-        margin: 20px;
-        overflow-x: auto;
-        max-width: 100%; /* Ensure it doesn't exceed the card width */
-    }
-    .code-block {
-        font-family: 'Courier New', Courier, monospace;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        margin: 0;
-        font-size: 14px;
-        line-height: 1.5;
-        overflow-x: auto; /* Allow horizontal scrolling if needed */
-    }
-    /* Add this new style for the card content */
-    .card-content {
-        max-width: 100%;
-        overflow-x: hidden; /* Hide horizontal overflow */
-    }
-    </style>
 </head>
 
 <body>
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <div class="mobile-overlay" onclick="toggleMobileMenu()"></div>
+    
     <div class="container">
-<aside class="sidebar">
-    <h2>BizBot Admin</h2>
-    <nav>
-        <ul>
-            <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
-            <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
-            <li><a href="integration.html" class="active"><i class="fas fa-plug"></i> Integration</a></li>
-            <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
-            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
-        </ul>
-    </nav>
-</aside>
+        <aside class="sidebar" id="sidebar">
+            <h2>BizBot Admin</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="chatbot-management.html"><i class="fas fa-robot"></i> Chatbot Management</a></li>
+                    <li><a href="training.html"><i class="fas fa-database"></i> Training Data</a></li>
+                    <li><a href="integration.html" class="active"><i class="fas fa-plug"></i> Integration</a></li>
+                    <li><a href="settings.html"><i class="fas fa-cog"></i> Chatbot Customization</a></li>
+                    <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></li>
+                </ul>
+            </nav>
+        </aside>
+        
         <main class="main-content">
             <header class="dashboard-header">
                 <h1>Chatbot Integration</h1>
             </header>
+            
             <div class="card">
                 <h2>Generate Widget Code</h2>
                 <div class="card-content">
@@ -75,33 +59,55 @@
                     <button class="btn" onclick="copyCode()">Copy Code</button>
                 </div>
             </div>
+            
             <div class="card">
                 <h2>Save Your Domain</h2>
                 <form id="domain-form">
                     <div class="form-group">
                         <label for="domain-input">Domain URL:</label>
-                        <input type="url" id="domain-input" name="domain" placeholder="https://yourwebsite.com"
-                            required>
+                        <input type="url" id="domain-input" name="domain" placeholder="https://yourwebsite.com" required>
                     </div>
                     <button type="button" onclick="saveDomain()">Save Domain</button>
                 </form>
             </div>
-            <!-- Section to display the user's saved domains -->
+            
             <div class="card">
                 <h2>Your Saved Domains</h2>
-                <ul id="domains-list">
+                <ul id="domains-list" style="list-style: none; padding: 0;">
                     <!-- List of domains will be dynamically inserted here -->
                 </ul>
             </div>
         </main>
     </div>
+    
     <script src="app.js"></script>
     <script>
-        // Function to fetch and display the logged-in user's domains
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            
+            sidebar.classList.toggle('mobile-visible');
+            overlay.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking on links
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
         function fetchUserDomains() {
-            const token = localStorage.getItem('token'); // Get token from localStorage or sessionStorage
+            const token = localStorage.getItem('token');
             if (!token) {
-                alert('You must be logged in to see your domains.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Authentication Required',
+                    text: 'You must be logged in to see your domains.'
+                });
                 return;
             }
 
@@ -114,18 +120,19 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Fetched domains:', data); // Log the fetched data for debugging
+                console.log('Fetched domains:', data);
 
                 if (data.domains && data.domains.length > 0) {
                     const domainsList = document.getElementById('domains-list');
-                    domainsList.innerHTML = ''; // Clear the list first
+                    domainsList.innerHTML = '';
                     data.domains.forEach(domain => {
                         const listItem = document.createElement('li');
+                        listItem.style.cssText = 'padding: 0.75rem; margin-bottom: 0.5rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-color);';
                         listItem.textContent = domain.domain;
                         domainsList.appendChild(listItem);
                     });
                 } else {
-                    document.getElementById('domains-list').innerHTML = 'No domains saved yet.';
+                    document.getElementById('domains-list').innerHTML = '<li style="text-align: center; color: var(--text-light); font-style: italic;">No domains saved yet.</li>';
                 }
             })
             .catch(error => {
@@ -133,17 +140,13 @@
             });
         }
 
-        // Call to fetch user domains when the page is loaded
         document.addEventListener("DOMContentLoaded", function () {
-            fetchUserDomains(); // Fetch user domains on page load
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            loadChatbots();  // Call this function to populate the dropdown when the page loads.
+            fetchUserDomains();
+            loadChatbots();
         });
 
         function loadChatbots() {
-            const token = localStorage.getItem("token"); // Assuming you store token in localStorage after login
+            const token = localStorage.getItem("token");
             fetch("https://bizbot-khpq.onrender.com/api/chatbots", {
                 headers: {
                     "Authorization": `Bearer ${token}`
@@ -179,7 +182,6 @@
                 return;
             }
             try {
-                // Decode the token to extract userId
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const userId = payload.id || payload.userId;
 
@@ -187,7 +189,7 @@
                     Swal.fire('Error', 'Unable to retrieve User ID from token.', 'error');
                     return;
                 }
-                // Request a new token from the backend that includes chatbotId and userId
+                
                 const response = await fetch('https://bizbot-khpq.onrender.com/api/token', {
                     method: 'POST',
                     headers: {
@@ -196,30 +198,33 @@
                     },
                     body: JSON.stringify({ chatbotId: chatbotId })
                 });
+                
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('Server response:', errorText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 if (data.token) {
                     const newToken = data.token;
-                    // Generate the widget code with chatbotId, userId, and the new token
-            const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
-                    // Display the code in a SweetAlert with improved styling
+                    const codeSnippet = `<script src="https://bizbot-khpq.onrender.com/widget.js" id="bizbot-widget" data-chatbot-id="${chatbotId}" data-user-id="${userId}" data-token="${newToken}"><\/script>`;
+                    
                     Swal.fire({
                         title: 'Generated Widget Code',
                         html: `
                             <div style="
                                 border: 1px solid #e0e0e0;
-                                border-radius: 4px;
-                                background-color: #f8f8f8;
+                                border-radius: 8px;
+                                background-color: #f8fafc;
                                 padding: 15px;
                                 max-height: 300px;
                                 overflow-y: auto;
                                 text-align: left;
-                            ">
-                            </div>
+                                font-family: 'Courier New', monospace;
+                                font-size: 14px;
+                                word-break: break-all;
+                            ">${codeSnippet}</div>
                         `,
                         icon: 'success',
                         showCancelButton: true,
@@ -241,7 +246,7 @@
                                 });
                         }
                     });
-                    // Update the code snippet in the page as well
+                    
                     document.getElementById('code-snippet').textContent = codeSnippet;
                 } else {
                     throw new Error(data.message || 'Failed to generate new token');
@@ -255,55 +260,62 @@
         function copyCode() {
             const codeSnippetElement = document.getElementById('code-snippet');
             navigator.clipboard.writeText(codeSnippetElement.textContent)
-                .then(() => alert('Code copied to clipboard!'))
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Copied!',
+                        text: 'Code copied to clipboard!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                })
                 .catch(err => console.error('Error copying text: ', err));
         }
 
-    function saveDomain() {
-    const domainInput = document.getElementById('domain-input').value;
-    if (!domainInput) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Please enter a domain URL.'
-        });
-        return;
-    }
-    const token = localStorage.getItem("token"); // Retrieve the auth token
-    fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ domain: domainInput })
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to save the domain');
+        function saveDomain() {
+            const domainInput = document.getElementById('domain-input').value;
+            if (!domainInput) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Please enter a domain URL.'
+                });
+                return;
             }
-            return response.json();
-        })
-        .then(data => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: 'Domain saved successfully!'
-            });
-            fetchUserDomains(); // Refresh the domain list
-        })
-        .catch(error => {
-            console.error('Error saving domain:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to save domain',
-                text: error.message
-            });
-        });
-}
-
+            const token = localStorage.getItem("token");
+            fetch('https://bizbot-khpq.onrender.com/api/domains/add-domain', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ domain: domainInput })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to save the domain');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Domain saved successfully!'
+                    });
+                    document.getElementById('domain-input').value = '';
+                    fetchUserDomains();
+                })
+                .catch(error => {
+                    console.error('Error saving domain:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to save domain',
+                        text: error.message
+                    });
+                });
+        }
     </script>
 </body>
 
 </html>
-
