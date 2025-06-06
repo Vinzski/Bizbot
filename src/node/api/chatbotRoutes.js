@@ -6,6 +6,17 @@ const authenticate = require('../signup/middleware/authMiddleware');
 const PDF = require('../models/PDFModel');
 const mongoose = require('mongoose');
 
+router.get('/count', authenticate, async (req, res) => {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.user.id); // Ensure it's an ObjectId
+        const chatbotCount = await Chatbot.countDocuments({ userId }); // Count all chatbots for this user
+        res.json({ count: chatbotCount });
+    } catch (error) {
+        console.error('Error counting chatbots:', error);
+        res.status(500).json({ message: 'Failed to count chatbots', error: error.toString() });
+    }
+});
+
 router.get('/name/:chatbotId', authenticate, async (req, res) => {
     const { chatbotId } = req.params;
 
@@ -159,18 +170,6 @@ router.delete('/:id', authenticate, async (req, res) => {
         res.status(500).json({ message: 'Error deleting chatbot', error: error.toString() });
     }
 });
-
-router.get('/count', authenticate, async (req, res) => {
-    try {
-        const userId = new mongoose.Types.ObjectId(req.user.id); // Ensure it's an ObjectId
-        const chatbotCount = await Chatbot.countDocuments({ userId }); // Count all chatbots for this user
-        res.json({ count: chatbotCount });
-    } catch (error) {
-        console.error('Error counting chatbots:', error);
-        res.status(500).json({ message: 'Failed to count chatbots', error: error.toString() });
-    }
-});
-
 
 router.get('/:chatbotId', authenticate, async (req, res) => {
     try {
