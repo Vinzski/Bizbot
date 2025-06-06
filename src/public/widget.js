@@ -6,6 +6,18 @@
   let chatbotName = "BizBot"; // Default name, will be replaced
   let currentProfileImageUrl = ""; // Initialize profile image URL
 
+  // Drag functionality variables
+  let isDragging = false;
+  let dragStartTime = 0;
+  let longPressTimer = null;
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let initialTransform = { x: 0, y: 0 };
+  let isLongPress = false;
+  const LONG_PRESS_DURATION = 500; // 500ms for long press
+
   // Function to add Font Awesome
   function addFontAwesome() {
     const link = document.createElement("link");
@@ -24,7 +36,11 @@
   script.src = "https://cdn.jsdelivr.net/npm/sweetalert2@11";
   document.head.appendChild(script);
 
+  let Swal; // Declare the Swal variable
+
   script.onload = function () {
+    Swal = window.Swal; // Assign the SweetAlert2 library to the Swal variable
+
     // Event listener for sending feedback using SweetAlert
     feedbackBtn.onclick = function () {
       if (selectedRating) {
@@ -460,6 +476,244 @@
     }
   }
 
+  // Drag and Drop Functions
+  function getWidgetPosition() {
+    const saved = localStorage.getItem('chatbot-widget-position');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return { side: 'right', bottom: 20 };
+  }
+
+  function saveWidgetPosition(position) {
+    localStorage.setItem('chatbot-widget-position', JSON.stringify(position));
+  }
+
+  function setWidgetPosition(side, bottom = 20) {
+    const widget = document.getElementById("chatbot-widget");
+    const toggle = document.getElementById("chat-toggle");
+    
+    if (side === 'left') {
+      widget.style.left = '20px';
+      widget.style.right = 'auto';
+      toggle.style.left = '20px';
+      toggle.style.right = 'auto';
+    } else {
+      widget.style.right = '20px';
+      widget.style.left = 'auto';
+      toggle.style.right = '20px';
+      toggle.style.left = 'auto';
+    }
+    
+    widget.style.bottom = bottom + 'px';
+    toggle.style.bottom = bottom + 'px';
+    
+    saveWidgetPosition({ side, bottom });
+  }
+
+  function startDrag(e) {
+    const widget = document.getElementById("chatbot-widget");
+    const toggle = document.getElementById("chat-toggle");
+    const target = e.target.closest('#chatbot-widget, #chat-toggle');
+    
+    if (!target) return;
+
+    isDragging = false;
+    isLongPress = false;
+    dragStartTime = Date.now();
+
+    // Get initial position
+    if (e.type === 'touchstart') {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    } else {
+      startX = e.clientX;
+      startY = e.clientY;
+    }
+
+    // Start long press timer
+    longPressTimer = setTimeout(() => {
+      isLongPress = true;
+      isDragging = true;
+      
+      // Add visual feedback
+      target.style.transform = 'scale(1.05)';
+      target.style.opacity = '0.8';
+      target.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+      target.style.cursor = 'grabbing';
+      
+      // Add drag indicator
+      const dragIndicator = document.createElement('div');
+      dragIndicator.id = 'drag-indicator';
+      dragIndicator.innerHTML = '↔️ Drag to left or right side';
+      dragIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        z-index: 10001;
+        pointer-events: none;
+        animation: fadeIn 0.3s ease;
+      `;
+      document.body.appendChild(dragIndicator);
+      
+    }, LONG_PRESS_DURATION);
+
+    // Prevent default to avoid scrolling on mobile
+    e.preventDefault();
+  }
+
+  function drag(e) {
+    if (!isDragging || !isLongPress) return;
+
+    e.preventDefault();
+    
+    let clientX, clientY;
+    if (e.type === 'touchmove') {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+
+    currentX = clientX - startX;
+    currentY = clientY - startY;
+
+    const widget = document.getElementById("chatbot-widget");
+    const toggle = document.getElementById("chat-toggle");
+    const target = widget.style.display !== 'none' ? widget : toggle;
+
+    // Apply transform for smooth dragging
+    target.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.05)`;
+    
+    // Add visual feedback for drop zones
+    const screenWidth = window.innerWidth;
+    const dropZoneWidth = screenWidth * 0.3; // 30% of screen width for drop zones
+    
+    if (clientX < dropZoneWidth) {
+      // Left drop zone
+      target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.5)';
+    } else if (clientX > screenWidth - dropZoneWidth) {
+      // Right drop zone
+      target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.5)';
+    } else {
+      // No drop zone
+      target.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.3)';
+    }
+  }
+
+  function endDrag(e) {
+    clearTimeout(longPressTimer);
+    
+    if (!isDragging || !isLongPress) {
+      isDragging = false;
+      isLongPress = false;
+      return;
+    }
+
+    const widget = document.getElementById("chatbot-widget");
+    const toggle = document.getElementById("chat-toggle");
+    const target = widget.style.display !== 'none' ? widget : toggle;
+    
+    let clientX;
+    if (e.type === 'touchend') {
+      clientX = e.changedTouches[0].clientX;
+    } else {
+      clientX = e.clientX;
+    }
+
+    // Determine which side to snap to
+    const screenWidth = window.innerWidth;
+    const dropZoneWidth = screenWidth * 0.3;
+    let newSide = 'right'; // default
+    
+    if (clientX < dropZoneWidth) {
+      newSide = 'left';
+    } else if (clientX > screenWidth - dropZoneWidth) {
+      newSide = 'right';
+    } else {
+      // If dropped in the middle, keep current side
+      const currentPosition = getWidgetPosition();
+      newSide = currentPosition.side;
+    }
+
+    // Reset styles
+    target.style.transform = '';
+    target.style.opacity = '';
+    target.style.transition = '';
+    target.style.cursor = '';
+    target.style.boxShadow = '';
+
+    // Remove drag indicator
+    const dragIndicator = document.getElementById('drag-indicator');
+    if (dragIndicator) {
+      dragIndicator.remove();
+    }
+
+    // Set new position
+    setWidgetPosition(newSide);
+
+    // Add success feedback
+    if (newSide !== getWidgetPosition().side) {
+      const successIndicator = document.createElement('div');
+      successIndicator.innerHTML = `✅ Moved to ${newSide} side`;
+      successIndicator.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,128,0,0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        z-index: 10001;
+        pointer-events: none;
+        animation: fadeIn 0.3s ease;
+      `;
+      document.body.appendChild(successIndicator);
+      
+      setTimeout(() => {
+        successIndicator.remove();
+      }, 2000);
+    }
+
+    isDragging = false;
+    isLongPress = false;
+  }
+
+  function cancelDrag() {
+    clearTimeout(longPressTimer);
+    
+    if (isDragging) {
+      const widget = document.getElementById("chatbot-widget");
+      const toggle = document.getElementById("chat-toggle");
+      const target = widget.style.display !== 'none' ? widget : toggle;
+      
+      // Reset styles
+      target.style.transform = '';
+      target.style.opacity = '';
+      target.style.transition = '';
+      target.style.cursor = '';
+      target.style.boxShadow = '';
+      
+      // Remove drag indicator
+      const dragIndicator = document.getElementById('drag-indicator');
+      if (dragIndicator) {
+        dragIndicator.remove();
+      }
+    }
+    
+    isDragging = false;
+    isLongPress = false;
+  }
+
   // Create elements for the chatbot widget
   const chatbotWidget = document.createElement("div");
   chatbotWidget.id = "chatbot-widget";
@@ -523,6 +777,11 @@
 
   // Add styles directly or link to an external stylesheet
   const styles = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
   #chatbot-widget {
       position: fixed;
       bottom: 20px;
@@ -537,7 +796,16 @@
       overflow: hidden;
       transition: all 0.3s ease;
       z-index: 1000;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
   }
+  
+  #chatbot-widget.dragging {
+      transition: none !important;
+  }
+  
   #chat-header {
       background-color: #4a90e2;
       color: white;
@@ -547,7 +815,13 @@
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid rgba(255,255,255,0.1);
+      cursor: grab;
   }
+  
+  #chat-header:active {
+      cursor: grabbing;
+  }
+  
   #close-chat {
       background: none;
       border: none;
@@ -608,7 +882,7 @@
       border: none;
       padding: 15px;
       border-radius: 50%;
-      cursor: pointer;
+      cursor: grab;
       width: 60px;
       height: 60px;
       display: flex;
@@ -618,7 +892,16 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
       transition: all 0.3s ease;
       z-index: 1000;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
   }
+  
+  #chat-toggle:active {
+      cursor: grabbing;
+  }
+  
   #chat-toggle:hover {
       transform: translateY(-3px);
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
@@ -632,10 +915,6 @@
       border-radius: 15px;
       max-width: 80%;
       animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
   }
   .user-message {
       background-color: #e6f3ff;
@@ -808,6 +1087,37 @@
   document.body.appendChild(chatbotWidget);
   document.body.appendChild(chatToggle);
 
+  // Set initial position from localStorage
+  const savedPosition = getWidgetPosition();
+  setWidgetPosition(savedPosition.side, savedPosition.bottom);
+
+  // Add drag event listeners
+  function addDragListeners() {
+    const widget = document.getElementById("chatbot-widget");
+    const toggle = document.getElementById("chat-toggle");
+    const header = document.getElementById("chat-header");
+
+    // Touch events for mobile
+    [widget, toggle].forEach(element => {
+      element.addEventListener('touchstart', startDrag, { passive: false });
+      element.addEventListener('touchmove', drag, { passive: false });
+      element.addEventListener('touchend', endDrag, { passive: false });
+      element.addEventListener('touchcancel', cancelDrag, { passive: false });
+    });
+
+    // Mouse events for desktop
+    [widget, toggle].forEach(element => {
+      element.addEventListener('mousedown', startDrag);
+      element.addEventListener('mousemove', drag);
+      element.addEventListener('mouseup', endDrag);
+      element.addEventListener('mouseleave', cancelDrag);
+    });
+
+    // Global mouse events for better drag experience
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', endDrag);
+  }
+
   // Elements for chat widget
   const chatToggleButton = document.getElementById("chat-toggle");
   const chatbotWidgetElement = document.getElementById("chatbot-widget");
@@ -826,7 +1136,13 @@
   sendMessageButton.style.cursor = "not-allowed";
 
   // Event listener to open chat
-  chatToggleButton.onclick = function () {
+  chatToggleButton.onclick = function (e) {
+    // Prevent opening chat if dragging
+    if (isDragging || isLongPress) {
+      e.preventDefault();
+      return;
+    }
+    
     chatbotWidgetElement.style.display = "flex";
     chatToggleButton.style.display = "none";
     chatMsgs.style.display = "flex";
@@ -947,6 +1263,9 @@
     // Clear the input field after sending
     userInput.value = "";
   };
+
+  // Add drag functionality after elements are created
+  addDragListeners();
 
   // Initialize the chatbot widget on load
   initializeChatbot();
