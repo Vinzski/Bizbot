@@ -161,14 +161,9 @@ router.delete('/:id', authenticate, async (req, res) => {
 });
 
 router.get('/count', authenticate, async (req, res) => {
-    
     try {
-        console.log("Authenticated user ID:", req.user?.id);
-        // Ensure userId is ObjectId type
-        const userId = mongoose.Types.ObjectId(req.user.id);
-
-        // Fetch chatbot count for the user
-        const chatbotCount = await Chatbot.countDocuments({ userId: userId });
+        const userId = new mongoose.Types.ObjectId(req.user.id); // Ensure it's an ObjectId
+        const chatbotCount = await Chatbot.countDocuments({ userId }); // Count all chatbots for this user
         res.json({ count: chatbotCount });
     } catch (error) {
         console.error('Error counting chatbots:', error);
