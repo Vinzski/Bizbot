@@ -163,10 +163,6 @@ router.delete('/:id', authenticate, async (req, res) => {
 router.get('/count', authenticate, async (req, res) => {
     const chatbotId = req.params.id;
     const userId = req.user.id;
-    
-    if (!req.user || !req.user.id) {
-        return res.status(400).json({ message: 'Invalid or missing user ID' });
-    }
 
     try {
         // Ensure userId is ObjectId type
