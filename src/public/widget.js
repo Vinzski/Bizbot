@@ -1,10 +1,10 @@
 ;(() => {
   let token // Store the widget token in memory
-  const isFeedbackSubmitted = false // Flag to track feedback submission status
   let themeColor = "#10B981" // Default theme color
   let welcomeMessage = "Welcome! How can I assist you today?" // Default welcome message
   let chatbotName = "BizBot" // Default name, will be replaced
   let currentProfileImageUrl = "" // Initialize profile image URL
+  let selectedRating = "" // Variable to store the selected rating
 
   // Drag functionality variables
   let isDragging = false
@@ -17,6 +17,10 @@
   const initialTransform = { x: 0, y: 0 }
   let isLongPress = false
   const LONG_PRESS_DURATION = 500 // 500ms for long press
+
+  // Session management for feedback
+  const SESSION_FEEDBACK_KEY = "chatbot_feedback_shown"
+  const SESSION_CHAT_COUNT_KEY = "chatbot_interaction_count"
 
   // Function to add Font Awesome
   function addFontAwesome() {
@@ -82,15 +86,18 @@
               .then((response) => response.json())
               .then((data) => {
                 if (data.success) {
-                  // Show SweetAlert for success and reload the page
+                  // Show SweetAlert for success
                   Swal.fire({
                     icon: "success",
                     title: "Thank you!",
                     text: "Your feedback has been submitted successfully.",
                     confirmButtonColor: themeColor,
                   }).then(() => {
-                    // Reload the page after the user clicks "OK"
-                    window.location.reload()
+                    // Mark feedback as submitted in session storage
+                    sessionStorage.setItem(SESSION_FEEDBACK_KEY, "submitted")
+
+                    // Close the feedback form and show the toggle button
+                    closeFeedbackForm()
                   })
                 } else {
                   // Show SweetAlert for error
@@ -142,6 +149,11 @@
     if (!chatbotId || !userId || !initialToken) {
       console.error("Chatbot ID, User ID, or initial token is missing.")
       return
+    }
+
+    // Initialize session storage for chat interactions if not exists
+    if (!sessionStorage.getItem(SESSION_CHAT_COUNT_KEY)) {
+      sessionStorage.setItem(SESSION_CHAT_COUNT_KEY, "0")
     }
 
     // First fetch the chatbot's name
@@ -272,6 +284,13 @@
       sendMessageButton.style.backgroundColor = themeColor
     }
 
+    // Apply theme color to skip button and feedback button
+    const skipFeedbackBtn = document.getElementById("skip-feedback")
+    if (skipFeedbackBtn) {
+      skipFeedbackBtn.style.borderColor = themeColor
+      skipFeedbackBtn.style.color = themeColor
+    }
+
     // Apply profile image to a single element or all bot profile images
     if (botProfileImages && profileImageUrl) {
       botProfileImages.forEach((img) => {
@@ -364,6 +383,9 @@
     console.log(`userId: ${userId}`)
     console.log(`userInput: ${userInput}`)
 
+    // Increment chat interaction count
+    incrementChatCount()
+
     // Append "Loading..." bot message
     const chatMessages = document.getElementById("chat-messages")
     const loadingMessageElement = document.createElement("div")
@@ -455,6 +477,35 @@
       botProfileImage.style.backgroundPosition = "center"
       botProfileImage.style.backgroundRepeat = "no-repeat"
     }
+  }
+
+  // Session management functions
+  function incrementChatCount() {
+    const currentCount = Number.parseInt(sessionStorage.getItem(SESSION_CHAT_COUNT_KEY) || "0")
+    sessionStorage.setItem(SESSION_CHAT_COUNT_KEY, (currentCount + 1).toString())
+  }
+
+  function getChatCount() {
+    return Number.parseInt(sessionStorage.getItem(SESSION_CHAT_COUNT_KEY) || "0")
+  }
+
+  function shouldShowFeedback() {
+    // Check if feedback has already been shown or submitted this session
+    const feedbackStatus = sessionStorage.getItem(SESSION_FEEDBACK_KEY)
+    if (feedbackStatus === "shown" || feedbackStatus === "submitted" || feedbackStatus === "skipped") {
+      return false
+    }
+
+    // Only show feedback after a meaningful interaction (at least 3 messages)
+    return getChatCount() >= 3
+  }
+
+  function markFeedbackAsShown() {
+    sessionStorage.setItem(SESSION_FEEDBACK_KEY, "shown")
+  }
+
+  function markFeedbackAsSkipped() {
+    sessionStorage.setItem(SESSION_FEEDBACK_KEY, "skipped")
   }
 
   // Drag and Drop Functions
@@ -747,6 +798,65 @@
     isLongPress = false
   }
 
+  // Function to show the feedback form
+  function showFeedbackForm() {
+    const chatbotWidgetElement = document.getElementById("chatbot-widget")
+    const chatToggleButton = document.getElementById("chat-toggle")
+    const chatMsgs = document.getElementById("chat-messages")
+    const chatInp = document.getElementById("chat-input")
+    const satisfactory = document.querySelector(".satisfactory")
+
+    chatbotWidgetElement.style.display = "flex"
+    chatToggleButton.style.display = "none"
+    chatMsgs.style.display = "none"
+    chatInp.style.display = "none"
+    satisfactory.style.display = "flex"
+
+    // Mark feedback as shown in session storage
+    markFeedbackAsShown()
+  }
+
+  // Function to close the feedback form
+  function closeFeedbackForm() {
+    const chatbotWidgetElement = document.getElementById("chatbot-widget")
+    const chatToggleButton = document.getElementById("chat-toggle")
+
+    chatbotWidgetElement.style.display = "none"
+    chatToggleButton.style.display = "block"
+  }
+
+  // Function to show a subtle feedback prompt in the chat
+  function showFeedbackPrompt() {
+    const chatMessages = document.getElementById("chat-messages")
+
+    // Create a subtle feedback prompt
+    const promptElement = document.createElement("div")
+    promptElement.classList.add("feedback-prompt")
+    promptElement.innerHTML = `
+      <div class="feedback-prompt-content">
+        <p>How are we doing? We'd love your feedback!</p>
+        <div class="feedback-prompt-buttons">
+          <button id="open-feedback-btn">Give Feedback</button>
+          <button id="dismiss-feedback-btn">Maybe Later</button>
+        </div>
+      </div>
+    `
+
+    chatMessages.appendChild(promptElement)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+
+    // Add event listeners to the buttons
+    document.getElementById("open-feedback-btn").addEventListener("click", () => {
+      showFeedbackForm()
+      promptElement.remove()
+    })
+
+    document.getElementById("dismiss-feedback-btn").addEventListener("click", () => {
+      promptElement.remove()
+      markFeedbackAsSkipped()
+    })
+  }
+
   // Create elements for the chatbot widget
   const chatbotWidget = document.createElement("div")
   chatbotWidget.id = "chatbot-widget"
@@ -788,7 +898,10 @@
                   </div>
               </div>
               <textarea name="feedback" id="feedback" placeholder="Your feedback..."></textarea>
-              <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
+              <div class="feedback-buttons">
+                <button id="skip-feedback" class="skip-feedback">Skip</button>
+                <button id="sendfeedback" class="sendfeedback">Send Feedback</button>
+              </div>
           </div>
       </div>
       <div id="chat-messages">
@@ -800,6 +913,11 @@
       <div id="chat-input">
           <input type="text" id="user-input" placeholder="Type your message...">
           <button id="send-message" disabled>Send</button>
+      </div>
+      <div id="feedback-button-container">
+        <button id="feedback-button" title="Give us feedback">
+          <i class="fa-solid fa-comment-dots"></i>
+        </button>
       </div>`
 
   // Create the toggle button once
@@ -1033,15 +1151,33 @@
       -webkit-user-select: text;
       -moz-user-select: text;
       -ms-user-select: text;
+      min-height: 80px;
+      padding: 8px;
+      resize: vertical;
+  }
+  .feedback-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.5em;
+      gap: 10px;
   }
   .satisfactory .rating .sendfeedback{
-      display: flex;
-      align-self: center;
+      flex: 1;
       border-radius: 5px;
       background-color: #3a80d2;
       color: white;
       padding: 8px 16px;
       border: none;
+      cursor: pointer;
+      font-weight: bold;
+  }
+  .satisfactory .rating .skip-feedback{
+      flex: 1;
+      border-radius: 5px;
+      background-color: transparent;
+      border: 1px solid #3a80d2;
+      color: #3a80d2;
+      padding: 8px 16px;
       cursor: pointer;
   }
   .emojis{
@@ -1120,6 +1256,91 @@
   .bot-emojis{
       display: flex;
       flex-direction: row;
+  }
+  
+  /* Feedback button styles */
+  #feedback-button-container {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 5;
+  }
+  
+  #feedback-button {
+      background-color: transparent;
+      color: #4a90e2;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.2s ease;
+  }
+  
+  #feedback-button:hover {
+      opacity: 1;
+      transform: scale(1.1);
+  }
+  
+  /* Feedback prompt styles */
+  .feedback-prompt {
+      align-self: center;
+      width: 90%;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      animation: fadeIn 0.5s ease;
+  }
+  
+  .feedback-prompt-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+  
+  .feedback-prompt-content p {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #555;
+  }
+  
+  .feedback-prompt-buttons {
+      display: flex;
+      gap: 10px;
+  }
+  
+  .feedback-prompt-buttons button {
+      padding: 6px 12px;
+      border-radius: 15px;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  }
+  
+  #open-feedback-btn {
+      background-color: #4a90e2;
+      color: white;
+  }
+  
+  #open-feedback-btn:hover {
+      background-color: #3a80d2;
+  }
+  
+  #dismiss-feedback-btn {
+      background-color: #f0f0f0;
+      color: #555;
+  }
+  
+  #dismiss-feedback-btn:hover {
+      background-color: #e0e0e0;
   }
   `
   const styleSheet = document.createElement("style")
@@ -1202,8 +1423,9 @@
   const emojiButtons = document.querySelectorAll(".emoji")
   const feedbackTextarea = document.getElementById("feedback")
   const feedbackBtn = document.getElementById("sendfeedback")
+  const skipFeedbackBtn = document.getElementById("skip-feedback")
   const sendMessageButton = document.getElementById("send-message")
-  let selectedRating = "" // Variable to store the selected rating
+  const feedbackButton = document.getElementById("feedback-button")
 
   // Disable send button until token is fetched
   sendMessageButton.disabled = true
@@ -1221,6 +1443,7 @@
     chatToggleButton.style.display = "none"
     chatMsgs.style.display = "flex"
     chatInp.style.display = "flex"
+    satisfactory.style.display = "none"
 
     // Focus on input field when chat opens
     setTimeout(() => {
@@ -1231,18 +1454,31 @@
     }, 100)
   }
 
-  // Event listener to close chat
+  // Event listener to close chat - modified to check for feedback eligibility
   closeChatButton.onclick = () => {
-    chatbotWidgetElement.style.display = "none"
-    chatToggleButton.style.display = "block"
-    chatMsgs.style.display = "none"
-    chatInp.style.display = "none"
-    setTimeout(() => {
-      chatbotWidgetElement.style.display = "flex"
-      chatToggleButton.style.display = "none"
-      chatMsgs.style.display = "none"
-      satisfactory.style.display = "flex"
-    }, 1000)
+    // Check if we should show feedback form
+    if (shouldShowFeedback()) {
+      showFeedbackForm()
+    } else {
+      // Just close the chat
+      chatbotWidgetElement.style.display = "none"
+      chatToggleButton.style.display = "block"
+    }
+  }
+
+  // Event listener for the skip feedback button
+  if (skipFeedbackBtn) {
+    skipFeedbackBtn.addEventListener("click", () => {
+      markFeedbackAsSkipped()
+      closeFeedbackForm()
+    })
+  }
+
+  // Event listener for the feedback button in chat
+  if (feedbackButton) {
+    feedbackButton.addEventListener("click", () => {
+      showFeedbackForm()
+    })
   }
 
   // Event listeners for emoji buttons
@@ -1255,66 +1491,6 @@
       icon.classList.add("active")
       selectedRating = this.querySelector("p").innerText // Update the selected rating
     })
-  })
-
-  // Feedback fallback event listener
-  feedbackBtn.onclick = () => {
-    if (selectedRating) {
-      const feedbackText = feedbackTextarea.value
-      if (feedbackText.trim() === "") {
-        alert("Please enter your feedback.")
-      } else {
-        console.log(`Feedback submitted: ${feedbackText}`)
-        console.log(`Feedback submitted with rating: ${selectedRating}`)
-
-        // Get the user ID and chatbot ID from the widget
-        const widgetElement = document.getElementById("bizbot-widget")
-        const userId = widgetElement.getAttribute("data-user-id")
-        const chatbotId = widgetElement.getAttribute("data-chatbot-id")
-
-        // Prepare the feedback data
-        const feedbackData = {
-          userId: userId,
-          chatbotId: chatbotId,
-          rating: selectedRating,
-          feedback: feedbackText,
-        }
-
-        // Send feedback to the server
-        fetch("https://bizbot-khpq.onrender.com/api/feedback", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(feedbackData),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              // Hide the chatbot widget and show the toggle button
-              widgetElement.style.display = "none"
-              chatToggleButton.style.display = "block"
-              chatMsgs.style.display = "none"
-              chatInp.style.display = "none"
-            } else {
-              alert("Error submitting feedback. Please try again.")
-            }
-          })
-          .catch((error) => {
-            console.error("Error submitting feedback:", error)
-            alert("Error submitting feedback. Please try again.")
-          })
-      }
-    } else {
-      alert("Please select a rating before submitting feedback.")
-    }
-  }
-
-  document.getElementById("sendfeedback").addEventListener("click", () => {
-    const feedback = document.getElementById("feedback").value
-    if (feedback) {
-      document.getElementById("feedback").value = "" // Clear the feedback input
-    }
   })
 
   // Event listener for sending user message
@@ -1342,6 +1518,15 @@
 
     // Clear the input field after sending
     userInput.value = ""
+
+    // Check if we should show the feedback prompt after a few messages
+    const chatCount = getChatCount()
+    if (chatCount === 5 && !sessionStorage.getItem(SESSION_FEEDBACK_KEY)) {
+      // Show a subtle feedback prompt after 5 messages
+      setTimeout(() => {
+        showFeedbackPrompt()
+      }, 1000)
+    }
   }
 
   // Setup input listeners and drag functionality after elements are created
