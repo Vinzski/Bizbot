@@ -161,9 +161,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 });
 
 router.get('/count', authenticate, async (req, res) => {
-    const chatbotId = req.params.id;
-    const userId = req.user.id;
-
+    
     try {
         // Ensure userId is ObjectId type
         const userId = mongoose.Types.ObjectId(req.user.id);
