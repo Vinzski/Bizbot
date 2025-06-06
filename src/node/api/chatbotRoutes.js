@@ -163,6 +163,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 router.get('/count', authenticate, async (req, res) => {
     
     try {
+        console.log("Authenticated user ID:", req.user?.id);
         // Ensure userId is ObjectId type
         const userId = mongoose.Types.ObjectId(req.user.id);
 
