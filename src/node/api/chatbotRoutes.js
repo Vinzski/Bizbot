@@ -160,23 +160,17 @@ router.delete('/:id', authenticate, async (req, res) => {
     }
 });
 
-router.get('/count', authenticate, async (req, res) => {
-    if (!req.user || !req.user.id) {
-        return res.status(400).json({ message: 'Invalid or missing user ID' });
-    }
-
+router.get('/count', async (req, res) => {
     try {
-        // Ensure userId is ObjectId type
-        const userId = mongoose.Types.ObjectId(req.user.id);
-
-        // Fetch chatbot count for the user
-        const chatbotCount = await Chatbot.countDocuments({ userId: userId });
+        // Count all chatbots (no user-specific filtering)
+        const chatbotCount = await Chatbot.countDocuments();
         res.json({ count: chatbotCount });
     } catch (error) {
         console.error('Error counting chatbots:', error);
         res.status(500).json({ message: 'Failed to count chatbots', error: error.toString() });
     }
 });
+
 
 router.get('/:chatbotId', authenticate, async (req, res) => {
     try {
