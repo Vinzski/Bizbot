@@ -493,6 +493,10 @@
     const widget = document.getElementById("chatbot-widget");
     const toggle = document.getElementById("chat-toggle");
     
+    // Enable transitions for smooth movement
+    widget.style.transition = 'all 0.3s ease-out';
+    toggle.style.transition = 'all 0.3s ease-out';
+    
     if (side === 'left') {
       widget.style.left = '20px';
       widget.style.right = 'auto';
@@ -582,24 +586,42 @@
       clientY = e.clientY;
     }
 
-    currentX = clientX - startX;
-    currentY = clientY - startY;
-
+    // Get the widget and determine which one is visible
     const widget = document.getElementById("chatbot-widget");
     const toggle = document.getElementById("chat-toggle");
     const target = widget.style.display !== 'none' ? widget : toggle;
-
-    // Apply transform for smooth dragging
-    target.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.05)`;
+    
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate boundaries to keep the element within the viewport
+    const targetRect = target.getBoundingClientRect();
+    const targetWidth = targetRect.width;
+    const targetHeight = targetRect.height;
+    
+    // Calculate new absolute position instead of using transforms
+    // This ensures the widget directly follows the cursor/finger
+    let newLeft = clientX - (targetWidth / 2);
+    let newBottom = viewportHeight - clientY - (targetHeight / 2);
+    
+    // Keep the widget within viewport boundaries
+    newLeft = Math.max(10, Math.min(newLeft, viewportWidth - targetWidth - 10));
+    newBottom = Math.max(10, Math.min(newBottom, viewportHeight - targetHeight - 10));
+    
+    // Apply the new position directly
+    target.style.transition = 'none'; // Disable transitions for smooth dragging
+    target.style.left = `${newLeft}px`;
+    target.style.right = 'auto';
+    target.style.bottom = `${newBottom}px`;
     
     // Add visual feedback for drop zones
-    const screenWidth = window.innerWidth;
-    const dropZoneWidth = screenWidth * 0.3; // 30% of screen width for drop zones
+    const dropZoneWidth = viewportWidth * 0.3; // 30% of screen width for drop zones
     
     if (clientX < dropZoneWidth) {
       // Left drop zone
       target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.5)';
-    } else if (clientX > screenWidth - dropZoneWidth) {
+    } else if (clientX > viewportWidth - dropZoneWidth) {
       // Right drop zone
       target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.5)';
     } else {
@@ -638,17 +660,16 @@
     } else if (clientX > screenWidth - dropZoneWidth) {
       newSide = 'right';
     } else {
-      // If dropped in the middle, keep current side
-      const currentPosition = getWidgetPosition();
-      newSide = currentPosition.side;
+      // If dropped in the middle, determine closest side
+      newSide = (clientX < screenWidth / 2) ? 'left' : 'right';
     }
 
     // Reset styles
+    target.style.transition = ''; // Re-enable transitions
     target.style.transform = '';
     target.style.opacity = '';
-    target.style.transition = '';
-    target.style.cursor = '';
     target.style.boxShadow = '';
+    target.style.cursor = '';
 
     // Remove drag indicator
     const dragIndicator = document.getElementById('drag-indicator');
@@ -656,11 +677,13 @@
       dragIndicator.remove();
     }
 
-    // Set new position
+    // Set new position with animation
+    target.style.transition = 'all 0.3s ease-out';
     setWidgetPosition(newSide);
 
     // Add success feedback
-    if (newSide !== getWidgetPosition().side) {
+    const currentPosition = getWidgetPosition();
+    if (newSide !== currentPosition.side) {
       const successIndicator = document.createElement('div');
       successIndicator.innerHTML = `✅ Moved to ${newSide} side`;
       successIndicator.style.cssText = `
